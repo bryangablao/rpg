@@ -139,6 +139,13 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .mapcap{padding:10px 0 14px;text-align:center;min-height:62px;color:var(--mute);font-size:15px}
 .mapcap b{display:block;color:var(--gold);font:900 18px var(--display);letter-spacing:.06em}
 .trail{animation:trail 1.2s ease-out forwards}
+#mapSvg .mon{animation:bob 5.5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+#mapSvg .mlabel{font:700 11px 'Cinzel',Georgia,serif;letter-spacing:.22em;fill:rgba(190,225,240,.62);text-anchor:middle;paint-order:stroke;stroke:rgba(4,8,16,.8);stroke-width:3px;pointer-events:none}
+#mapSvg .worldname{font:900 40px 'Cinzel',Georgia,serif;letter-spacing:.3em;fill:#e3b550;paint-order:stroke;stroke:rgba(0,0,0,.75);stroke-width:5px;pointer-events:none}
+#mapSvg .worldsub{font:700 13px 'Alegreya Sans',system-ui,sans-serif;letter-spacing:.42em;fill:#d9c79a;pointer-events:none}
+#mapSvg .cpt{font:900 14px 'Cinzel',Georgia,serif;fill:#e3b550;text-anchor:middle;paint-order:stroke;stroke:rgba(0,0,0,.8);stroke-width:3px}
+@media (prefers-reduced-motion:reduce){#mapSvg .mon{animation:none}}
 @keyframes trail{to{opacity:0;r:1}}
 
 /* game */
@@ -196,6 +203,54 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .res strong{color:var(--gold)}
 @media (max-width:560px){.hubBody{padding-top:64px}.row{flex-wrap:wrap}.row .act{width:100%}.res{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.door,.glow,.gate{transition-duration:.01s}#gc.wake{animation:none}}
+
+/* responsive: scale the UI up on big screens, tighten it on short landscape phones, pan the map on narrow portrait phones */
+:root{--ui:1}
+.wrap,.hubBody,.mapbar,.mapcap,.sheet,.doormsg{zoom:var(--ui)}
+#hud>*{zoom:var(--ui)}
+.gate{width:min(86vw,calc(560px*var(--ui)));height:min(74vh,calc(660px*var(--ui)))}
+@media (max-width:600px) and (max-aspect-ratio:1/1){
+ .mapbox{overflow:auto;-webkit-overflow-scrolling:touch}
+ #mapSvg{position:relative;inset:auto;width:auto;min-width:100%;height:100%;aspect-ratio:1000/640}
+}
+@media (max-height:500px){
+ .wrap{padding:14px 0 18px;gap:10px}
+ h1.title{font-size:clamp(22px,4.5vw,32px)}
+ .card{padding:8px 8px 10px;gap:2px}
+ .card canvas{max-width:92px}
+ .card b{font-size:17px}
+ .card span{font-size:12.5px}
+ .card .stats{font-size:11px;margin-top:2px}
+ #sName .card canvas{max-width:84px}
+ .hubBody{padding:44px 0 10px;flex-wrap:nowrap;gap:clamp(20px,5vw,60px)}
+ .heropane canvas{width:auto;height:min(46vh,190px)}
+ .hname{font-size:20px}
+ .logo{font-size:28px;margin-bottom:2px}
+ .menu{gap:8px}
+ .big{padding:9px 16px;font-size:17px}
+ .big small{display:none}
+ .sheet{padding:12px 14px 14px;gap:10px}
+ .hudTC{font-size:20px}
+ .mapbar{padding:6px 0}
+ .mapcap{padding:4px 0 8px;min-height:46px;font-size:14px}
+}
+@media (max-height:500px) and (min-width:700px){
+ .cards{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+ .cards.two{grid-template-columns:repeat(2,minmax(120px,170px))}
+}
+
+/* shop + bag */
+.stickhd{position:sticky;top:-18px;z-index:3;margin:-18px -18px 0;padding:18px 18px 10px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+.tabrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{padding:7px 12px}
+.own{color:var(--mute);font-weight:500;font-size:14px}
+.tag{font:700 11px var(--body);letter-spacing:.12em;text-transform:uppercase;margin-left:8px}
+.row .act .own{font-size:13px}
+.buffs{top:calc(env(safe-area-inset-top,0px) + 66px);left:max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:4px}
+.bf{font:700 12px var(--body);padding:3px 8px;background:rgba(13,10,18,.72);border-left:3px solid var(--c);color:#fff;text-shadow:0 1px 2px #000}
+.bf b{color:var(--c);margin-left:4px}
+@media (max-height:500px){.stickhd{top:-12px;margin:-12px -14px 0;padding:12px 14px 8px}}
 </style>
 
 <div id="app">
@@ -250,7 +305,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 
 <section class="screen pad" id="sMap">
   <div class="mapbar"><button class="btn ghost" id="mapBack">Back</button><h2>Choose Your Landing</h2></div>
-  <div class="mapbox"><svg id="mapSvg" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="World map"></svg></div>
+  <div class="mapbox"><svg id="mapSvg" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Map of Mythara, the Known World"></svg></div>
   <div class="mapcap" id="mapCap">Select a continent to send your light there.</div>
 </section>
 
@@ -261,11 +316,13 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
     <div class="hudTC" id="hTime">0:00</div>
     <div class="hudTR"><button class="iconbtn" id="pauseBtn" aria-label="Pause">II</button><span class="chip" id="hGold">0</span><span class="chip k" id="hKills">0</span></div>
     <div class="hudBL" id="questTrack"></div>
-    <div class="hudBR"><button class="btn small" id="actBtn" hidden>Talk</button><button class="btn small" id="potBtn">Potion</button></div>
+    <div class="buffs" id="buffs"></div>
+    <div class="hudBR"><button class="btn small" id="actBtn" hidden>Talk</button><button class="btn small" id="bagBtn">Bag</button><button class="btn small" id="potBtn">Potion</button></div>
     <div id="toast"></div><div id="banner"></div>
   </div>
   <div class="stick" id="stick"><i id="stickKnob"></i></div>
   <div class="modal pad" id="lvlModal"><div class="sheet"><div class="sheethead"><h2 id="lvlTitle">Level Up</h2></div><div class="lvlcards" id="lvlCards"></div></div></div>
+  <div class="modal pad" id="bagModal"><div class="sheet" id="bagSheet"></div></div>
   <div class="modal pad" id="dlgModal"><div class="sheet" id="dlgSheet"></div></div>
   <div class="modal pad" id="pauseModal"><div class="sheet" style="max-width:420px"><div class="sheethead"><h2>Paused</h2></div><div class="rows"><button class="btn" id="resumeBtn">Resume</button><button class="btn ghost" id="pauseSet">Settings</button><button class="btn danger" id="retreatBtn">Retreat to Hub</button></div></div></div>
   <div class="modal pad" id="resModal"><div class="sheet" style="max-width:460px"><div class="sheethead"><h2 id="resTitle">Fallen</h2></div><div class="res" id="resBody"></div><button class="btn" id="resBtn">Return to Hub</button></div></div>
@@ -341,10 +398,97 @@ const UPS=[
 const UPMAX=8,POTION_PRICE=40;
 const upCost=(u,lv)=>Math.round(u.base*(1+lv*.8));
 
+/* ============ GEAR + ITEMS DATA ============ */
+const RAR=['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+const TIER_COL=['#9a8f7e','#6cbf5a','#4aa0e0','#a070e0','#e8a23a','#ff5a6a'];
+const ANAMES=[
+ 'Tattered Tunic','Traveler’s Cloak','Padded Vest','Boiled Leather Cuirass','Healer’s Linen Robe',
+ 'Leather Armor','Studded Leather','Ranger’s Coat','Iron Chainmail','Wolfhide Mantle',
+ 'Mageweave Robe','Frostwool Coat','Hunter’s Brigandine','Knight’s Plate','Bearhide Harness',
+ 'Sandstalker Wrap','Tidecaller Vest','Jungle Warden Mail','Ember Plate','Frostbear Pelt',
+ 'Shadowweave Garb','Stormcaller Coat','Wyrmscale Mail','Obsidian Plate','Runic Aegis Harness',
+ 'Celestial Robe','Voidwalker Shroud','Dragonlord Mail','Archangel Plate','Titanheart Armor'];
+const A_TA=[0,1,2,3,4,5],A_TH=[10,25,45,70,100,140],A_PRICE=[60,180,450,1000,2100,4200];
+const A_POS=[{a:0,h:1.3,s:6},{a:1,h:.9,s:2},{a:1,h:1.2,s:0},{a:2,h:1,s:-4},{a:1,h:1.6,s:0}];
+const ARMORS=ANAMES.map((n,i)=>{const t=Math.floor(i/5)+1,p=i%5,P=A_POS[p];return{id:'a_'+i,n,t,a:A_TA[t-1]+P.a,h:Math.round(A_TH[t-1]*P.h),s:P.s,price:i===0?0:Math.round(A_PRICE[t-1]*(1+p*.12)/5)*5}});
+const ARMOR_BY=Object.fromEntries(ARMORS.map(a=>[a.id,a]));
+const WNAMES={
+ archer:['Oak Shortbow','Hunter’s Longbow','Elven Recurve','Dragonbone Bow','Starfall Bow'],
+ warrior:['Rusty Shortsword','Iron Longsword','Steel Claymore','Flameberge','Dawnbreaker'],
+ guardian:['Oak Club & Buckler','Iron Mace & Kite Shield','Spiked Morningstar & Heater','Titan Warhammer & Tower Shield','Worldbreaker & Aegis'],
+ mage:['Apprentice Staff','Oakheart Staff','Crystal Staff','Archmage Staff','Starweaver Staff'],
+ assassin:['Rusty Daggers','Steel Stilettos','Venom Fangs','Shadow Kris','Nightbane Blades'],
+ lancer:['Wooden Spear','Iron Pike','Steel Glaive','Wyvern Lance','Skypiercer']};
+const W_PERK=[{d:1},{d:1.2,c:.04},{d:1.4,h:.92},{d:1.7,a:1.12,c:.04,p:1},{d:2.1,h:.9,c:.08,a:1.1,p:1}],W_PRICE=[0,160,420,1000,2400];
+const WEAPONS=[];Object.keys(WNAMES).forEach(cls=>WNAMES[cls].forEach((n,i)=>{const P=W_PERK[i];WEAPONS.push({id:`w_${cls}_${i}`,cls,i,n,d:P.d,c:P.c||0,h:P.h||1,a:P.a||1,p:(cls==='archer'||cls==='assassin')?(P.p||0):0,price:W_PRICE[i]})}));
+const WEAPON_BY=Object.fromEntries(WEAPONS.map(w=>[w.id,w]));
+const CAT_LABEL={heal:'Healing',regen:'Regeneration',buff:'Potions & Buffs',throw:'Bombs & Scrolls',charm:'Charms'};
+const BUFF_COL={dmg:'#e2553b',haste:'#f0d050',spd:'#6cd0a0',armor:'#8aa0c0',crit:'#ffb040',mag:'#a070e0',xp:'#7fd0ee',gold:'#e3b550',area:'#c88a3a',shield:'#9fe3ff',regen:'#6cbf5a'};
+const CAT_COL={heal:'#d9434f',throw:'#e2553b',charm:'#c58aff'};
+const ITEM_DEFS=[
+ ['bandage','Bandage','heal','Restores 20% of your health.',15,{t:'heal',p:.2}],
+ ['bread','Fresh Bread','heal','Restores 25% of your health.',20,{t:'heal',p:.25}],
+ ['salve','Herbal Salve','heal','Restores 30% of your health.',25,{t:'heal',p:.3}],
+ ['minorpot','Minor Health Potion','heal','Restores 35% of your health.',30,{t:'heal',p:.35}],
+ ['honeycake','Honey Cake','heal','Restores 40% of your health.',35,{t:'heal',p:.4}],
+ ['potion','Health Potion','heal','Restores 50% of your health. Press Q to drink one.',40,{t:'heal',p:.5}],
+ ['boar','Roasted Boar Meat','heal','Restores 45% of your health.',45,{t:'heal',p:.45}],
+ ['stew','Fisherman’s Stew','heal','Restores 60% of your health.',55,{t:'heal',p:.6}],
+ ['greaterpot','Greater Health Potion','heal','Restores 75% of your health.',90,{t:'heal',p:.75}],
+ ['grandelixir','Grand Elixir','heal','Fully restores your health.',160,{t:'heal',p:1}],
+ ['mosstea','Moss Tea','regen','Regenerate 1.5 health per second for 30s.',45,{t:'buff',stat:'regen',v:1.5,dur:30}],
+ ['incense','Healing Incense','regen','Regenerate 4 health per second for 15s.',80,{t:'buff',stat:'regen',v:4,dur:15}],
+ ['trollsweat','Troll Sweat','regen','Regenerate 3 health per second for 25s.',90,{t:'buff',stat:'regen',v:3,dur:25}],
+ ['lifebloom','Lifebloom Seed','regen','Regenerate 2 health per second for 45s.',100,{t:'buff',stat:'regen',v:2,dur:45}],
+ ['whetoil','Whetstone Oil','buff','+20% damage for 60s.',60,{t:'buff',stat:'dmg',v:.2,dur:60}],
+ ['berserk','Berserker Brew','buff','+40% damage for 40s.',110,{t:'buff',stat:'dmg',v:.4,dur:40}],
+ ['dragonblood','Dragon’s Blood','buff','+60% damage for 30s.',160,{t:'buff',stat:'dmg',v:.6,dur:30}],
+ ['quickdraw','Quickdraw Tonic','buff','Attack 20% faster for 60s.',70,{t:'buff',stat:'haste',v:.2,dur:60}],
+ ['stormdraught','Stormcaller Draught','buff','Attack 40% faster for 40s.',140,{t:'buff',stat:'haste',v:.4,dur:40}],
+ ['feather','Swift Feather','buff','+20% move speed for 60s.',50,{t:'buff',stat:'spd',v:.2,dur:60}],
+ ['catsgrace','Cat’s Grace','buff','+30% move speed for 50s.',75,{t:'buff',stat:'spd',v:.3,dur:50}],
+ ['windrunner','Windrunner Potion','buff','+40% move speed for 40s.',100,{t:'buff',stat:'spd',v:.4,dur:40}],
+ ['stoneskin','Stoneskin Potion','buff','+2 armor for 60s.',80,{t:'buff',stat:'armor',v:2,dur:60}],
+ ['ironbark','Ironbark Tonic','buff','+4 armor for 40s.',150,{t:'buff',stat:'armor',v:4,dur:40}],
+ ['hawkeye','Hawk Eye Drops','buff','+15% critical chance for 60s.',70,{t:'buff',stat:'crit',v:.15,dur:60}],
+ ['venom','Assassin’s Venom','buff','+30% critical chance for 40s.',130,{t:'buff',stat:'crit',v:.3,dur:40}],
+ ['magnetcharm','Magnet Charm','buff','+100% pickup range for 90s.',45,{t:'buff',stat:'mag',v:1,dur:90}],
+ ['scholar','Scholar’s Incense','buff','+50% experience from gems for 90s.',60,{t:'buff',stat:'xp',v:.5,dur:90}],
+ ['sage','Sage’s Elixir','buff','+100% experience from gems for 60s.',120,{t:'buff',stat:'xp',v:1,dur:60}],
+ ['golddust','Gold Dust','buff','+50% gold found for 90s.',55,{t:'buff',stat:'gold',v:.5,dur:90}],
+ ['merchant','Merchant’s Blessing','buff','+100% gold found for 60s.',110,{t:'buff',stat:'gold',v:1,dur:60}],
+ ['giantgrip','Giant’s Grip','buff','+30% weapon range and area for 60s.',85,{t:'buff',stat:'area',v:.3,dur:60}],
+ ['spiritshield','Spirit Shield','buff','You cannot be hurt for 5s.',120,{t:'shield',dur:5}],
+ ['aegisscroll','Aegis Scroll','buff','You cannot be hurt for 8s.',190,{t:'shield',dur:8}],
+ ['firebomb','Firebomb','throw','60 damage to foes around you.',50,{t:'bomb',dmg:60,r:160,stun:0}],
+ ['smoke','Smoke Bomb','throw','Stuns all nearby foes for 4s.',60,{t:'bomb',dmg:0,r:270,stun:4}],
+ ['poison','Poison Flask','throw','80 damage in an area.',65,{t:'bomb',dmg:80,r:190,stun:0}],
+ ['frostbomb','Frost Bomb','throw','20 damage and freezes nearby foes for 3s.',70,{t:'bomb',dmg:20,r:220,stun:3}],
+ ['holywater','Holy Water','throw','90 damage to foes around you.',80,{t:'bomb',dmg:90,r:230,stun:0}],
+ ['keg','Powder Keg','throw','120 damage in a wide blast.',90,{t:'bomb',dmg:120,r:210,stun:0}],
+ ['nova','Nova Crystal','throw','160 damage and a strong knockback.',130,{t:'bomb',dmg:160,r:250,stun:.6,kb:380}],
+ ['meteor','Meteor Scroll','throw','250 damage in a huge blast.',200,{t:'bomb',dmg:250,r:300,stun:0}],
+ ['thunder','Thunder Scroll','throw','6 lightning strikes of 50 damage.',100,{t:'bolt',n:6,dmg:50}],
+ ['storm','Storm Scroll','throw','12 lightning strikes of 70 damage.',210,{t:'bolt',n:12,dmg:70}],
+ ['xpscroll','XP Scroll','throw','Gain 10 experience at once.',40,{t:'xp',v:10}],
+ ['xptome','Greater XP Tome','throw','Gain 35 experience at once.',120,{t:'xp',v:35}],
+ ['magnetscroll','Magnet Scroll','throw','Pulls every gem, coin and drop to you.',55,{t:'vac'}],
+ ['revivecharm','Revival Charm','charm','Carried automatically. Revives you once with 30% health.',250,{t:'revive',p:.3}],
+ ['phoenix','Phoenix Feather','charm','Carried automatically. Revives you once with 60% health.',500,{t:'revive',p:.6}],
+ ['angel','Guardian Angel','charm','Carried automatically. Revives you once with full health.',900,{t:'revive',p:1}]
+];
+const ITEMS=ITEM_DEFS.map(([id,n,cat,d,price,fx])=>({id,n,cat,d,price,fx,c:fx.stat?BUFF_COL[fx.stat]:fx.t==='shield'?BUFF_COL.shield:(CAT_COL[cat]||'#e3b550')}));
+const ITEM_BY=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+const isOwned=g=>g.price===0||!!S.own[g.id];
+function equippedW(){const w=WEAPON_BY[S.equip.w];if(w&&S.hero&&w.cls===S.hero.cls&&isOwned(w))return w;return WEAPON_BY[`w_${S.hero?S.hero.cls:'archer'}_0`]}
+function equippedA(){const a=ARMOR_BY[S.equip.a];return a&&isOwned(a)?a:ARMORS[0]}
+const wStat=w=>`×${w.d.toFixed(2)} damage`+(w.c?` · +${Math.round(w.c*100)}% crit`:'')+(w.h<1?` · ${Math.round((1-w.h)*100)}% faster attacks`:'')+(w.a>1?` · +${Math.round((w.a-1)*100)}% range`:'')+(w.p?` · pierces +${w.p}`:'');
+const aStat=a=>`+${a.a} armor · +${a.h} health`+(a.s?` · ${a.s>0?'+':''}${a.s}% speed`:'');
+
 /* ============ SAVE ============ */
 const KEY='sevenRealms.save.v1';
-const defSave=()=>({hero:null,gold:60,up:{dmg:0,hp:0,spd:0,gold:0,mag:0},items:{potion:2},best:{},runs:0,set:{sfx:.6,music:.35,dmgnum:true,shake:true,joy:true}});
-function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&typeof j==='object'){const d=defSave();return Object.assign(d,j,{set:Object.assign(d.set,j.set||{}),up:Object.assign(d.up,j.up||{}),items:j.items||d.items,best:j.best||{}})}}catch(e){}return defSave()}
+const defSave=()=>({hero:null,gold:60,up:{dmg:0,hp:0,spd:0,gold:0,mag:0},items:{potion:2},own:{},equip:{w:null,a:null},best:{},runs:0,set:{sfx:.6,music:.35,dmgnum:true,shake:true,joy:true}});
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&typeof j==='object'){const d=defSave();return Object.assign(d,j,{set:Object.assign(d.set,j.set||{}),up:Object.assign(d.up,j.up||{}),items:j.items||d.items,own:j.own||{},equip:Object.assign({w:null,a:null},j.equip||{}),best:j.best||{}})}}catch(e){}return defSave()}
 let S=load();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
@@ -405,7 +549,7 @@ $('#nameBack').onclick=()=>{sfx('click');show('sGender')};
 $('#nameInput').addEventListener('input',nameInput);
 $('#nameInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('#nameNext').disabled)$('#nameNext').click()});
 $('#nameNext').onclick=()=>{const raw=$('#nameInput').value;if(!validName(raw))return;const nm=raw.charAt(0).toUpperCase()+raw.slice(1).toLowerCase();
- S.hero={name:nm,cls:sel.cls,gender:sel.gender};save();playDoors()};
+ S.hero={name:nm,cls:sel.cls,gender:sel.gender};S.equip.w=null;save();playDoors()};
 $('#contBtn').onclick=()=>{sfx('click');ac();enterHub()};
 
 function playDoors(){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom');$('#doorMsg').textContent='The gates of Seven Realms stir…';
@@ -422,7 +566,7 @@ function enterHub(){const h=S.hero;if(!h){enterClass();return}
 function refreshGold(){const t=String(S.gold);$('#hubGold').textContent=t;$('#hGold').textContent=t}
 function hubFx(t){requestAnimationFrame(hubFx);if(cur!=='sHub')return;const c=$('#hubFx'),w=c.clientWidth,h=c.clientHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h;hubStars=Array.from({length:70},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.8+.4,s:Math.random()*30+8,p:Math.random()*TAU}))}
  const g=c.getContext('2d');g.clearRect(0,0,w,h);for(const s of hubStars){s.y-=s.s*.016;if(s.y<-5){s.y=h+5;s.x=Math.random()*w}const a=.35+.35*Math.sin(t/700+s.p);g.fillStyle=`rgba(255,214,130,${a})`;g.beginPath();g.arc(s.x+Math.sin(t/1800+s.p)*10,s.y,s.r,0,TAU);g.fill()}}
-$$('#sHub .big').forEach(b=>b.onclick=()=>{sfx('click');ac();const a=b.dataset.act;if(a==='play')enterMap();else if(a==='inv')openInv();else if(a==='shop')openShop('buy');else openSettings()});
+$$('#sHub .big').forEach(b=>b.onclick=()=>{sfx('click');ac();const a=b.dataset.act;if(a==='play')enterMap();else if(a==='inv')openInv();else if(a==='shop')openShop('items',true);else openSettings()});
 
 /* sheets */
 function openSheet(html){$('#sheet').innerHTML=html;$('#sheetModal').classList.add('on')}
@@ -431,23 +575,37 @@ $('#sheetModal').addEventListener('click',e=>{if(e.target.id==='sheetModal')clos
 const icon=c=>`<div class="ic" style="background:radial-gradient(circle at 35% 30%,#fff9 0,${c} 45%,#0006 100%)"></div>`;
 function head(t){return `<div class="sheethead"><h2>${t}</h2><button class="btn ghost" data-close>Close</button></div>`}
 function bindClose(){$$('#sheet [data-close]').forEach(b=>b.onclick=()=>{sfx('click');closeSheet()})}
-function openInv(){const h=S.hero,c=CLASSES[h.cls];
- let gear=UPS.map(u=>{const lv=S.up[u.k];return `<div class="row">${icon(u.c)}<div class="tx"><b>${u.n} · Lv ${lv}</b><span>${u.d}</span><div class="pips">${Array.from({length:UPMAX},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div></div></div>`}).join('');
- const mats=Object.keys(S.items).filter(k=>S.items[k]>0);
- let slots='';mats.forEach(k=>{const it=k==='potion'?{n:'Health Potion',c:'#d9434f'}:MATS[k];if(!it)return;slots+=`<div class="slot" title="${it.n}">${icon(it.c)}<span>${it.n}</span><span class="n">${S.items[k]}</span></div>`});
- for(let i=mats.length;i<12;i++)slots+='<div class="slot"></div>';
- openSheet(head('Inventory')+`<div class="row"><canvas class="pv" width="110" height="130" data-cls="${h.cls}" data-gen="${h.gender}" style="width:70px;height:auto;flex:none"></canvas><div class="tx"><b>${h.name}</b><span>${c.name} · wielding ${c.weapon}</span><span>Base HP ${c.hp} · Speed ${c.spd} · Armor ${c.armor} · Runs ${S.runs}</span></div></div><div class="sec">Equipment</div><div class="rows">${gear}</div><div class="sec">Bag</div><div class="grid">${slots}</div><p class="sub" style="text-align:left;margin:0">Health potions are used in the field with Q or the Potion button. Sell materials at the shop.</p>`);bindClose()}
-function openShop(tab){const items=S.items;
- let body='';
- if(tab==='buy'){body=`<div class="rows"><div class="row">${icon('#d9434f')}<div class="tx"><b>Health Potion · ${POTION_PRICE}g</b><span>Restores half your health. You carry ${items.potion||0}.</span></div><div class="act"><button class="btn small" data-buy="potion">Buy</button></div></div>`+
-  UPS.map(u=>{const lv=S.up[u.k],max=lv>=UPMAX,cost=upCost(u,lv);return `<div class="row">${icon(u.c)}<div class="tx"><b>${u.n} · Lv ${lv}/${UPMAX}</b><span>${u.d}</span><div class="pips">${Array.from({length:UPMAX},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div></div><div class="act"><button class="btn small" data-up="${u.k}" ${max||S.gold<cost?'disabled':''}>${max?'Maxed':'Upgrade · '+cost+'g'}</button></div></div>`}).join('')+'</div>'}
+function gearRow(g,isW){const col=isW?TIER_COL[g.i]:TIER_COL[g.t-1],rar=isW?RAR[g.i]:RAR[g.t-1],own=isOwned(g);let btn;
+ if(isW&&g.cls!==S.hero.cls)btn=`<button class="btn small" disabled>${CLASSES[g.cls].name} only</button>`;
+ else if((isW?equippedW():equippedA()).id===g.id)btn='<button class="btn small" disabled>Equipped</button>';
+ else if(own)btn=`<button class="btn small" data-equip="${g.id}">Equip</button>`;
+ else btn=`<button class="btn small" data-buygear="${g.id}" ${S.gold<g.price?'disabled':''}>Buy · ${g.price}g</button>`;
+ return `<div class="row">${icon(col)}<div class="tx"><b>${g.n}<small class="tag" style="color:${col}">${rar}</small></b><span>${isW?wStat(g):aStat(g)}</span></div><div class="act">${btn}</div></div>`}
+function openInv(){const h=S.hero,c=CLASSES[h.cls],W=equippedW(),A=equippedA();
+ const gear=gearRow(W,true).replace(/<div class="act">.*?<\/div>/,'')+gearRow(A,false).replace(/<div class="act">.*?<\/div>/,'');
+ const ups=UPS.map(u=>{const lv=S.up[u.k];return `<div class="row">${icon(u.c)}<div class="tx"><b>${u.n} · Lv ${lv}</b><span>${u.d}</span><div class="pips">${Array.from({length:UPMAX},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div></div></div>`}).join('');
+ let slots='',cnt=0;
+ for(const it of ITEMS){const n=S.items[it.id]||0;if(n>0){cnt++;slots+=`<div class="slot" title="${it.n}: ${it.d}">${icon(it.c)}<span>${it.n}</span><span class="n">${n}</span></div>`}}
+ for(const k of Object.keys(S.items)){const n=S.items[k];if(n>0&&MATS[k]){cnt++;slots+=`<div class="slot" title="${k}">${icon(MATS[k].c)}<span>${k}</span><span class="n">${n}</span></div>`}}
+ for(let i=cnt;i<12;i++)slots+='<div class="slot"></div>';
+ openSheet(head('Inventory')+`<div class="row"><canvas class="pv" width="110" height="130" data-cls="${h.cls}" data-gen="${h.gender}" style="width:70px;height:auto;flex:none"></canvas><div class="tx"><b>${h.name}</b><span>${c.name} · wielding ${W.n}</span><span>Base HP ${c.hp} · Speed ${c.spd} · Armor ${c.armor} · Runs ${S.runs}</span></div></div><div class="sec">Equipped</div><div class="rows">${gear}</div><div class="sec">Upgrades</div><div class="rows">${ups}</div><div class="sec">Bag</div><div class="grid">${slots}</div><p class="sub" style="text-align:left;margin:0">In a run, press B or tap Bag to use items. Press Q to drink a Health Potion. Change gear in the shop.</p>`);bindClose()}
+let shopTab='items';
+function openShop(tab,reset){tab=tab||shopTab;shopTab=tab;const was=$('#sheetModal').classList.contains('on'),sc=$('#sheet').scrollTop,items=S.items;let body='';
+ if(tab==='items'){const cats=Object.keys(CAT_LABEL);body=cats.map(cat=>`<div class="sec">${CAT_LABEL[cat]}</div><div class="rows">`+ITEMS.filter(i=>i.cat===cat).map(it=>{const n=items[it.id]||0;return `<div class="row">${icon(it.c)}<div class="tx"><b>${it.n}${n?` <small class="own">×${n}</small>`:''}</b><span>${it.d}</span></div><div class="act"><button class="btn small" data-buyitem="${it.id}" ${S.gold<it.price||n>=99?'disabled':''}>${n>=99?'Full':'Buy · '+it.price+'g'}</button></div></div>`}).join('')+'</div>').join('')}
+ else if(tab==='armors'){body='<div class="rows">'+ARMORS.map(a=>gearRow(a,false)).join('')+'</div>'}
+ else if(tab==='weapons'){const order=[S.hero.cls].concat(Object.keys(CLASSES).filter(c=>c!==S.hero.cls));body=order.map(cls=>`<div class="sec">${CLASSES[cls].name} · ${CLASSES[cls].weapon}${cls===S.hero.cls?' (your class)':''}</div><div class="rows">`+WEAPONS.filter(w=>w.cls===cls).map(w=>gearRow(w,true)).join('')+'</div>').join('')}
+ else if(tab==='up'){body='<div class="rows">'+UPS.map(u=>{const lv=S.up[u.k],max=lv>=UPMAX,cost=upCost(u,lv);return `<div class="row">${icon(u.c)}<div class="tx"><b>${u.n} · Lv ${lv}/${UPMAX}</b><span>${u.d}</span><div class="pips">${Array.from({length:UPMAX},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div></div><div class="act"><button class="btn small" data-up="${u.k}" ${max||S.gold<cost?'disabled':''}>${max?'Maxed':'Upgrade · '+cost+'g'}</button></div></div>`}).join('')+'</div>'}
  else{const ks=Object.keys(MATS).filter(k=>items[k]>0);body=ks.length?'<div class="rows">'+ks.map(k=>`<div class="row">${icon(MATS[k].c)}<div class="tx"><b>${k} × ${items[k]}</b><span>${SELL_PRICE}g each</span></div><div class="act"><button class="btn small" data-sell="${k}" data-n="1">Sell 1</button><button class="btn small" data-sell="${k}" data-n="all">Sell all · ${items[k]*SELL_PRICE}g</button></div></div>`).join('')+'</div>':'<p class="sub">You have no materials to sell. Defeat monsters in the realms to find some.</p>'}
- openSheet(head('Shop')+`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="tabs"><button class="tab ${tab==='buy'?'on':''}" data-tab="buy">Buy</button><button class="tab ${tab==='sell'?'on':''}" data-tab="sell">Sell</button></div><span class="chip">${S.gold}</span></div>`+body);bindClose();
- $$('#sheet [data-tab]').forEach(b=>b.onclick=()=>{sfx('click');openShop(b.dataset.tab)});
- $$('#sheet [data-buy]').forEach(b=>b.onclick=()=>{if(S.gold>=POTION_PRICE){S.gold-=POTION_PRICE;S.items.potion=(S.items.potion||0)+1;save();sfx('buy');openShop('buy')}else toastShop('Not enough gold')});
- $$('#sheet [data-up]').forEach(b=>b.onclick=()=>{const u=UPS.find(x=>x.k===b.dataset.up),lv=S.up[u.k],cost=upCost(u,lv);if(S.gold>=cost&&lv<UPMAX){S.gold-=cost;S.up[u.k]++;save();sfx('buy');openShop('buy')}});
- $$('#sheet [data-sell]').forEach(b=>b.onclick=()=>{const k=b.dataset.sell,n=b.dataset.n==='all'?items[k]:1;if(items[k]>=n){items[k]-=n;S.gold+=n*SELL_PRICE;save();sfx('coin');openShop('sell')}})}
-function toastShop(m){sfx('hurt')}
+ const TABS=[['items','Items'],['armors','Armors'],['weapons','Weapons'],['up','Upgrades'],['sell','Sell']];
+ openSheet(`<div class="stickhd">${head('Shop')}<div class="tabrow"><div class="tabs">${TABS.map(t=>`<button class="tab ${tab===t[0]?'on':''}" data-tab="${t[0]}">${t[1]}</button>`).join('')}</div><span class="chip">${S.gold}</span></div></div>`+body);bindClose();
+ if(was&&!reset)$('#sheet').scrollTop=sc;
+ $$('#sheet [data-tab]').forEach(b=>b.onclick=()=>{sfx('click');openShop(b.dataset.tab,true)});
+ $$('#sheet [data-buyitem]').forEach(b=>b.onclick=()=>{const it=ITEM_BY[b.dataset.buyitem];if(S.gold>=it.price&&(S.items[it.id]||0)<99){S.gold-=it.price;S.items[it.id]=(S.items[it.id]||0)+1;save();sfx('buy');openShop()}else toastShop()});
+ $$('#sheet [data-buygear]').forEach(b=>b.onclick=()=>{const g=WEAPON_BY[b.dataset.buygear]||ARMOR_BY[b.dataset.buygear];if(S.gold>=g.price&&!S.own[g.id]){S.gold-=g.price;S.own[g.id]=1;if(g.cls)S.equip.w=g.id;else S.equip.a=g.id;save();sfx('buy');openShop()}else toastShop()});
+ $$('#sheet [data-equip]').forEach(b=>{b.onclick=()=>{const id=b.dataset.equip;if(WEAPON_BY[id])S.equip.w=id;else S.equip.a=id;save();sfx('pick');openShop()}});
+ $$('#sheet [data-up]').forEach(b=>b.onclick=()=>{const u=UPS.find(x=>x.k===b.dataset.up),lv=S.up[u.k],cost=upCost(u,lv);if(S.gold>=cost&&lv<UPMAX){S.gold-=cost;S.up[u.k]++;save();sfx('buy');openShop()}});
+ $$('#sheet [data-sell]').forEach(b=>b.onclick=()=>{const k=b.dataset.sell,n=b.dataset.n==='all'?items[k]:1;if(items[k]>=n){items[k]-=n;S.gold+=n*SELL_PRICE;save();sfx('coin');openShop()}})}
+function toastShop(){sfx('hurt')}
 function openSettings(){const s=S.set;
  const tog=(k,l,d)=>`<div class="setrow"><label>${l}<br><small style="color:var(--mute)">${d}</small></label><button class="tog ${s[k]?'on':''}" data-tog="${k}" aria-label="${l}" aria-pressed="${!!s[k]}"></button></div>`;
  openSheet(head('Settings')+`<div class="setrow"><label>Sound effects</label><input type="range" min="0" max="1" step=".05" value="${s.sfx}" id="rSfx"></div><div class="setrow"><label>Music</label><input type="range" min="0" max="1" step=".05" value="${s.music}" id="rMus"></div>`+
@@ -463,9 +621,31 @@ let deploying=false;
 function blobPath(cx,cy,r,seed,pts,rough){const R=rng(seed),P=[];pts=pts||16;rough=rough==null?.26:rough;for(let i=0;i<pts;i++){const a=i/pts*TAU,rr=r*(1+(R()-.5)*2*rough);P.push([cx+Math.cos(a)*rr*1.18,cy+Math.sin(a)*rr*.86])}
  let d='';for(let i=0;i<pts;i++){const p0=P[(i-1+pts)%pts],p1=P[i],p2=P[(i+1)%pts],p3=P[(i+2)%pts];if(i===0)d+=`M${p1[0].toFixed(1)},${p1[1].toFixed(1)}`;
   d+=`C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`}return d+'Z'}
+
+const SEA_C='#1f5568',SEA_L='#7fc0d2';
+function seaDeco(){
+ const c=SEA_C,ln=SEA_L;
+ const eye=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r*2.6}" fill="#ff7a4a" opacity=".18"/><circle cx="${x}" cy="${y}" r="${r}" fill="#ff8a5a"/>`;
+ const lab=(x,y,t)=>`<text class="mlabel" x="${x}" y="${y}">${t}</text>`;
+ const kraken=(x,y,s,d)=>{let t='';for(let i=-2;i<=2;i++){const p=`M${i*8},12 q${i*9+6},16 ${i*6},32 t${-i*4+5},24`;t+=`<path d="${p}" fill="none" stroke="${c}" stroke-width="6.5" stroke-linecap="round"/><path d="${p}" fill="none" stroke="${ln}" stroke-width="1" opacity=".45" stroke-linecap="round"/>`}
+  return `<g transform="translate(${x},${y}) scale(${s})"><g class="mon" style="animation-delay:${d}s">${t}<ellipse cx="0" cy="-8" rx="23" ry="27" fill="${c}" stroke="${ln}" stroke-width="1.5"/>${eye(-8,-6,3.4)}${eye(8,-6,3.4)}</g></g>`};
+ const serpent=(x,y,s,d,fl)=>{const body='M-62,8 q15,-32 31,0 q15,-32 31,0 q15,-32 31,0 q7,-4 8,-24';
+  return `<g transform="translate(${x},${y}) scale(${fl?-s:s},${s})"><g class="mon" style="animation-delay:${d}s"><path d="M-70,14 q40,7 134,0" fill="none" stroke="rgba(140,200,230,.3)" stroke-width="1.5"/><path d="M-62,8 l-13,-9 M-62,8 l-11,11" fill="none" stroke="${c}" stroke-width="5" stroke-linecap="round"/><path d="${body}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="${body}" fill="none" stroke="${ln}" stroke-width="1" opacity=".45" stroke-linecap="round"/><ellipse cx="44" cy="-27" rx="13" ry="7.5" fill="${c}" stroke="${ln}" stroke-width="1.2"/>${eye(48,-29,2.4)}</g></g>`};
+ const fin=(x,y,s,d)=>`<g transform="translate(${x},${y}) scale(${s})"><g class="mon" style="animation-delay:${d}s"><path d="M-16,3 q22,-7 62,0" fill="none" stroke="rgba(140,200,230,.35)" stroke-width="1.5"/><path d="M0,0 L13,-30 L28,0 Z" fill="${c}" stroke="${ln}" stroke-width="1.2" stroke-linejoin="round"/></g></g>`;
+ const spiral=a0=>{let p='';for(let a=0;a<12.5;a+=.3){const r=3+a*2.6;p+=(a?'L':'M')+(Math.cos(a+a0)*r).toFixed(1)+','+(Math.sin(a+a0)*r).toFixed(1)}return `<path d="${p}" fill="none" stroke="rgba(150,205,230,.42)" stroke-width="1.6" stroke-linecap="round"/>`};
+ const whirl=`<g transform="translate(418,420) scale(1.25,.8)"><g><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="14s" repeatCount="indefinite"/>${spiral(0)}${spiral(Math.PI)}<circle r="4" fill="#050a14"/></g></g>`;
+ return whirl+lab(418,468,'MAELSTROM')+kraken(80,540,1,0)+lab(80,628,'KRAKEN')+serpent(415,584,1,1.2,false)+lab(415,622,'LEVIATHAN')+serpent(705,56,.9,2.1,true)+lab(705,98,'SEA SERPENT')+fin(940,362,1,.6)+fin(903,378,.7,1.8)+lab(935,402,'FINBACK')}
+function mapOverlay(){
+ const gold='#e3b550',gd='#a97c26';
+ const ticks=Array.from({length:24},(_,i)=>{const a=i*Math.PI/12,r1=i%6===0?35:39,r2=43;return `<line x1="${(Math.sin(a)*r1).toFixed(1)}" y1="${(-Math.cos(a)*r1).toFixed(1)}" x2="${(Math.sin(a)*r2).toFixed(1)}" y2="${(-Math.cos(a)*r2).toFixed(1)}"/>`}).join('');
+ const star='M0,-40 L7,-7 L40,0 L7,7 L0,40 L-7,7 L-40,0 L-7,-7Z';
+ const compass=`<g transform="translate(922,84)"><circle r="44" fill="rgba(7,13,26,.6)" stroke="${gd}" stroke-width="1.5"/><circle r="31" fill="none" stroke="${gd}" stroke-width=".8" opacity=".6"/><g stroke="${gd}" stroke-width="1.2">${ticks}</g><g><animateTransform attributeName="transform" type="rotate" values="-4;4;-4" dur="7s" repeatCount="indefinite"/><path d="${star}" transform="rotate(45) scale(.62)" fill="${gd}"/><path d="${star}" fill="${gold}" stroke="#2a1a05" stroke-width=".8" stroke-linejoin="round"/><path d="M0,-40 L7,-7 L-7,-7Z" fill="#e2553b"/><circle r="4" fill="#1a1020" stroke="${gold}"/></g><text class="cpt" y="-50">N</text><text class="cpt" x="58" y="5">E</text><text class="cpt" y="68">S</text><text class="cpt" x="-58" y="5">W</text></g>`;
+ const title=`<text class="worldname" x="190" y="66" text-anchor="middle">MYTHARA</text><text class="worldsub" x="190" y="90" text-anchor="middle">THE KNOWN WORLD</text><path d="M92,104 h196" stroke="${gd}" stroke-width="1" opacity=".7"/><path d="M190,99 l5,5 l-5,5 l-5,-5Z" fill="${gold}"/>`;
+ return title+compass}
 function buildMap(){const svg=$('#mapSvg');svg.classList.remove('deploying');
  let h=`<defs><radialGradient id="sea" cx="50%" cy="50%" r="75%"><stop offset="0" stop-color="#14304a"/><stop offset="1" stop-color="#070d1a"/></radialGradient><filter id="glow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="7"/></filter></defs><rect width="1000" height="640" fill="url(#sea)"/>`;
  const R0=rng(5);for(let i=0;i<46;i++){const x=R0()*1000,y=R0()*640;h+=`<path d="M${x},${y} q10,-6 20,0 t20,0" fill="none" stroke="rgba(140,190,230,.14)" stroke-width="1.5"/>`}
+ h+=seaDeco();
  for(const R of REALMS){const best=S.best[R.id];let inner='';const rr=rng(R.seed*13);
   if(R.id==='thalassara'){const isl=[[848,498,34],[905,440,24],[790,560,28],[935,540,20],[860,585,18],[800,455,17],[915,598,14]];isl.forEach((s,i)=>{inner+=`<path d="${blobPath(s[0],s[1],s[2],R.seed+i,10,.3)}" fill="#e8d8a0" stroke="#fff4c8" stroke-width="2"/><circle cx="${s[0]}" cy="${s[1]}" r="${s[2]*.45}" fill="#2fb5a8" opacity=".55"/>`})}
   else{inner=`<path d="${blobPath(R.cx,R.cy,R.r,R.seed)}" fill="${R.col}" stroke="rgba(255,255,255,.55)" stroke-width="3"/>`;
@@ -474,13 +654,16 @@ function buildMap(){const svg=$('#mapSvg');svg.classList.remove('deploying');
    if(R.id==='umbraxis')inner+=`<circle cx="${R.cx}" cy="${R.cy}" r="${R.r*.9}" fill="#8a5ad0" opacity=".16"/>`}
   const lx=R.id==='thalassara'?868:R.cx,ly=R.id==='thalassara'?492:R.cy;
   h+=`<g class="land" data-id="${R.id}" tabindex="0" role="button" aria-label="Deploy to ${R.name}">${inner}<text x="${lx}" y="${ly}" text-anchor="middle" font-size="${R.id==='frostheim'||R.id==='umbraxis'?19:22}">${R.name}</text><text class="sm" x="${lx}" y="${ly+20}" text-anchor="middle">${best?'Best '+fmtT(best.time):R.sub.split(' & ')[0]}</text></g>`}
+ h+=mapOverlay();
  h+=`<g id="orbG" opacity="0"><circle r="26" fill="#fff0b0" filter="url(#glow)"/><circle r="9" fill="#fffbe6"/></g><circle id="flashC" cx="500" cy="320" r="0" fill="#fff" opacity="0"/>`;
  svg.innerHTML=h;
  $$('#mapSvg .land').forEach(g=>{const R=REALM_BY_ID[g.dataset.id];const info=()=>{$('#mapCap').innerHTML=`<b>${R.name} · ${R.sub}</b>${R.desc}`};g.onmouseenter=info;g.onfocus=info;g.onclick=()=>deploy(R);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();deploy(R)}}})}
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function enterMap(){deploying=false;buildMap();$('#mapCap').textContent='Select a continent to send your light there.';show('sMap')}
+function enterMap(){deploying=false;buildMap();$('#mapCap').textContent='Mythara, the Known World. Select a continent to send your light there.';show('sMap');
+ const mb=$('.mapbox');if(mb.scrollWidth>mb.clientWidth+4){mb.scrollLeft=(mb.scrollWidth-mb.clientWidth)/2;$('#mapCap').textContent='Mythara, the Known World. Swipe sideways to look around, then tap a continent.'}}
 $('#mapBack').onclick=()=>{sfx('click');if(!deploying)enterHub()};
-function deploy(R){if(deploying)return;deploying=true;sfx('click');const svg=$('#mapSvg');svg.classList.add('deploying');$(`#mapSvg .land[data-id="${R.id}"]`).classList.add('target');
+function deploy(R){if(deploying)return;deploying=true;sfx('click');const svg=$('#mapSvg');
+ {const mb=$('.mapbox');if(mb.scrollWidth>mb.clientWidth+4){const tx=(R.id==='thalassara'?848:R.cx)/1000*svg.getBoundingClientRect().width;mb.scrollTo({left:tx-mb.clientWidth/2,behavior:'smooth'})}}svg.classList.add('deploying');$(`#mapSvg .land[data-id="${R.id}"]`).classList.add('target');
  $('#mapCap').innerHTML=`<b>${R.name}</b>Your light descends…`;
  const orb=$('#orbG'),P0=[500,650],P2=[R.id==='thalassara'?848:R.cx,R.id==='thalassara'?498:R.cy],P1=[(P0[0]+P2[0])/2+(P2[0]<500?-160:160),P2[1]-120];
  const D=2800,t0=performance.now();orb.setAttribute('opacity','1');let lastTrail=0;
@@ -632,7 +815,8 @@ let G=null,lastT=0;const view={w:0,h:0,dpr:1,z:1},keys={};
 const joy={id:null,ox:0,oy:0,dx:0,dy:0,t0:0,moved:0};
 const worldCache={};
 const MUSIC_ROOT={aetherion:110,frostheim:98,drakthar:73,sylvaris:82,dunemara:92,thalassara:104,umbraxis:65};
-function resize(){const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;const dpr=Math.min(window.devicePixelRatio||1,1.75);view.dpr=dpr;view.w=w;view.h=h;view.z=clamp(Math.min(w,h*1.25)/860,.62,1.1);cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+let UI=1;function setUI(){UI=Math.max(1,Math.min(2.2,Math.min(innerWidth/1280,innerHeight/720)));document.documentElement.style.setProperty('--ui',UI.toFixed(3))}
+function resize(){const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;const dpr=Math.min(window.devicePixelRatio||1,1.75);view.dpr=dpr;view.w=w;view.h=h;view.z=clamp(Math.min(w,h*1.25)/860,.62,1.9);cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
 window.addEventListener('resize',resize);
 const angDiff=(a,b)=>{let d=a-b;while(d>Math.PI)d-=TAU;while(d<-Math.PI)d+=TAU;return d};
 let toastT=0,bannerT=0;
@@ -641,13 +825,13 @@ function banner(m,ms){const t=$('#banner');t.textContent=m;t.classList.add('on')
 
 function startRun(R){const h=S.hero,C=CLASSES[h.cls];
  if(!worldCache[R.id])worldCache[R.id]=buildWorld(R);
- const maxhp=Math.round(C.hp*(1+.1*S.up.hp));
+ const GA=equippedA(),maxhp=Math.round(C.hp*(1+.1*S.up.hp)+GA.h);
  G={state:'wake',realm:R,cls:h.cls,world:worldCache[R.id],amb:makeAmbient(),t:0,wt:0,
-  hero:{x:WORLD/2,y:WORLD/2,hp:maxhp,maxhp,spd:C.spd*(1+.04*S.up.spd),armor:C.armor,face:1,aim:0,moving:false,inv:0,lvl:1,xp:0,next:6,regen:0,mag:70*(1+.2*S.up.mag),atkT:1,fire:0,r:10},
+  hero:{x:WORLD/2,y:WORLD/2,hp:maxhp,maxhp,spd:C.spd*(1+.04*S.up.spd)*(1+GA.s/100),armor:C.armor+GA.a,face:1,aim:0,moving:false,inv:0,lvl:1,xp:0,next:6,regen:0,mag:70*(1+.2*S.up.mag),atkT:1,fire:0,r:10},
   atk:Object.assign({},C.atk),m:{dmg:1+.1*S.up.dmg,cd:1,area:1,gold:1+.1*S.up.gold,crit:0},
   enemies:[],projs:[],fx:[],drops:[],texts:[],later:[],npcs:[],quests:[],upg:{},pendingLv:0,
   kills:0,gold:0,spawnAcc:0,nextBoss:180,swarmT:75,shake:0,cam:{x:WORLD/2,y:WORLD/2},qDone:0,near:null,hudKey:''};
- spawnNPCs();show('sGame');resize();
+ applyGear();spawnNPCs();show('sGame');resize();
  $('#hName').textContent=h.name;$('#gc').classList.remove('wake');void cv.offsetWidth;cv.classList.add('wake');
  const lids=$('#lids');lids.classList.remove('go');lids.classList.add('on');void lids.offsetWidth;lids.classList.add('go');
  const fl=$('#flash');fl.classList.remove('on');void fl.offsetWidth;fl.classList.add('on');
@@ -716,7 +900,7 @@ function killEnemy(e){e.dead=true;G.kills++;qKill();const R=G.realm;
   if(Math.random()<.012)G.drops.push({t:'potion',x:e.x,y:e.y,v:1,vx:0,vy:0,age:0})}
  for(let i=0;i<5;i++)G.fx.push({t:'spark',x:e.x,y:e.y,vx:rand(-90,90),vy:rand(-90,90),life:.35,max:.35,col:e.c})}
 function collect(d){const h=G.hero;
- if(d.t==='gem'){addXP(d.v);sfx('pick')}
+ if(d.t==='gem'){addXP(d.v*G.m.xp);sfx('pick')}
  else if(d.t==='coin'){const v=Math.max(1,Math.round(d.v*G.m.gold));G.gold+=v;sfx('coin');dmgNum(h.x,h.y-40,'+'+v,'#ffd24a',true)}
  else if(d.t==='mat'){S.items[G.realm.mat]=(S.items[G.realm.mat]||0)+1;sfx('pick');dmgNum(h.x,h.y-40,'+1 '+G.realm.mat,G.realm.matc,true);qCollect()}
  else if(d.t==='potion'){S.items.potion=(S.items.potion||0)+1;sfx('pick');dmgNum(h.x,h.y-40,'+1 Potion','#ff8a96',true)}
@@ -756,6 +940,33 @@ function usePotion(){if(!G||G.state!=='play')return;const h=G.hero;if((S.items.p
  S.items.potion--;const v=Math.round(h.maxhp*.5);h.hp=Math.min(h.maxhp,h.hp+v);dmgNum(h.x,h.y-44,'+'+v,'#8fe58a',true);G.fx.push({t:'ring',x:h.x,y:h.y,r:50,life:.5,max:.5,col:'#8fe58a'});sfx('pick');updateHud(true)}
 
 /* update */
+/* ============ GEAR + ITEMS IN A RUN ============ */
+function applyGear(){const W=equippedW();G.atk.dmg*=W.d;G.atk.crit+=W.c;G.m.cd*=W.h;G.m.area*=W.a;if(W.p&&G.atk.pierce!=null)G.atk.pierce+=W.p;G.m.xp=1;G.buffs=[];G.buffAcc=0}
+function buffOps(stat,v){const h=G.hero,m=G.m;return({dmg:[()=>m.dmg+=v,()=>m.dmg-=v],haste:[()=>m.cd*=1-v,()=>m.cd/=1-v],spd:[()=>h.spd*=1+v,()=>h.spd/=1+v],armor:[()=>h.armor+=v,()=>h.armor-=v],crit:[()=>m.crit+=v,()=>m.crit-=v],mag:[()=>h.mag*=1+v,()=>h.mag/=1+v],xp:[()=>m.xp+=v,()=>m.xp-=v],gold:[()=>m.gold+=v,()=>m.gold-=v],area:[()=>m.area+=v,()=>m.area-=v],regen:[()=>h.regen+=v,()=>h.regen-=v]})[stat]}
+function addBuff(it){const f=it.fx,ex=G.buffs.find(b=>b.id===it.id);if(ex){ex.t=f.dur;return}const ops=buffOps(f.stat,f.v);ops[0]();G.buffs.push({id:it.id,n:it.n,c:it.c,t:f.dur,undo:ops[1]});renderBuffs()}
+function renderBuffs(){G.buffAcc=0;$('#buffs').innerHTML=G.buffs.map(b=>`<div class="bf" style="--c:${b.c}">${b.n} <b>${Math.ceil(b.t)}s</b></div>`).join('')}
+function tickBuffs(dt){let ch=false;for(let i=G.buffs.length-1;i>=0;i--){const b=G.buffs[i];b.t-=dt;if(b.t<=0){b.undo();G.buffs.splice(i,1);ch=true}}
+ G.buffAcc+=dt;if(ch||G.buffAcc>=.5)renderBuffs()}
+function tryRevive(){const h=G.hero;for(const id of ['revivecharm','phoenix','angel']){if((S.items[id]||0)>0){S.items[id]--;const it=ITEM_BY[id];h.hp=Math.max(1,Math.round(h.maxhp*it.fx.p));h.inv=3;for(const e of G.enemies){if(e.dead)continue;if(Math.hypot(e.x-h.x,e.y-h.y)<320){e.stun=3;e.kx+=(e.x-h.x)*2;e.ky+=(e.y-h.y)*2}}
+ G.fx.push({t:'boom',x:h.x,y:h.y,r:320,life:.5,max:.5});G.fx.push({t:'ring',x:h.x,y:h.y,r:90,life:.8,max:.8,col:'#ffe08a'});banner(it.n+' saves you',2400);sfx('level');save();updateHud(true);return true}}return false}
+function useItem(id){const it=ITEM_BY[id];if(!G||G.state!=='bag'||(S.items[id]||0)<=0)return;const f=it.fx,h=G.hero;
+ switch(f.t){
+  case'heal':if(h.hp>=h.maxhp){toast('Already at full health');return}{const v=Math.round(h.maxhp*f.p),b=h.hp;h.hp=Math.min(h.maxhp,h.hp+v);dmgNum(h.x,h.y-44,'+'+Math.round(h.hp-b),'#8fe58a',true);G.fx.push({t:'ring',x:h.x,y:h.y,r:50,life:.5,max:.5,col:'#8fe58a'})}break;
+  case'buff':addBuff(it);G.fx.push({t:'ring',x:h.x,y:h.y,r:55,life:.5,max:.5,col:it.c});break;
+  case'shield':h.inv=Math.max(h.inv,f.dur);G.fx.push({t:'ring',x:h.x,y:h.y,r:60,life:.6,max:.6,col:'#9fe3ff'});break;
+  case'bomb':G.fx.push({t:'boom',x:h.x,y:h.y,r:f.r,life:.4,max:.4});for(const e of G.enemies){if(e.dead)continue;const dx=e.x-h.x,dy=e.y-h.y,d=Math.hypot(dx,dy);if(d<f.r+e.r){if(f.dmg>0)hurt(e,f.dmg,f.kb||140,Math.atan2(dy,dx));if(!e.dead&&f.stun)e.stun=f.stun}}sfx('slam');break;
+  case'bolt':{const near=G.enemies.filter(e=>!e.dead&&Math.hypot(e.x-h.x,e.y-h.y)<760).sort(()=>Math.random()-.5).slice(0,f.n);if(!near.length){toast('No foes in range');return}for(const e of near){G.fx.push({t:'boom',x:e.x,y:e.y,r:50,life:.3,max:.3});hurt(e,f.dmg,60,Math.random()*TAU)}sfx('slam');break}
+  case'xp':addXP(f.v);break;
+  case'vac':for(const d of G.drops){d.x=h.x+rand(-6,6);d.y=h.y+rand(-6,6)}G.fx.push({t:'ring',x:h.x,y:h.y,r:80,life:.6,max:.6,col:'#a070e0'});break;
+  case'revive':toast('Carried automatically. It saves you when you would fall.');return}
+ S.items[id]--;save();sfx(f.t==='heal'?'pick':'quest');updateHud(true);renderBag()}
+function renderBag(){const box=$('#bagSheet'),sc=box.scrollTop;const have=ITEMS.filter(i=>(S.items[i.id]||0)>0);
+ let body=have.length?'<div class="rows">'+have.map(it=>`<div class="row">${icon(it.c)}<div class="tx"><b>${it.n} <small class="own">×${S.items[it.id]}</small></b><span>${it.d}</span></div><div class="act">${it.fx.t==='revive'?'<span class="own">Automatic</span>':`<button class="btn small" data-use="${it.id}">Use</button>`}</div></div>`).join('')+'</div>':'<p class="sub">Your bag is empty. Buy items in the shop.</p>';
+ box.innerHTML=`<div class="sheethead"><h2>Bag</h2><button class="btn ghost" id="bagClose">Close</button></div>`+body;box.scrollTop=sc;
+ $('#bagClose').onclick=()=>{sfx('click');closeBag()};$$('#bagSheet [data-use]').forEach(b=>b.onclick=()=>useItem(b.dataset.use))}
+function openBag(){if(!G||G.state!=='play')return;G.state='bag';sfx('click');$('#bagSheet').scrollTop=0;renderBag();$('#bagModal').classList.add('on')}
+function closeBag(){closeModal('#bagModal');if(G&&G.state==='bag'){G.state='play';if(G.pendingLv>0)openLevel()}}
+
 function pauseGame(){if(!G||G.state!=='play')return;G.state='pause';$('#pauseModal').classList.add('on');sfx('click')}
 function resumeGame(){if(!G||G.state!=='pause')return;G.state='play';$('#pauseModal').classList.remove('on')}
 function die(){G.state='dead';sfx('die');G.deadT=0;setTimeout(()=>{if(!G||G.state!=='dead')return;const R=G.realm,b=S.best[R.id];
@@ -773,7 +984,7 @@ function update(dt){
  let ix=0,iy=0;if(keys.KeyA||keys.ArrowLeft)ix--;if(keys.KeyD||keys.ArrowRight)ix++;if(keys.KeyW||keys.ArrowUp)iy--;if(keys.KeyS||keys.ArrowDown)iy++;
  if(joy.id!==null){ix+=joy.dx;iy+=joy.dy}const il=Math.hypot(ix,iy);if(il>1){ix/=il;iy/=il}
  h.moving=il>.12;if(h.moving){h.x=clamp(h.x+ix*h.spd*dt,24,WORLD-24);h.y=clamp(h.y+iy*h.spd*dt,24,WORLD-24);if(h.fire<=0&&Math.abs(ix)>.08)h.face=ix>0?1:-1}
- h.inv-=dt;h.fire-=dt;if(h.regen>0)h.hp=Math.min(h.maxhp,h.hp+h.regen*dt);
+ h.inv-=dt;h.fire-=dt;if(h.regen>0)h.hp=Math.min(h.maxhp,h.hp+h.regen*dt);tickBuffs(dt);
  h.atkT-=dt;if(h.atkT<=0){h.atkT=fireWeapon()?a.cd*m.cd:.08}
  for(let i=G.later.length-1;i>=0;i--){const l=G.later[i];l.t-=dt;if(l.t<=0){G.later.splice(i,1);l.fn()}}
  /* spawning */
@@ -786,7 +997,7 @@ function update(dt){
   if(d>1500){const an=Math.random()*TAU;e.x=clamp(h.x+Math.cos(an)*600,20,WORLD-20);e.y=clamp(h.y+Math.sin(an)*600,20,WORLD-20);continue}
   let sp=e.spd*(e.stun>0?.15:1),mx=dx/d*sp,my=dy/d*sp;if(e.k==='bat'){const w=Math.sin(G.t*5+e.ph)*.8;mx+=-dy/d*sp*w*.6;my+=dx/d*sp*w*.6}
   e.x+=(mx+e.kx)*dt;e.y+=(my+e.ky)*dt;const kd=Math.exp(-dt*8);e.kx*=kd;e.ky*=kd;e.face=dx>0?1:-1;
-  if(d<e.r+h.r*.9&&h.inv<=0){const dm=Math.max(1,Math.round(e.dmg-h.armor));h.hp-=dm;h.inv=.55;sfx('hurt');if(S.set.shake)G.shake=.25;dmgNum(h.x,h.y-44,'-'+dm,'#ff7a84',true);if(h.hp<=0){h.hp=0;die();return}}}
+  if(d<e.r+h.r*.9&&h.inv<=0){const dm=Math.max(1,Math.round(e.dmg-h.armor));h.hp-=dm;h.inv=.55;sfx('hurt');if(S.set.shake)G.shake=.25;dmgNum(h.x,h.y-44,'-'+dm,'#ff7a84',true);if(h.hp<=0){if(!tryRevive()){h.hp=0;die();return}}}}
  for(let i=0;i<E.length;i++){const a1=E[i];if(a1.dead)continue;for(let j=i+1;j<E.length;j++){const b1=E[j];if(b1.dead)continue;const dx=b1.x-a1.x,dy=b1.y-a1.y,mn=(a1.r+b1.r)*.75;if(dx>mn||dx<-mn||dy>mn||dy<-mn)continue;const d=Math.hypot(dx,dy)||.01;if(d<mn){const p=(mn-d)/d*.5*(a1.boss||b1.boss?.3:1);a1.x-=dx*p;a1.y-=dy*p;b1.x+=dx*p;b1.y+=dy*p}}}
  G.enemies=E.filter(e=>!e.dead);
  /* projectiles */
@@ -846,7 +1057,7 @@ function drawFx(g,f){const k=f.life/f.max;g.save();
  else if(f.t==='thrust'){g.translate(f.x,f.y-14);g.rotate(f.a);g.globalAlpha=k*.35;g.fillStyle='#9fd0ff';g.beginPath();g.moveTo(0,-f.w/2);g.lineTo(f.len,0);g.lineTo(0,f.w/2);g.fill();g.globalAlpha=k;g.fillStyle='#fff';g.beginPath();g.moveTo(0,-f.w*.1);g.lineTo(f.len,0);g.lineTo(0,f.w*.1);g.fill()}
  else if(f.t==='boom'){const gr=g.createRadialGradient(f.x,f.y,2,f.x,f.y,f.r);gr.addColorStop(0,`rgba(255,255,255,${k})`);gr.addColorStop(.5,`rgba(190,140,255,${k*.7})`);gr.addColorStop(1,'rgba(140,80,255,0)');g.fillStyle=gr;g.beginPath();g.arc(f.x,f.y,f.r*(1.2-k*.3),0,TAU);g.fill()}
  g.restore()}
-function drawMinimap(g){const s=96,x=view.w-s-Math.max(16,0)-8,y=150,k=s/WORLD,h=G.hero;g.save();g.globalAlpha=.8;g.fillStyle='rgba(10,6,16,.7)';g.strokeStyle='#4b3b5e';g.lineWidth=1;g.fillRect(x,y,s,s);g.strokeRect(x,y,s,s);g.globalAlpha=1;
+function drawMinimap(g){const s=96*UI,x=view.w-s-24*UI,y=150*UI,k=s/WORLD,h=G.hero;g.save();g.globalAlpha=.8;g.fillStyle='rgba(10,6,16,.7)';g.strokeStyle='#4b3b5e';g.lineWidth=1;g.fillRect(x,y,s,s);g.strokeRect(x,y,s,s);g.globalAlpha=1;
  for(const n of G.npcs){const px=x+n.x*k,py=y+n.y*k;if(n.qs==='active'&&n.q.type==='scout'){g.fillStyle='#7fd0ee';g.fillRect(x+n.q.mx*k-2,y+n.q.my*k-2,5,5)}
   if(n.qs==='done')continue;g.fillStyle=n.qs==='ready'?'#9fe58a':n.qs==='active'?'#aaa':'#ffd24a';g.beginPath();g.arc(px,py,3,0,TAU);g.fill()}
  for(const e of G.enemies)if(e.boss){g.fillStyle='#ff4a3a';g.beginPath();g.arc(x+e.x*k,y+e.y*k,3.5,0,TAU);g.fill()}
@@ -857,7 +1068,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last
 
 /* input */
 function setKey(e,v){const c=e.code;if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(c)){keys[c]=v;if(cur==='sGame')e.preventDefault()}}
-window.addEventListener('keydown',e=>{setKey(e,true);if(!G||cur!=='sGame')return;if(e.code==='Escape'||e.code==='KeyP'){if(G.state==='play')pauseGame();else if(G.state==='pause')resumeGame()}else if(e.code==='KeyQ')usePotion();else if(e.code==='KeyE'&&G.state==='play'&&G.near)tryInteract(G.near)});
+window.addEventListener('keydown',e=>{setKey(e,true);if(!G||cur!=='sGame')return;if(e.code==='Escape'||e.code==='KeyP'){if(G.state==='play')pauseGame();else if(G.state==='pause')resumeGame();else if(G.state==='bag')closeBag()}else if(e.code==='KeyQ')usePotion();else if(e.code==='KeyB'){if(G.state==='play')openBag();else if(G.state==='bag')closeBag()}else if(e.code==='KeyE'&&G.state==='play'&&G.near)tryInteract(G.near)});
 window.addEventListener('keyup',e=>setKey(e,false));
 window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(G&&G.state==='play')pauseGame()}});
@@ -873,10 +1084,11 @@ $('#resumeBtn').onclick=()=>{sfx('click');resumeGame()};
 $('#pauseSet').onclick=()=>{sfx('click');openSettings()};
 $('#retreatBtn').onclick=()=>{sfx('click');leaveRun()};
 $('#resBtn').onclick=()=>{sfx('click');leaveRun()};
-$('#potBtn').onclick=usePotion;
+$('#potBtn').onclick=usePotion;$('#bagBtn').onclick=openBag;
 $('#actBtn').onclick=()=>{if(G&&G.near)tryInteract(G.near)};
 
 /* boot */
+setUI();window.addEventListener('resize',setUI);
 enterClass();
 requestAnimationFrame(pvLoop);requestAnimationFrame(hubFx);requestAnimationFrame(frame);
 })();
