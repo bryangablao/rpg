@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Seven Realms</title>
-<link rel="icon" type="image/png" href="image/shield.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 8 12v18c0 15 10 26 24 30 14-4 24-15 24-30V12z' fill='%23e3b550' stroke='%23a97c26' stroke-width='3'/%3E%3Cpath d='M32 12 16 18v12c0 10 6 18 16 22z' fill='%23fff3b0' opacity='.5'/%3E%3C/svg%3E">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -254,6 +254,20 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 @media (max-height:500px){.stickhd{top:-12px;margin:-12px -14px 0;padding:12px 14px 8px}}
 </style>
 
+<style>
+.gate.ajar .glow{opacity:.55}
+.gate.ajar .doorL{transform:perspective(1100px) rotateY(-26deg)}
+.gate.ajar .doorR{transform:perspective(1100px) rotateY(26deg)}
+.modeBox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;display:none;flex-direction:column;gap:14px;width:min(80vw,260px)}
+.modeBox.on{display:flex}
+#cheat{position:absolute;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 12px);width:min(560px,calc(100% - 24px));z-index:50;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+#cheatLog{display:flex;flex-direction:column;gap:3px}
+#cheatLog div{background:rgba(8,5,14,.85);border-left:3px solid var(--gold);padding:4px 10px;font:600 14px/1.35 var(--body);user-select:text;white-space:pre-wrap}
+#cheatLog .bad{border-color:var(--danger);color:#ffb3b8}
+#cheatLog .ok{border-color:var(--leaf)}
+#cheatIn{display:none;pointer-events:auto;width:100%;padding:9px 12px;font:600 16px var(--body);color:var(--gold);background:#0d0916;border:1px solid var(--gold2);border-radius:4px;user-select:text}
+#cheat.open #cheatIn{display:block}
+</style>
 <div id="app">
 
 <section class="screen pad on" id="sClass"><div class="wrap">
@@ -286,6 +300,8 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 
 <section class="screen" id="sDoors">
   <div class="gate" id="gate"><div class="glow"></div><div class="door doorL"></div><div class="door doorR"></div></div>
+  <div class="modeBox" id="modeBox"><button class="btn" id="modeOff">Offline</button><button class="btn" id="modeOn">Online</button></div>
+  <div class="modal pad" id="onlineModal"><div class="sheet" style="max-width:420px;text-align:center"><div class="sheethead"><h2>Online Mode</h2></div><p class="sub" style="margin:0 auto">Currently in building. This feature is coming soon…</p><button class="btn" id="onlineOk">Back</button></div></div>
   <div class="doormsg" id="doorMsg"></div>
 </section>
 
@@ -397,7 +413,7 @@ const UPS=[
  {k:'gold',n:'Lucky Charm',d:'+10% gold found per level',base:140,c:'#e3b550'},
  {k:'mag',n:'Magnet Ring',d:'+20% pickup range per level',base:90,c:'#a070e0'}];
 const UPMAX=8,POTION_PRICE=40;
-const upCost=(u,lv)=>Math.round(u.base*(1+lv*.8));
+const upCost=(u,lv)=>freeShop?0:Math.round(u.base*(1+lv*.8));
 
 /* ============ GEAR + ITEMS DATA ============ */
 const RAR=['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
@@ -553,11 +569,12 @@ $('#nameNext').onclick=()=>{const raw=$('#nameInput').value;if(!validName(raw))r
  S.hero={name:nm,cls:sel.cls,gender:sel.gender};S.equip.w=null;save();playDoors()};
 $('#contBtn').onclick=()=>{sfx('click');ac();enterHub()};
 
-function playDoors(){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom');$('#doorMsg').textContent='The gates of Seven Realms stir…';
- void gate.offsetWidth;setTimeout(()=>{sfx('door');gate.classList.add('open')},500);
- setTimeout(()=>{$('#doorMsg').textContent='Welcome, '+S.hero.name+'.'},3600);
- setTimeout(()=>gate.classList.add('zoom'),5200);
- setTimeout(()=>enterHub(),6700)}
+function playDoors(){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom','ajar');$('#modeBox').classList.remove('on');$('#onlineModal').classList.remove('on');$('#doorMsg').textContent='The gates of Seven Realms stir…';
+ void gate.offsetWidth;setTimeout(()=>{sfx('door');gate.classList.add('ajar')},500);
+ setTimeout(()=>{$('#doorMsg').textContent='Welcome, '+S.hero.name+'. Choose your path.';$('#modeBox').classList.add('on')},3600)}
+$('#modeOff').onclick=()=>{ac();sfx('click');$('#modeBox').classList.remove('on');const gate=$('#gate');gate.classList.remove('ajar');gate.classList.add('open');sfx('door');$('#doorMsg').textContent='';setTimeout(()=>gate.classList.add('zoom'),2200);setTimeout(()=>enterHub(),3700)};
+$('#modeOn').onclick=()=>{sfx('click');$('#onlineModal').classList.add('on')};
+$('#onlineOk').onclick=()=>{sfx('click');$('#onlineModal').classList.remove('on')};
 
 /* hub */
 let hubStars=[];
@@ -986,7 +1003,7 @@ function update(dt){
  if(joy.id!==null){ix+=joy.dx;iy+=joy.dy}const il=Math.hypot(ix,iy);if(il>1){ix/=il;iy/=il}
  h.moving=il>.12;if(h.moving){h.x=clamp(h.x+ix*h.spd*dt,24,WORLD-24);h.y=clamp(h.y+iy*h.spd*dt,24,WORLD-24);if(h.fire<=0&&Math.abs(ix)>.08)h.face=ix>0?1:-1}
  h.inv-=dt;h.fire-=dt;if(h.regen>0)h.hp=Math.min(h.maxhp,h.hp+h.regen*dt);tickBuffs(dt);
- h.atkT-=dt;if(h.atkT<=0){h.atkT=fireWeapon()?a.cd*m.cd:.08}
+ h.atkT-=dt;if(h.atkT<=0){h.atkT=fireWeapon()?a.cd*m.cd*(CH.nocd?.12:1):.08}
  for(let i=G.later.length-1;i>=0;i--){const l=G.later[i];l.t-=dt;if(l.t<=0){G.later.splice(i,1);l.fn()}}
  /* spawning */
  const rate=Math.min(9,1.2+G.t/38);G.spawnAcc+=dt*rate;while(G.spawnAcc>=1){G.spawnAcc--;if(G.enemies.length<170)spawnEnemy(false)}
@@ -998,7 +1015,7 @@ function update(dt){
   if(d>1500){const an=Math.random()*TAU;e.x=clamp(h.x+Math.cos(an)*600,20,WORLD-20);e.y=clamp(h.y+Math.sin(an)*600,20,WORLD-20);continue}
   let sp=e.spd*(e.stun>0?.15:1),mx=dx/d*sp,my=dy/d*sp;if(e.k==='bat'){const w=Math.sin(G.t*5+e.ph)*.8;mx+=-dy/d*sp*w*.6;my+=dx/d*sp*w*.6}
   e.x+=(mx+e.kx)*dt;e.y+=(my+e.ky)*dt;const kd=Math.exp(-dt*8);e.kx*=kd;e.ky*=kd;e.face=dx>0?1:-1;
-  if(d<e.r+h.r*.9&&h.inv<=0){const dm=Math.max(1,Math.round(e.dmg-h.armor));h.hp-=dm;h.inv=.55;sfx('hurt');if(S.set.shake)G.shake=.25;dmgNum(h.x,h.y-44,'-'+dm,'#ff7a84',true);if(h.hp<=0){if(!tryRevive()){h.hp=0;die();return}}}}
+  if(d<e.r+h.r*.9&&h.inv<=0){const dm=Math.max(1,Math.round(e.dmg-h.armor));if(!CH.god)h.hp-=dm;h.inv=.55;sfx('hurt');if(S.set.shake)G.shake=.25;dmgNum(h.x,h.y-44,'-'+dm,'#ff7a84',true);if(h.hp<=0){if(!tryRevive()){h.hp=0;die();return}}}}
  for(let i=0;i<E.length;i++){const a1=E[i];if(a1.dead)continue;for(let j=i+1;j<E.length;j++){const b1=E[j];if(b1.dead)continue;const dx=b1.x-a1.x,dy=b1.y-a1.y,mn=(a1.r+b1.r)*.75;if(dx>mn||dx<-mn||dy>mn||dy<-mn)continue;const d=Math.hypot(dx,dy)||.01;if(d<mn){const p=(mn-d)/d*.5*(a1.boss||b1.boss?.3:1);a1.x-=dx*p;a1.y-=dy*p;b1.x+=dx*p;b1.y+=dy*p}}}
  G.enemies=E.filter(e=>!e.dead);
  /* projectiles */
@@ -1087,6 +1104,44 @@ $('#retreatBtn').onclick=()=>{sfx('click');leaveRun()};
 $('#resBtn').onclick=()=>{sfx('click');leaveRun()};
 $('#potBtn').onclick=usePotion;$('#bagBtn').onclick=openBag;
 $('#actBtn').onclick=()=>{if(G&&G.near)tryInteract(G.near)};
+
+/* ============ HIDDEN CONSOLE ============ */
+let freeShop=false;const CH={god:false,nocd:false};let chOpen=false,chPaused=false;
+const chEl=document.createElement('div');chEl.id='cheat';chEl.innerHTML='<div id="cheatLog"></div><input id="cheatIn" autocomplete="off" spellcheck="false" aria-label="Console">';$('#app').appendChild(chEl);
+const chIn=$('#cheatIn'),chLog=$('#cheatLog');
+function cmsg(t,k){const d=document.createElement('div');d.textContent=t;if(k)d.className=k;chLog.appendChild(d);while(chLog.children.length>14)chLog.firstChild.remove();setTimeout(()=>d.remove(),chOpen?30000:9000)}
+function chOpenFn(){if(chOpen)return;chOpen=true;chEl.classList.add('open');chIn.value='/';if(G&&G.state==='play'){G.state='console';chPaused=true}setTimeout(()=>{chIn.focus();chIn.setSelectionRange(1,1)},0)}
+function chClose(){chOpen=false;chEl.classList.remove('open');chIn.blur();if(chPaused&&G&&G.state==='console'){G.state='play';if(G.pendingLv>0)openLevel()}chPaused=false}
+const ownAll=()=>ARMORS.concat(WEAPONS).forEach(g=>S.own[g.id]=1);
+function setFree(on){[ITEMS,ARMORS,WEAPONS].forEach(L=>L.forEach(x=>{if(x._p==null)x._p=x.price;x.price=on?0:x._p}));freeShop=on}
+function runCmd(line){const p=line.trim().replace(/^\//,'').split(/\s+/),c=(p[0]||'').toLowerCase(),n=parseFloat(p[1]),run=!!G&&G.state!=='dead',h=run?G.hero:null;
+ const need=()=>{if(!run){cmsg('Start a run first. This command works inside a realm.','bad');return true}};
+ const ok=m=>cmsg(m,'ok');
+ switch(c){
+  case'':break;
+  case'commandhelp':case'help':cmsg('COMMANDS\n/gold <n>  set saved gold\n/rungold <n>  set gold of this run\n/god  toggle infinite health\n/mana or /nocd  toggle infinite attacks (no mana in this game, so no cooldown)\n/heal  full health\n/boss <n>  spawn n bosses now (max 20)\n/spawn <n>  spawn n normal enemies\n/kill  kill every enemy\n/xp <n>  give experience\n/level <n>  gain n levels\n/speed <x>  move speed multiplier\n/vac  pull all drops to you\n/give <id> <n>  add item (see /items)\n/items  list item ids\n/maxall  own and equip best gear, 99 of every item, max upgrades\n/unlockshop  unlock all gear and make the shop free\n/free  toggle free shop only\n/clear  clear this log');break;
+  case'gold':if(isNaN(n)||n<0)return cmsg('Usage: /gold <amount>','bad');S.gold=Math.floor(n);save();refreshGold();ok('Gold set to '+S.gold);break;
+  case'rungold':if(need())return;if(isNaN(n)||n<0)return cmsg('Usage: /rungold <amount>','bad');G.gold=Math.floor(n);updateHud(true);ok('Run gold set to '+G.gold);break;
+  case'god':CH.god=!CH.god;ok('Infinite health: '+(CH.god?'ON':'OFF'));break;
+  case'mana':case'nocd':CH.nocd=!CH.nocd;ok('Infinite attacks: '+(CH.nocd?'ON':'OFF'));break;
+  case'heal':if(need())return;h.hp=h.maxhp;updateHud(true);ok('Health restored');break;
+  case'boss':{if(need())return;const k=clamp(Math.floor(n)||1,1,20);for(let i=0;i<k;i++)spawnEnemy(true);ok(k+' boss(es) spawned');break}
+  case'spawn':{if(need())return;const k=clamp(Math.floor(n)||10,1,100);for(let i=0;i<k;i++)spawnEnemy(false);ok(k+' enemies spawned');break}
+  case'kill':case'killall':{if(need())return;let k=0;for(const e of G.enemies.slice())if(!e.dead){killEnemy(e);k++}ok(k+' enemies slain');break}
+  case'xp':if(need())return;if(isNaN(n))return cmsg('Usage: /xp <amount>','bad');addXP(n);ok('+'+n+' XP');break;
+  case'level':{if(need())return;const k=clamp(Math.floor(n)||1,1,50);for(let i=0;i<k;i++)addXP(G.hero.next-G.hero.xp);ok('+'+k+' level(s)');break}
+  case'speed':if(need())return;if(isNaN(n)||n<=0)return cmsg('Usage: /speed <multiplier>','bad');h.spd=CLASSES[G.cls].spd*clamp(n,.1,5);ok('Speed x'+clamp(n,.1,5));break;
+  case'vac':if(need())return;for(const d of G.drops){d.x=h.x;d.y=h.y}ok('Drops pulled in');break;
+  case'items':cmsg(ITEMS.map(i=>i.id).join(', '));break;
+  case'give':{const it=ITEM_BY[(p[1]||'').toLowerCase()];if(!it)return cmsg('Unknown item. Use /items for ids.','bad');const k=clamp(Math.floor(parseFloat(p[2]))||1,1,99);S.items[it.id]=Math.min(99,(S.items[it.id]||0)+k);save();if(G)updateHud(true);ok('Added '+k+' '+it.n);break}
+  case'maxall':ownAll();ITEMS.forEach(i=>S.items[i.id]=99);UPS.forEach(u=>S.up[u.k]=UPMAX);if(S.hero){S.equip.w='w_'+S.hero.cls+'_4';S.equip.a='a_29'}save();ok('All gear owned and best equipped, items x99, upgrades maxed. Start a new run to apply.');break;
+  case'unlockshop':ownAll();setFree(true);save();ok('Everything unlocked and the shop is free');break;
+  case'free':setFree(!freeShop);ok('Free shop: '+(freeShop?'ON':'OFF'));break;
+  case'clear':chLog.innerHTML='';break;
+  default:cmsg('Unknown command "'+c+'". Type /commandhelp','bad')}}
+window.addEventListener('keydown',e=>{
+ if(e.target===chIn){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();const v=chIn.value;cmsg(v);runCmd(v);chIn.value='/'}else if(e.key==='Escape'){e.preventDefault();chClose()}return}
+ if(e.key==='/'&&!chOpen&&!/INPUT|TEXTAREA/.test((e.target.tagName||''))){e.preventDefault();chOpenFn()}},true);
 
 /* boot */
 setUI();window.addEventListener('resize',setUI);
