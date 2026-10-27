@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spellblade RPG: 3D Fantasy Action RPG</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;600;700&display=swap');
+    
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      user-select: none;
+      font-family: 'Inter', sans-serif;
+      background-color: #090a0f;
+      color: #e2e8f0;
+    }
+
+    .font-cinzel { font-family: 'Cinzel', serif; }
+
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .interactive {
+      pointer-events: auto;
+    }
+
+    /* Glassmorphic card styling */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .glass-btn {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.2s ease-in-out;
+    }
+    .glass-btn:hover {
+      border-color: rgba(234, 179, 8, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(234, 179, 8, 0.2);
+    }
+    .glass-btn.active {
+      border-color: #eab308;
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.25) 0%, rgba(161, 98, 7, 0.4) 100%);
+    }
+
+    /* Floating combat text */
+    .damage-text {
+      position: absolute;
+      font-weight: 900;
+      font-family: 'Cinzel', serif;
+      pointer-events: none;
+      animation: floatUp 1s ease-out forwards;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      50% { opacity: 1; transform: translateY(-30px) scale(1.2); }
+      100% { opacity: 0; transform: translateY(-50px) scale(0.9); }
+    }
+
+    /* Custom scrollbar for hero stats menu */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(234, 179, 8, 0.4);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 overflow-hidden">
+
+  <!-- 3D Render Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- UI OVERLAY LAYER -->
+  <div class="ui-layer flex flex-col justify-between p-4 md:p-6">
+
+    <!-- CHARACTER CREATION MODAL -->
+    <div id="char-creation" class="interactive fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+      <div class="glass-card max-w-2xl w-full rounded-2xl p-6 md:p-8 border border-amber-500/30 text-center shadow-2xl">
+        <h1 class="font-cinzel text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-500 to-amber-200 mb-2">
+          SPELLBLADE RPG
+        </h1>
+        <p class="text-slate-400 text-sm md:text-base mb-6 font-light">Create your Champion and embark on an epic journey</p>
+
+        <!-- Gender Selection -->
+        <div class="mb-6">
+          <label class="block font-cinzel text-amber-400 text-sm tracking-widest uppercase mb-3 font-semibold">1. Choose Gender</label>
+          <div class="grid grid-cols-2 gap-4 max-w-xs mx-auto">
+            <button id="btn-gender-male" onclick="selectGender('male')" class="glass-btn active py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-semibold text-slate-200">
+              <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><circle cx="12" cy="10" r="3"/><path d="M12 14c-3 0-5 1.5-5 3v1h10v-1c0-1.5-2-3-5-3z"/></svg>
+              Male
+            </button>
+            <button id="btn-gender-female" onclick="selectGender('female')" class="glass-btn py-3 px-4 rounded-xl flex items-center justify-center gap-2 font-semibold text-slate-200">
+              <svg class="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><circle cx="12" cy="9" r="3"/><path d="M12 13c-2.5 0-4.5 1.2-4.5 2.5V17h9v-1.5c0-1.3-2-2.5-4.5-2.5z"/></svg>
+              Female
+            </button>
+          </div>
+        </div>
+
+        <!-- Class Selection -->
+        <div class="mb-8">
+          <label class="block font-cinzel text-amber-400 text-sm tracking-widest uppercase mb-3 font-semibold">2. Select Combat Class</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <button id="btn-class-warrior" onclick="selectClass('Warrior')" class="glass-btn active p-3 rounded-xl flex flex-col items-center gap-1 text-xs sm:text-sm font-semibold">
+              <span class="text-2xl">⚔️</span> Warrior (Sword)
+            </button>
+            <button id="btn-class-archer" onclick="selectClass('Archer')" class="glass-btn p-3 rounded-xl flex flex-col items-center gap-1 text-xs sm:text-sm font-semibold">
+              <span class="text-2xl">🏹</span> Archer (Bow)
+            </button>
+            <button id="btn-class-assassin" onclick="selectClass('Assassin')" class="glass-btn p-3 rounded-xl flex flex-col items-center gap-1 text-xs sm:text-sm font-semibold">
+              <span class="text-2xl">🗡️</span> Assassin (Dagger)
+            </button>
+            <button id="btn-class-guardian" onclick="selectClass('Guardian')" class="glass-btn p-3 rounded-xl flex flex-col items-center gap-1 text-xs sm:text-sm font-semibold">
+              <span class="text-2xl">🛡️</span> Guardian (Mace)
+            </button>
+            <button id="btn-class-mage" onclick="selectClass('Mage')" class="glass-btn p-3 rounded-xl flex flex-col items-center gap-1 text-xs sm:text-sm font-semibold">
+              <span class="text-2xl">🔮</span> Mage (Staff)
+            </button>
+            <button id="btn-class-lancer" onclick="selectClass('Lancer')" class="glass-btn p-3 rounded-xl flex flex-col items-center gap-1 text-xs sm:text-sm font-semibold">
+              <span class="text-2xl">🔱</span> Lancer (Spear)
+            </button>
+          </div>
+        </div>
+
+        <button onclick="startGame()" class="w-full py-4 rounded-xl font-cinzel font-bold text-lg bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 shadow-lg shadow-amber-500/25 hover:brightness-110 active:scale-[0.99] transition-all">
+          ENTER REALM
+        </button>
+      </div>
+    </div>
+
+    <!-- HUD TOP BAR (Mini-map & Clock/Status) -->
+    <div id="hud-top" class="flex justify-between items-start w-full">
+      <div class="glass-card p-3 rounded-xl flex items-center gap-4">
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="font-cinzel text-amber-400 font-bold text-lg" id="hud-hero-name">Warrior</span>
+            <span class="bg-amber-500/20 text-amber-300 text-xs px-2 py-0.5 rounded border border-amber-500/30 font-semibold" id="hud-level">Lv. 1</span>
+          </div>
+          <div class="text-xs text-slate-400 mt-0.5" id="hud-zone">Safe Zone (Village Camp)</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Time of Day & Safe Status -->
+        <div class="glass-card px-3 py-2 rounded-xl flex items-center gap-2 text-xs font-semibold">
+          <span id="time-icon">☀️</span>
+          <span id="time-text" class="text-amber-200">12:00 PM</span>
+        </div>
+        <!-- Minimap Canvas -->
+        <div class="glass-card p-1.5 rounded-2xl border border-amber-500/30 overflow-hidden shadow-lg">
+          <canvas id="minimap" width="110" height="110" class="rounded-xl"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD BOTTOM BAR (Player Vitals, Action Bar & Controls Prompt) -->
+    <div id="hud-bottom" class="flex flex-col md:flex-row items-end md:items-center justify-between gap-4 w-full">
+      <!-- Vitals Bars -->
+      <div class="glass-card p-3 md:p-4 rounded-2xl w-full md:w-80 space-y-2.5">
+        <!-- Health Bar -->
+        <div>
+          <div class="flex justify-between text-xs font-semibold mb-1">
+            <span class="text-red-400">HEALTH</span>
+            <span id="hp-text" class="text-slate-300">100 / 100</span>
+          </div>
+          <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-red-900/50 p-0.5">
+            <div id="hp-bar" class="h-full bg-gradient-to-r from-red-600 to-rose-400 rounded-full transition-all duration-200" style="width: 100%;"></div>
+          </div>
+        </div>
+        <!-- Mana Bar -->
+        <div>
+          <div class="flex justify-between text-xs font-semibold mb-1">
+            <span class="text-sky-400">MANA</span>
+            <span id="mp-text" class="text-slate-300">50 / 50</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-sky-900/50 p-0.5">
+            <div id="mp-bar" class="h-full bg-gradient-to-r from-sky-600 to-blue-400 rounded-full transition-all duration-200" style="width: 100%;"></div>
+          </div>
+        </div>
+        <!-- EXP Bar -->
+        <div>
+          <div class="flex justify-between text-xs font-semibold mb-1">
+            <span class="text-amber-400">EXPERIENCE</span>
+            <span id="exp-text" class="text-slate-300">0 / 100</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-amber-900/50">
+            <div id="exp-bar" class="h-full bg-amber-400 rounded-full transition-all duration-200" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Hotbar -->
+      <div class="glass-card p-2 rounded-2xl flex items-center gap-2">
+        <div class="flex flex-col items-center">
+          <button onclick="useSkill(1)" class="interactive glass-btn w-12 h-12 rounded-xl flex items-center justify-center font-bold text-amber-400 text-lg border border-amber-500/40 relative group">
+            ⚔️
+            <span class="absolute -top-2 -right-2 bg-slate-900 text-amber-400 text-[10px] w-5 h-5 rounded-full flex items-center justify-center border border-amber-500/50 font-bold">1</span>
+          </button>
+          <span class="text-[10px] text-slate-400 mt-1 font-semibold">Strike</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <button onclick="useSkill(2)" class="interactive glass-btn w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sky-400 text-lg border border-sky-500/40 relative group">
+            ✨
+            <span class="absolute -top-2 -right-2 bg-slate-900 text-sky-400 text-[10px] w-5 h-5 rounded-full flex items-center justify-center border border-sky-500/50 font-bold">2</span>
+          </button>
+          <span class="text-[10px] text-slate-400 mt-1 font-semibold">Special</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <button onclick="useSkill(3)" class="interactive glass-btn w-12 h-12 rounded-xl flex items-center justify-center font-bold text-emerald-400 text-lg border border-emerald-500/40 relative group">
+            🧪
+            <span class="absolute -top-2 -right-2 bg-slate-900 text-emerald-400 text-[10px] w-5 h-5 rounded-full flex items-center justify-center border border-emerald-500/50 font-bold">3</span>
+          </button>
+          <span class="text-[10px] text-slate-400 mt-1 font-semibold">Heal</span>
+        </div>
+      </div>
+
+      <!-- Control Guides / Hints -->
+      <div class="glass-card p-3 rounded-2xl hidden lg:block text-xs text-slate-300 space-y-1">
+        <div><span class="text-amber-400 font-bold">WASD / Arrows</span>: Move & Turn</div>
+        <div><span class="text-amber-400 font-bold">Shift</span>: Sprint | <span class="text-amber-400 font-bold">Space</span>: Jump</div>
+        <div><span class="text-amber-400 font-bold">P</span>: Pause Game | <span class="text-amber-400 font-bold">ESC</span>: Character Menu</div>
+      </div>
+    </div>
+
+    <!-- PAUSE OVERLAY (P KEY) -->
+    <div id="pause-overlay" class="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-sm hidden flex items-center justify-center">
+      <div class="glass-card px-10 py-8 rounded-3xl text-center border-amber-500/40 shadow-2xl animate-pulse">
+        <h2 class="font-cinzel text-5xl font-black text-amber-400 tracking-widest mb-2">PAUSED</h2>
+        <p class="text-slate-300 text-sm">Press <span class="text-amber-300 font-bold">P</span> to Resume Gameplay</p>
+      </div>
+    </div>
+
+    <!-- ESC CHARACTER MENU UI (ESC KEY) -->
+    <div id="esc-menu" class="interactive fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+      <div class="glass-card max-w-lg w-full rounded-3xl p-6 md:p-8 border border-amber-500/40 shadow-2xl relative">
+        <!-- Close Button -->
+        <button onclick="toggleEscMenu(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl p-2 font-bold">✕</button>
+
+        <h2 class="font-cinzel text-3xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 mb-6">
+          HERO STATUS & MENU
+        </h2>
+
+        <!-- Hero Stats Cards -->
+        <div class="bg-slate-900/80 rounded-2xl p-5 border border-slate-800 mb-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <span class="text-xs text-slate-400 uppercase tracking-wider block">Gender</span>
+              <span id="esc-stat-gender" class="font-bold text-slate-200 capitalize">Male</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-400 uppercase tracking-wider block">Class Type</span>
+              <span id="esc-stat-class" class="font-bold text-amber-400">Warrior</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-400 uppercase tracking-wider block">Current Level</span>
+              <span id="esc-stat-level" class="font-bold text-amber-300 text-lg">Level 1</span>
+            </div>
+            <div>
+              <span class="text-xs text-slate-400 uppercase tracking-wider block">Location</span>
+              <span id="esc-stat-location" class="font-bold text-emerald-400">Safe Zone</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Bars Info -->
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-red-400">Health Points (HP)</span>
+                <span id="esc-hp-val" class="text-slate-200">100 / 100</span>
+              </div>
+              <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+                <div id="esc-hp-bar" class="h-full bg-red-500" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-sky-400">Mana Points (MP)</span>
+                <span id="esc-mp-val" class="text-slate-200">50 / 50</span>
+              </div>
+              <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+                <div id="esc-mp-bar" class="h-full bg-sky-500" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-amber-400">EXP Progress</span>
+                <span id="esc-exp-val" class="text-slate-200">0 / 100</span>
+              </div>
+              <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+                <div id="esc-exp-bar" class="h-full bg-amber-400" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col gap-3">
+          <button onclick="restartGame()" class="w-full py-3.5 rounded-xl font-cinzel font-bold text-base bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-lg shadow-red-900/30 hover:brightness-110 transition-all">
+            🔄 RESTART GAME
+          </button>
+          <button onclick="toggleEscMenu(false)" class="w-full py-3 rounded-xl font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700 transition-all border border-slate-700">
+            Resume Game
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- GAME LOGIC SCRIPT -->
+  <script>
+    /* =========================================================================
+       1. GAME CONFIGURATION & GLOBALS
+       ========================================================================= */
+    const CONFIG = {
+      SAFE_ZONE_RADIUS: 38,
+      WORLD_SIZE: 300,
+      PALISADE_RADIUS: 40,
+      PALISADE_LOG_COUNT: 110,
+      GATE_ANGLE_WIDTH: 0.35 // RADIANS GATE PASSAGE
+    };
+
+    let scene, camera, renderer, clock;
+    let player, playerBody, weaponMesh;
+    let terrainMesh;
+    let isPaused = false;
+    let isEscOpen = false;
+
+    // Web Audio Context
+    let audioCtx;
+
+    // Player State
+    const playerState = {
+      gender: 'male',
+      classType: 'Warrior',
+      level: 1,
+      hp: 100,
+      maxHp: 100,
+      mp: 50,
+      maxMp: 50,
+      exp: 0,
+      maxExp: 100,
+      posX: 0,
+      posZ: 0,
+      posY: 0,
+      rotY: 0,
+      velocity: new THREE.Vector3(),
+      isGrounded: true,
+      inSafeZone: true,
+      animTime: 0
+    };
+
+    // Obstacles array for robust cylindrical/box collision
+    const colliders = [];
+
+    // Animated Fire Particles Array
+    const fireParticles = [];
+    let fireLight = null;
+
+    // Input States
+    const keys = { w: false, a: false, s: false, d: false, shift: false, space: false };
+
+    // Enemies Array
+    const enemies = [];
+
+    /* =========================================================================
+       2. AUDIO SYNTHESIZER (Web Audio API)
+       ========================================================================= */
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playSound(type) {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'swing') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (type === 'hit') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(120, now);
+          osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+          gain.gain.setValueAtTime(0.5, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        } else if (type === 'heal') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'levelup') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.setValueAtTime(450, now + 0.1);
+          osc.frequency.setValueAtTime(600, now + 0.2);
+          gain.gain.setValueAtTime(0.4, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        }
+      } catch (e) {
+        // Fallback catch for audio limits
+      }
+    }
+
+    /* =========================================================================
+       3. CHARACTER CREATION & SELECTION
+       ========================================================================= */
+    function selectGender(g) {
+      playerState.gender = g;
+      document.getElementById('btn-gender-male').classList.toggle('active', g === 'male');
+      document.getElementById('btn-gender-female').classList.toggle('active', g === 'female');
+    }
+
+    function selectClass(c) {
+      playerState.classType = c;
+      const classes = ['Warrior', 'Archer', 'Assassin', 'Guardian', 'Mage', 'Lancer'];
+      classes.forEach(cls => {
+        const btn = document.getElementById(`btn-class-${cls.toLowerCase()}`);
+        if (btn) btn.classList.toggle('active', cls === c);
+      });
+    }
+
+    function startGame() {
+      initAudio();
+      document.getElementById('char-creation').classList.add('hidden');
+      document.getElementById('hud-hero-name').innerText = playerState.classType;
+      
+      initEngine();
+      buildWorld();
+      createHeroCharacter();
+      spawnEnemies();
+      setupInputListeners();
+      updateHUD();
+      
+      animate();
+    }
+
+    /* =========================================================================
+       4. THREE.JS ENGINE INITIALIZATION
+       ========================================================================= */
+    function initEngine() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f172a);
+      scene.fog = new THREE.FogExp2(0x0f172a, 0.008);
+
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      clock = new THREE.Clock();
+
+      // Ambient & Directional Lighting
+      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.4);
+      scene.add(ambientLight);
+
+      const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.2);
+      sunLight.position.set(80, 120, 60);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 0.5;
+      sunLight.shadow.camera.far = 250;
+      const d = 80;
+      sunLight.shadow.camera.left = -d;
+      sunLight.shadow.camera.right = d;
+      sunLight.shadow.camera.top = d;
+      sunLight.shadow.camera.bottom = -d;
+      scene.add(sunLight);
+
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    /* =========================================================================
+       5. TERRAIN & WORLD BUILDER WITH STEEP BOUNDARY MOUNTAINS
+       ========================================================================= */
+    function getTerrainHeight(x, z) {
+      const distFromCenter = Math.sqrt(x * x + z * z);
+      // Flat village safe zone
+      if (distFromCenter < 35) return 0;
+
+      // Smooth rolling hills outside
+      let h = Math.sin(x * 0.05) * Math.cos(z * 0.05) * 3 + Math.sin(x * 0.02) * 4;
+
+      // Impassable outer mountain bounds
+      if (distFromCenter > 110) {
+        const climb = Math.pow((distFromCenter - 110) * 0.25, 2);
+        h += climb;
+      }
+      return h;
+    }
+
+    function buildWorld() {
+      // Ground Mesh
+      const geo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 120, 120);
+      geo.rotateX(-Math.PI / 2);
+
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const z = pos.getZ(i);
+        pos.setY(i, getTerrainHeight(x, z));
+      }
+      geo.computeVertexNormals();
+
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x2e4c23,
+        roughness: 0.85,
+        metalness: 0.1
+      });
+      terrainMesh = new THREE.Mesh(geo, mat);
+      terrainMesh.receiveShadow = true;
+      scene.add(terrainMesh);
+
+      // SAFE ZONE BOUNDARY: Continuous Pointy Wooden Log Palisades
+      buildPointyWoodenPalisade();
+
+      // FIREWOOD & ANIMATED BONFIRE
+      buildAnimatedBonfire();
+
+      // Village Structures & Trees
+      buildVillageStructures();
+      buildForestAndRocks();
+    }
+
+    /* =========================================================================
+       6. POINTY WOODEN LOG WALL BOUNDARY (PALISADE)
+       ========================================================================= */
+    function buildPointyWoodenPalisade() {
+      const radius = CONFIG.PALISADE_RADIUS;
+      const count = CONFIG.PALISADE_LOG_COUNT;
+
+      // Group for log palisades
+      const logGroup = new THREE.Group();
+      
+      const logMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.9 });
+      const tipMat = new THREE.MeshStandardMaterial({ color: 0x422917, roughness: 0.8 });
+
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+
+        // Skip wood logs at gates (North & South passage)
+        const isNorthGate = Math.abs(angle - Math.PI / 2) < CONFIG.GATE_ANGLE_WIDTH;
+        const isSouthGate = Math.abs(angle - (3 * Math.PI / 2)) < CONFIG.GATE_ANGLE_WIDTH;
+        if (isNorthGate || isSouthGate) continue;
+
+        const x = Math.cos(angle) * radius;
+        const z = Math.sin(angle) * radius;
+        const y = getTerrainHeight(x, z);
+
+        // Cylinder Body
+        const logHeight = 4.2 + (Math.random() * 0.4 - 0.2);
+        const logRadius = 0.45;
+        const cylinderGeo = new THREE.CylinderGeometry(logRadius, logRadius, logHeight, 7);
+        const logMesh = new THREE.Mesh(cylinderGeo, logMat);
+        logMesh.position.set(x, y + logHeight / 2, z);
+        logMesh.castShadow = true;
+        logMesh.receiveShadow = true;
+
+        // Cone Pointy Tip
+        const coneGeo = new THREE.ConeGeometry(logRadius, 0.9, 7);
+        const coneMesh = new THREE.Mesh(coneGeo, tipMat);
+        coneMesh.position.set(0, logHeight / 2 + 0.45, 0);
+        coneMesh.castShadow = true;
+        logMesh.add(coneMesh);
+
+        logGroup.add(logMesh);
+
+        // Solid Impassable Collider
+        colliders.push({
+          type: 'cylinder',
+          x: x,
+          z: z,
+          radius: logRadius + 0.35
+        });
+      }
+
+      scene.add(logGroup);
+    }
+
+    /* =========================================================================
+       7. ANIMATED BONFIRE & FIREWOOD (Impassable Solid Object)
+       ========================================================================= */
+    function buildAnimatedBonfire() {
+      const x = 0, z = 0;
+      const y = getTerrainHeight(x, z);
+
+      // Base Stone Ring
+      const ringGeo = new THREE.TorusGeometry(2.2, 0.35, 8, 16);
+      const ringMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.rotation.x = Math.PI / 2;
+      ringMesh.position.set(x, y + 0.2, z);
+      scene.add(ringMesh);
+
+      // Stacked Firewood Logs
+      const logMat = new THREE.MeshStandardMaterial({ color: 0x3f2314, roughness: 0.9 });
+      for (let i = 0; i < 6; i++) {
+        const logGeo = new THREE.CylinderGeometry(0.2, 0.25, 2.8, 6);
+        const log = new THREE.Mesh(logGeo, logMat);
+        const rot = (i / 6) * Math.PI * 2;
+        log.position.set(x + Math.cos(rot) * 0.7, y + 0.5, z + Math.sin(rot) * 0.7);
+        log.rotation.z = Math.PI / 3;
+        log.rotation.y = rot;
+        log.castShadow = true;
+        scene.add(log);
+      }
+
+      // Impassable Collider around central firewood
+      colliders.push({
+        type: 'cylinder',
+        x: x,
+        z: z,
+        radius: 2.3
+      });
+
+      // Dynamic Flickering Light
+      fireLight = new THREE.PointLight(0xf97316, 2.5, 22);
+      fireLight.position.set(x, y + 1.8, z);
+      fireLight.castShadow = true;
+      scene.add(fireLight);
+
+      // Fire Particles Mesh Group
+      const particleCount = 18;
+      for (let i = 0; i < particleCount; i++) {
+        const pGeo = new THREE.DodecahedronGeometry(0.25 + Math.random() * 0.2);
+        const pMat = new THREE.MeshBasicMaterial({
+          color: i % 2 === 0 ? 0xef4444 : 0xf59e0b,
+          transparent: true,
+          opacity: 0.85
+        });
+        const pMesh = new THREE.Mesh(pGeo, pMat);
+        pMesh.position.set(
+          (Math.random() - 0.5) * 1.2,
+          y + 0.5 + Math.random() * 1.8,
+          (Math.random() - 0.5) * 1.2
+        );
+        scene.add(pMesh);
+        fireParticles.push({
+          mesh: pMesh,
+          baseY: y + 0.5,
+          speed: 1.2 + Math.random() * 1.5,
+          offset: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function updateFireAnimation(delta, time) {
+      if (fireLight) {
+        fireLight.intensity = 2.2 + Math.sin(time * 12) * 0.5 + Math.cos(time * 7) * 0.3;
+      }
+      fireParticles.forEach(p => {
+        p.mesh.position.y += p.speed * delta;
+        p.mesh.scale.multiplyScalar(0.96);
+        if (p.mesh.position.y > p.baseY + 2.5) {
+          p.mesh.position.y = p.baseY + 0.2;
+          p.mesh.position.x = (Math.random() - 0.5) * 1.2;
+          p.mesh.position.z = (Math.random() - 0.5) * 1.2;
+          p.mesh.scale.set(1, 1, 1);
+        }
+      });
+    }
+
+    /* =========================================================================
+       8. VILLAGE HOUSES & ENVIRONMENT OBJECTS
+       ========================================================================= */
+    function buildVillageStructures() {
+      // Helper function for houses
+      const createHouse = (x, z, rot) => {
+        const y = getTerrainHeight(x, z);
+        const group = new THREE.Group();
+
+        // Base Body
+        const bodyGeo = new THREE.BoxGeometry(6, 4, 7);
+        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.y = 2;
+        body.castShadow = true;
+        group.add(body);
+
+        // Roof
+        const roofGeo = new THREE.ConeGeometry(5.2, 3, 4);
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.7 });
+        const roof = new THREE.Mesh(roofGeo, roofMat);
+        roof.position.y = 5.5;
+        roof.rotation.y = Math.PI / 4;
+        roof.castShadow = true;
+        group.add(roof);
+
+        group.position.set(x, y, z);
+        group.rotation.y = rot;
+        scene.add(group);
+
+        colliders.push({ type: 'box', x: x, z: z, width: 6.5, depth: 7.5 });
+      };
+
+      createHouse(-15, -12, 0.4);
+      createHouse(16, -10, -0.5);
+      createHouse(-18, 15, 1.2);
+      createHouse(15, 18, -1.1);
+    }
+
+    function buildForestAndRocks() {
+      const treeMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.8 });
+      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
+
+      for (let i = 0; i < 75; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 48 + Math.random() * 80;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        const y = getTerrainHeight(x, z);
+
+        // Tree
+        const trunkGeo = new THREE.CylinderGeometry(0.4, 0.6, 4, 6);
+        const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+        trunk.position.set(x, y + 2, z);
+        trunk.castShadow = true;
+
+        const leavesGeo = new THREE.ConeGeometry(3, 7, 6);
+        const leaves = new THREE.Mesh(leavesGeo, treeMat);
+        leaves.position.set(x, y + 6.5, z);
+        leaves.castShadow = true;
+
+        scene.add(trunk);
+        scene.add(leaves);
+
+        colliders.push({ type: 'cylinder', x: x, z: z, radius: 0.8 });
+      }
+    }
+
+    /* =========================================================================
+       9. HERO CHARACTER CREATION & ANIMATION SETUP
+       ========================================================================= */
+    function createHeroCharacter() {
+      playerBody = new THREE.Group();
+
+      const isMale = playerState.gender === 'male';
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xfed7aa, roughness: 0.6 });
+      const clothMat = new THREE.MeshStandardMaterial({
+        color: isMale ? 0x2563eb : 0xdb2777,
+        roughness: 0.7
+      });
+      const hairMat = new THREE.MeshStandardMaterial({ color: isMale ? 0x451a03 : 0xf59e0b });
+
+      // Torso
+      const torsoGeo = new THREE.BoxGeometry(0.9, 1.3, 0.5);
+      const torso = new THREE.Mesh(torsoGeo, clothMat);
+      torso.position.y = 1.35;
+      torso.castShadow = true;
+      playerBody.add(torso);
+
+      // Head
+      const headGeo = new THREE.SphereGeometry(0.35, 12, 12);
+      const head = new THREE.Mesh(headGeo, skinMat);
+      head.position.y = 2.2;
+      head.castShadow = true;
+      playerBody.add(head);
+
+      // Gender Headwear / Hair
+      if (isMale) {
+        // Cap
+        const capGeo = new THREE.ConeGeometry(0.42, 0.3, 8);
+        const cap = new THREE.Mesh(capGeo, clothMat);
+        cap.position.set(0, 2.45, 0);
+        playerBody.add(cap);
+      } else {
+        // Long Flowing Hair
+        const hairGeo = new THREE.BoxGeometry(0.75, 0.9, 0.4);
+        const hair = new THREE.Mesh(hairGeo, hairMat);
+        hair.position.set(0, 2.2, -0.2);
+        playerBody.add(hair);
+      }
+
+      // Arms & Legs
+      const limbGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.9, 8);
+
+      playerBody.leftArm = new THREE.Mesh(limbGeo, clothMat);
+      playerBody.leftArm.position.set(-0.6, 1.4, 0);
+      playerBody.add(playerBody.leftArm);
+
+      playerBody.rightArm = new THREE.Mesh(limbGeo, clothMat);
+      playerBody.rightArm.position.set(0.6, 1.4, 0);
+      playerBody.add(playerBody.rightArm);
+
+      playerBody.leftLeg = new THREE.Mesh(limbGeo, clothMat);
+      playerBody.leftLeg.position.set(-0.25, 0.45, 0);
+      playerBody.add(playerBody.leftLeg);
+
+      playerBody.rightLeg = new THREE.Mesh(limbGeo, clothMat);
+      playerBody.rightLeg.position.set(0.25, 0.45, 0);
+      playerBody.add(playerBody.rightLeg);
+
+      // Weapon Attachment
+      equipWeaponMesh();
+
+      playerBody.position.set(0, 0, 10);
+      scene.add(playerBody);
+    }
+
+    function equipWeaponMesh() {
+      if (weaponMesh) playerBody.rightArm.remove(weaponMesh);
+
+      const metalMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8, roughness: 0.2 });
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+
+      const cls = playerState.classType;
+      if (cls === 'Warrior') {
+        const swordGeo = new THREE.BoxGeometry(0.1, 1.4, 0.25);
+        weaponMesh = new THREE.Mesh(swordGeo, metalMat);
+        weaponMesh.position.set(0, -0.5, 0.3);
+      } else if (cls === 'Archer') {
+        const bowGeo = new THREE.TorusGeometry(0.6, 0.05, 6, 12, Math.PI);
+        weaponMesh = new THREE.Mesh(bowGeo, woodMat);
+        weaponMesh.position.set(0, -0.2, 0.3);
+      } else if (cls === 'Mage') {
+        const staffGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.8, 6);
+        weaponMesh = new THREE.Mesh(staffGeo, woodMat);
+        const orbGeo = new THREE.SphereGeometry(0.2, 8, 8);
+        const orb = new THREE.Mesh(orbGeo, new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+        orb.position.y = 0.9;
+        weaponMesh.add(orb);
+        weaponMesh.position.set(0, -0.2, 0.3);
+      } else {
+        // Default Spear/Mace/Dagger
+        const spearGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.6, 6);
+        weaponMesh = new THREE.Mesh(spearGeo, metalMat);
+        weaponMesh.position.set(0, -0.3, 0.3);
+      }
+
+      playerBody.rightArm.add(weaponMesh);
+    }
+
+    /* =========================================================================
+       10. ENEMIES & SAFE ZONE AI LOGIC
+       ========================================================================= */
+    function spawnEnemies() {
+      const enemyMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.7 });
+      for (let i = 0; i < 12; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 50 + Math.random() * 45;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        const y = getTerrainHeight(x, z);
+
+        const group = new THREE.Group();
+        const bodyGeo = new THREE.SphereGeometry(0.8, 12, 12);
+        const body = new THREE.Mesh(bodyGeo, enemyMat);
+        body.position.y = 0.8;
+        body.castShadow = true;
+        group.add(body);
+
+        group.position.set(x, y, z);
+        scene.add(group);
+
+        enemies.push({
+          mesh: group,
+          x: x,
+          z: z,
+          hp: 60,
+          maxHp: 60,
+          state: 'wander',
+          targetX: x,
+          targetZ: z
+        });
+      }
+    }
+
+    function updateEnemies(delta) {
+      enemies.forEach(e => {
+        if (e.hp <= 0) return;
+
+        const distToPlayer = Math.hypot(playerState.posX - e.x, playerState.posZ - e.z);
+
+        // Cannot enter Safe Zone
+        if (!playerState.inSafeZone && distToPlayer < 18) {
+          // Chase player
+          const angle = Math.atan2(playerState.posZ - e.z, playerState.posX - e.x);
+          e.x += Math.cos(angle) * 3.5 * delta;
+          e.z += Math.sin(angle) * 3.5 * delta;
+        } else {
+          // Random wander outside
+          if (Math.random() < 0.01) {
+            const ang = Math.random() * Math.PI * 2;
+            e.targetX = e.x + Math.cos(ang) * 10;
+            e.targetZ = e.z + Math.sin(ang) * 10;
+          }
+          const distToTarget = Math.hypot(e.targetX - e.x, e.targetZ - e.z);
+          if (distToTarget > 0.5) {
+            const ang = Math.atan2(e.targetZ - e.z, e.targetX - e.x);
+            e.x += Math.cos(ang) * 1.5 * delta;
+            e.z += Math.sin(ang) * 1.5 * delta;
+          }
+        }
+
+        // Keep outside Safe Zone radius
+        const distFromCenter = Math.hypot(e.x, e.z);
+        if (distFromCenter < CONFIG.SAFE_ZONE_RADIUS + 1) {
+          const pushAngle = Math.atan2(e.z, e.x);
+          e.x = Math.cos(pushAngle) * (CONFIG.SAFE_ZONE_RADIUS + 1.5);
+          e.z = Math.sin(pushAngle) * (CONFIG.SAFE_ZONE_RADIUS + 1.5);
+        }
+
+        const y = getTerrainHeight(e.x, e.z);
+        e.mesh.position.set(e.x, y, e.z);
+      });
+    }
+
+    /* =========================================================================
+       11. KEYBOARD LISTENERS & PAUSE / ESC MENU HANDLERS
+       ========================================================================= */
+    function setupInputListeners() {
+      window.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 'w' || key === 'arrowup') keys.w = true;
+        if (key === 'a' || key === 'arrowleft') keys.a = true;
+        if (key === 's' || key === 'arrowdown') keys.s = true;
+        if (key === 'd' || key === 'arrowright') keys.d = true;
+        if (e.shiftKey) keys.shift = true;
+        if (e.code === 'Space') keys.space = true;
+
+        if (key === '1') useSkill(1);
+        if (key === '2') useSkill(2);
+        if (key === '3') useSkill(3);
+
+        // 'P' Key Toggle Pause
+        if (key === 'p') {
+          togglePause();
+        }
+
+        // 'ESC' Key Toggle Hero Stats Menu
+        if (e.key === 'Escape') {
+          toggleEscMenu();
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 'w' || key === 'arrowup') keys.w = false;
+        if (key === 'a' || key === 'arrowleft') keys.a = false;
+        if (key === 's' || key === 'arrowdown') keys.s = false;
+        if (key === 'd' || key === 'arrowright') keys.d = false;
+        if (!e.shiftKey) keys.shift = false;
+        if (e.code === 'Space') keys.space = false;
+      });
+    }
+
+    function togglePause() {
+      if (isEscOpen) return; // ESC takes priority
+      isPaused = !isPaused;
+      document.getElementById('pause-overlay').classList.toggle('hidden', !isPaused);
+    }
+
+    function toggleEscMenu(forceState) {
+      if (forceState !== undefined) {
+        isEscOpen = forceState;
+      } else {
+        isEscOpen = !isEscOpen;
+      }
+
+      document.getElementById('esc-menu').classList.toggle('hidden', !isEscOpen);
+      if (isEscOpen) {
+        updateEscStats();
+      }
+    }
+
+    function updateEscStats() {
+      document.getElementById('esc-stat-gender').innerText = playerState.gender;
+      document.getElementById('esc-stat-class').innerText = playerState.classType;
+      document.getElementById('esc-stat-level').innerText = `Level ${playerState.level}`;
+      document.getElementById('esc-stat-location').innerText = playerState.inSafeZone ? 'Safe Zone (Village)' : 'Wilderness';
+
+      document.getElementById('esc-hp-val').innerText = `${Math.ceil(playerState.hp)} / ${playerState.maxHp}`;
+      document.getElementById('esc-hp-bar').style.width = `${(playerState.hp / playerState.maxHp) * 100}%`;
+
+      document.getElementById('esc-mp-val').innerText = `${Math.ceil(playerState.mp)} / ${playerState.maxMp}`;
+      document.getElementById('esc-mp-bar').style.width = `${(playerState.mp / playerState.maxMp) * 100}%`;
+
+      document.getElementById('esc-exp-val').innerText = `${playerState.exp} / ${playerState.maxExp}`;
+      document.getElementById('esc-exp-bar').style.width = `${(playerState.exp / playerState.maxExp) * 100}%`;
+    }
+
+    function restartGame() {
+      playerState.hp = playerState.maxHp;
+      playerState.mp = playerState.maxMp;
+      playerState.exp = 0;
+      playerState.level = 1;
+      playerState.posX = 0;
+      playerState.posZ = 10;
+      playerState.posY = 0;
+
+      toggleEscMenu(false);
+      isPaused = false;
+      document.getElementById('pause-overlay').classList.add('hidden');
+      updateHUD();
+    }
+
+    /* =========================================================================
+       12. SKILLS & COMBAT SYSTEM
+       ========================================================================= */
+    function useSkill(slot) {
+      if (isPaused || isEscOpen) return;
+
+      if (slot === 1) {
+        playSound('swing');
+        // Attack nearby enemies
+        enemies.forEach(e => {
+          if (e.hp <= 0) return;
+          const dist = Math.hypot(e.x - playerState.posX, e.z - playerState.posZ);
+          if (dist < 4.5) {
+            e.hp -= 30;
+            playSound('hit');
+            showDamageText(e.x, e.z, '-30');
+            if (e.hp <= 0) {
+              e.mesh.visible = false;
+              playerState.exp += 40;
+              if (playerState.exp >= playerState.maxExp) {
+                playerState.level++;
+                playerState.exp -= playerState.maxExp;
+                playerState.maxExp += 50;
+                playerState.maxHp += 20;
+                playerState.hp = playerState.maxHp;
+                playSound('levelup');
+              }
+            }
+          }
+        });
+      } else if (slot === 2) {
+        if (playerState.mp >= 15) {
+          playerState.mp -= 15;
+          playSound('swing');
+          showDamageText(playerState.posX, playerState.posZ, 'SPECIAL!', '#38bdf8');
+        }
+      } else if (slot === 3) {
+        if (playerState.mp >= 20) {
+          playerState.mp -= 20;
+          playerState.hp = Math.min(playerState.maxHp, playerState.hp + 40);
+          playSound('heal');
+          showDamageText(playerState.posX, playerState.posZ, '+40 HP', '#4ade80');
+        }
+      }
+      updateHUD();
+    }
+
+    function showDamageText(x, z, text, color = '#f87171') {
+      const el = document.createElement('div');
+      el.className = 'damage-text';
+      el.innerText = text;
+      el.style.color = color;
+      
+      // Screen space positioning projection
+      const vec = new THREE.Vector3(x, getTerrainHeight(x, z) + 2, z);
+      vec.project(camera);
+      const sx = (vec.x * .5 + .5) * window.innerWidth;
+      const sy = (-(vec.y * .5) + .5) * window.innerHeight;
+
+      el.style.left = `${sx}px`;
+      el.style.top = `${sy}px`;
+      document.body.appendChild(el);
+
+      setTimeout(() => el.remove(), 1000);
+    }
+
+    /* =========================================================================
+       13. PHYSICS & SAFE COLLISION CHECK (ERROR-FREE)
+       ========================================================================= */
+    function checkCollisions(nextX, nextZ) {
+      for (let i = 0; i < colliders.length; i++) {
+        const c = colliders[i];
+        if (c.type === 'cylinder') {
+          const dist = Math.hypot(nextX - c.x, nextZ - c.z);
+          if (dist < c.radius) {
+            return true; // Solid collision hit
+          }
+        } else if (c.type === 'box') {
+          if (Math.abs(nextX - c.x) < c.width / 2 && Math.abs(nextZ - c.z) < c.depth / 2) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    /* =========================================================================
+       14. MOVEMENT & GAMEPLAY ANIMATION LOOP
+       ========================================================================= */
+    function updatePlayerMovement(delta) {
+      if (!playerBody || isPaused || isEscOpen) return;
+
+      const speed = keys.shift ? 12.0 : 6.0;
+      let moveX = 0;
+      let moveZ = 0;
+
+      if (keys.w) moveZ -= 1;
+      if (keys.s) moveZ += 1;
+      if (keys.a) moveX -= 1;
+      if (keys.d) moveX += 1;
+
+      if (moveX !== 0 || moveZ !== 0) {
+        const len = Math.hypot(moveX, moveZ);
+        moveX /= len;
+        moveZ /= len;
+
+        const targetRot = Math.atan2(moveX, moveZ);
+        playerState.rotY = THREE.MathUtils.lerp(playerState.rotY, targetRot, delta * 12);
+        playerBody.rotation.y = playerState.rotY;
+
+        const nextX = playerState.posX + Math.sin(playerState.rotY) * speed * delta;
+        const nextZ = playerState.posZ + Math.cos(playerState.rotY) * speed * delta;
+
+        // Verify collision before moving
+        if (!checkCollisions(nextX, playerState.posZ)) {
+          playerState.posX = nextX;
+        }
+        if (!checkCollisions(playerState.posX, nextZ)) {
+          playerState.posZ = nextZ;
+        }
+
+        // Limb walk animation
+        playerState.animTime += delta * speed * 1.8;
+        playerBody.leftArm.rotation.x = Math.sin(playerState.animTime) * 0.6;
+        playerBody.rightArm.rotation.x = -Math.sin(playerState.animTime) * 0.6;
+        playerBody.leftLeg.rotation.x = -Math.sin(playerState.animTime) * 0.6;
+        playerBody.rightLeg.rotation.x = Math.sin(playerState.animTime) * 0.6;
+      } else {
+        // Idle animation
+        playerBody.leftArm.rotation.x = THREE.MathUtils.lerp(playerBody.leftArm.rotation.x, 0, delta * 8);
+        playerBody.rightArm.rotation.x = THREE.MathUtils.lerp(playerBody.rightArm.rotation.x, 0, delta * 8);
+        playerBody.leftLeg.rotation.x = THREE.MathUtils.lerp(playerBody.leftLeg.rotation.x, 0, delta * 8);
+        playerBody.rightLeg.rotation.x = THREE.MathUtils.lerp(playerBody.rightLeg.rotation.x, 0, delta * 8);
+      }
+
+      // Jump Physics
+      if (keys.space && playerState.isGrounded) {
+        playerState.velocity.y = 7.5;
+        playerState.isGrounded = false;
+      }
+
+      // Gravity & Terrain Elevation
+      const groundY = getTerrainHeight(playerState.posX, playerState.posZ);
+      playerState.velocity.y -= 22 * delta;
+      playerState.posY += playerState.velocity.y * delta;
+
+      if (playerState.posY <= groundY) {
+        playerState.posY = groundY;
+        playerState.velocity.y = 0;
+        playerState.isGrounded = true;
+      }
+
+      playerBody.position.set(playerState.posX, playerState.posY, playerState.posZ);
+
+      // Safe Zone check
+      const distFromCenter = Math.hypot(playerState.posX, playerState.posZ);
+      playerState.inSafeZone = distFromCenter <= CONFIG.SAFE_ZONE_RADIUS;
+      document.getElementById('hud-zone').innerText = playerState.inSafeZone ? 'Safe Zone (Village Camp)' : 'Wilderness (Hostile)';
+      document.getElementById('hud-zone').className = playerState.inSafeZone ? 'text-xs text-emerald-400 mt-0.5' : 'text-xs text-rose-400 mt-0.5';
+
+      // Camera Follow Smooth
+      const camOffset = new THREE.Vector3(0, 10, 16);
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, playerState.posX + camOffset.x, delta * 5);
+      camera.position.y = THREE.MathUtils.lerp(camera.position.y, playerState.posY + camOffset.y, delta * 5);
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, playerState.posZ + camOffset.z, delta * 5);
+      camera.lookAt(playerState.posX, playerState.posY + 1.5, playerState.posZ);
+    }
+
+    /* =========================================================================
+       15. HUD & MINIMAP RENDERER
+       ========================================================================= */
+    function updateHUD() {
+      document.getElementById('hud-level').innerText = `Lv. ${playerState.level}`;
+      document.getElementById('hp-text').innerText = `${Math.ceil(playerState.hp)} / ${playerState.maxHp}`;
+      document.getElementById('hp-bar').style.width = `${(playerState.hp / playerState.maxHp) * 100}%`;
+
+      document.getElementById('mp-text').innerText = `${Math.ceil(playerState.mp)} / ${playerState.maxMp}`;
+      document.getElementById('mp-bar').style.width = `${(playerState.mp / playerState.maxMp) * 100}%`;
+
+      document.getElementById('exp-text').innerText = `${playerState.exp} / ${playerState.maxExp}`;
+      document.getElementById('exp-bar').style.width = `${(playerState.exp / playerState.maxExp) * 100}%`;
+    }
+
+    function renderMinimap() {
+      const cvs = document.getElementById('minimap');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width;
+      const h = cvs.height;
+      const scale = w / CONFIG.WORLD_SIZE;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Background Ground
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, w, h);
+
+      // Safe Zone Circle
+      ctx.beginPath();
+      ctx.arc(w / 2, h / 2, CONFIG.SAFE_ZONE_RADIUS * scale, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+      ctx.fill();
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Enemies
+      enemies.forEach(e => {
+        if (e.hp > 0) {
+          const ex = w / 2 + e.x * scale;
+          const ez = h / 2 + e.z * scale;
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(ex, ez, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // Player Blip
+      const px = w / 2 + playerState.posX * scale;
+      const pz = h / 2 + playerState.posZ * scale;
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(px, pz, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    /* =========================================================================
+       16. MAIN GAME LOOP
+       ========================================================================= */
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = Math.min(clock.getDelta(), 0.1);
+      const time = clock.getElapsedTime();
+
+      if (!isPaused && !isEscOpen) {
+        updatePlayerMovement(delta);
+        updateEnemies(delta);
+        updateFireAnimation(delta, time);
+      }
+
+      renderMinimap();
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>
