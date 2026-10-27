@@ -259,11 +259,17 @@
       </div>
     </div>
 
-    <!-- CENTER INTERACTION PROMPT FOR HOUSE SLEEP / CLICK TO LOCK -->
+    <!-- CENTER INTERACTION PROMPTS -->
     <div class="self-center flex flex-col items-center gap-2">
+      <!-- House Sleep Prompt -->
       <div id="interact-prompt" class="glass-panel px-6 py-3 rounded-full border border-amber-400/60 text-amber-300 font-semibold text-sm hidden animate-bounce shadow-2xl">
         Press <span class="bg-amber-500 text-slate-950 px-2.5 py-1 rounded-md font-black mx-1 shadow-md">F</span> to Enter House & Rest
       </div>
+      <!-- Chest Open Prompt -->
+      <div id="chest-prompt" class="glass-panel px-6 py-3 rounded-full border border-yellow-400/80 text-yellow-300 font-semibold text-sm hidden animate-bounce shadow-2xl">
+        Press <span class="bg-yellow-500 text-slate-950 px-2.5 py-1 rounded-md font-black mx-1 shadow-md">E</span> to Open Chest
+      </div>
+      <!-- Pointer Lock Hint -->
       <div id="pointer-lock-hint" class="glass-panel px-5 py-2 rounded-full border border-sky-400/50 text-sky-200 font-medium text-xs shadow-lg hidden">
         Click game area to lock camera view
       </div>
@@ -276,7 +282,7 @@
       <div class="glass-panel p-3.5 rounded-2xl hidden lg:block text-[11px] text-slate-300 space-y-1 border border-slate-800">
         <div><span class="text-amber-400 font-bold">Mouse Look</span>: Aim | <span class="text-amber-400 font-bold">Left-Click</span>: Attack / Lock View</div>
         <div><span class="text-amber-400 font-bold">WASD</span>: Move | <span class="text-amber-400 font-bold">Shift</span>: Sprint | <span class="text-amber-400 font-bold">Space</span>: Jump</div>
-        <div><span class="text-amber-400 font-bold">1, 2, 3</span>: Skills | <span class="text-amber-400 font-bold">P</span>: Pause | <span class="text-amber-400 font-bold">ESC</span>: Menu / Unlock</div>
+        <div><span class="text-amber-400 font-bold">E</span>: Open Chest | <span class="text-amber-400 font-bold">F</span>: Rest | <span class="text-amber-400 font-bold">1,2,3</span>: Skills | <span class="text-amber-400 font-bold">P</span>: Pause</div>
       </div>
 
       <!-- Skill Action Slots -->
@@ -317,6 +323,35 @@
 
       <!-- Spacer -->
       <div class="w-48 hidden lg:block"></div>
+    </div>
+
+    <!-- CHEST INVENTORY MODAL -->
+    <div id="chest-inventory-modal" class="interactive fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+      <div class="glass-panel max-w-md w-full rounded-3xl p-6 border border-yellow-500/50 shadow-2xl relative">
+        <button onclick="toggleChestInventory(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold">✕</button>
+        
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-3xl">📦</span>
+          <div>
+            <h2 class="font-cinzel text-xl font-bold text-yellow-400">TREASURE CHEST</h2>
+            <p class="text-xs text-slate-400">Storage Contents</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 text-center space-y-4 mb-4">
+          <p class="text-slate-400 italic text-sm">~ The chest is currently empty ~</p>
+          <div class="grid grid-cols-4 gap-2 pt-2">
+            <div class="h-14 bg-slate-950/80 rounded-xl border border-slate-800 border-dashed flex items-center justify-center text-xs text-slate-600">Empty</div>
+            <div class="h-14 bg-slate-950/80 rounded-xl border border-slate-800 border-dashed flex items-center justify-center text-xs text-slate-600">Empty</div>
+            <div class="h-14 bg-slate-950/80 rounded-xl border border-slate-800 border-dashed flex items-center justify-center text-xs text-slate-600">Empty</div>
+            <div class="h-14 bg-slate-950/80 rounded-xl border border-slate-800 border-dashed flex items-center justify-center text-xs text-slate-600">Empty</div>
+          </div>
+        </div>
+
+        <button onclick="toggleChestInventory(false)" class="w-full py-3 rounded-2xl font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-all text-sm">
+          CLOSE CHEST
+        </button>
+      </div>
     </div>
 
     <!-- PAUSE OVERLAY (P KEY) -->
@@ -399,29 +434,31 @@
        1. GAME CONFIGURATION & PROPORTIONAL MAP BIOMES
        ========================================================================= */
     const CONFIG = {
-      SAFE_ZONE_RADIUS: 34,
-      WORLD_SIZE: 380,
-      PALISADE_RADIUS: 34,
-      PALISADE_LOG_COUNT: 210, // Tightly packed logs - zero gaps
-      LAKE_CENTER_X: 55,
-      LAKE_CENTER_Z: -55,
-      LAKE_RADIUS: 38
+      SAFE_ZONE_RADIUS: 38,
+      WORLD_SIZE: 420,
+      PALISADE_RADIUS: 38,
+      PALISADE_LOG_COUNT: 240, // Tightly packed logs - zero gaps
+      LAKE_CENTER_X: 65,
+      LAKE_CENTER_Z: -65,
+      LAKE_RADIUS: 42
     };
 
     let scene, camera, renderer, clock;
     let player, playerBody, weaponMesh, houseDoorMesh;
     let terrainMesh, waterMesh;
+    let cloudsGroup;
     let isPaused = false;
     let isEscOpen = false;
+    let isChestOpen = false;
     let isCinematic = false;
     let isPointerLocked = false;
 
     // Web Audio Context
     let audioCtx;
 
-    // Time & Day/Night System (600s = 10 min loop, 300s = Noon)
+    // Time & Day/Night System (600s = 10 min loop, 300s = Bright Noon)
     let gameTimeSeconds = 300;
-    let sunLight, ambientLight;
+    let sunLight, ambientLight, hemisphereLight;
 
     // Pointer Lock / Crosshair Camera Controls
     const cameraOrbit = {
@@ -456,9 +493,12 @@
 
     // Colliders & Interactive Objects
     const colliders = [];
+    const chests = []; // Interactive chests
+    const npcs = [];   // Animated safezone NPCs
     const fireParticles = [];
     let fireLight = null;
     const houseDoorPosition = new THREE.Vector3(14, 0, 11.5);
+    let activeChestNear = null;
 
     // Projectiles & Dynamic Particle Effects
     const projectiles = [];
@@ -505,7 +545,7 @@
           gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
           osc.start(now);
           osc.stop(now + 0.2);
-        } else if (type === 'heal' || type === 'sleep') {
+        } else if (type === 'heal' || type === 'sleep' || type === 'chest') {
           osc.type = 'sine';
           osc.frequency.setValueAtTime(350, now);
           osc.frequency.exponentialRampToValueAtTime(800, now + 0.45);
@@ -564,15 +604,17 @@
     }
 
     /* =========================================================================
-       4. THREE.JS ENGINE SETUP
+       4. THREE.JS ENGINE SETUP & BRIGHT DAYLIGHTING
        ========================================================================= */
     function initEngine() {
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x38bdf8);
-      scene.fog = new THREE.FogExp2(0x38bdf8, 0.004);
+      
+      // Bright vibrant sky color default
+      scene.background = new THREE.Color(0x87CEEB);
+      scene.fog = new THREE.FogExp2(0x87CEEB, 0.002);
 
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1200);
       
       renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -583,24 +625,77 @@
 
       clock = new THREE.Clock();
 
-      ambientLight = new THREE.AmbientLight(0xe0f2fe, 0.7);
+      // Hemisphere & Ambient lighting for cheerful daytime
+      hemisphereLight = new THREE.HemisphereLight(0xbae6fd, 0x334155, 0.85);
+      scene.add(hemisphereLight);
+
+      ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
       scene.add(ambientLight);
 
-      sunLight = new THREE.DirectionalLight(0xfffbeb, 1.35);
-      sunLight.position.set(90, 130, 70);
+      sunLight = new THREE.DirectionalLight(0xfffbeb, 1.8);
+      sunLight.position.set(100, 150, 80);
       sunLight.castShadow = true;
       sunLight.shadow.mapSize.width = 2048;
       sunLight.shadow.mapSize.height = 2048;
       sunLight.shadow.camera.near = 0.5;
-      sunLight.shadow.camera.far = 300;
-      const d = 100;
+      sunLight.shadow.camera.far = 350;
+      const d = 120;
       sunLight.shadow.camera.left = -d;
       sunLight.shadow.camera.right = d;
       sunLight.shadow.camera.top = d;
       sunLight.shadow.camera.bottom = -d;
       scene.add(sunLight);
 
+      // Procedural 3D Fluffy Sky Clouds
+      buildSkyClouds();
+
       window.addEventListener('resize', onWindowResize);
+    }
+
+    function buildSkyClouds() {
+      cloudsGroup = new THREE.Group();
+      const cloudMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 1.0,
+        transparent: true,
+        opacity: 0.88,
+        flatShading: true
+      });
+
+      const sphereGeo = new THREE.SphereGeometry(1, 8, 8);
+
+      for (let i = 0; i < 35; i++) {
+        const cloud = new THREE.Group();
+        const numPuffs = 5 + Math.floor(Math.random() * 6);
+        for (let j = 0; j < numPuffs; j++) {
+          const puff = new THREE.Mesh(sphereGeo, cloudMat);
+          const r = 8 + Math.random() * 10;
+          puff.scale.set(r, r * 0.6, r);
+          puff.position.set(
+            (j - numPuffs / 2) * 8 + (Math.random() - 0.5) * 6,
+            (Math.random() - 0.5) * 4,
+            (Math.random() - 0.5) * 8
+          );
+          cloud.add(puff);
+        }
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 60 + Math.random() * 180;
+        cloud.position.set(Math.cos(angle) * dist, 70 + Math.random() * 35, Math.sin(angle) * dist);
+        cloudsGroup.add(cloud);
+      }
+
+      scene.add(cloudsGroup);
+    }
+
+    function updateClouds(delta) {
+      if (!cloudsGroup) return;
+      cloudsGroup.children.forEach(c => {
+        c.position.x += delta * 2.2;
+        if (c.position.x > CONFIG.WORLD_SIZE / 2) {
+          c.position.x = -CONFIG.WORLD_SIZE / 2;
+        }
+      });
     }
 
     function onWindowResize() {
@@ -623,7 +718,7 @@
       const dom = renderer.domElement;
 
       dom.addEventListener('click', () => {
-        if (!isPointerLocked && !isEscOpen && !isPaused && !isCinematic) {
+        if (!isPointerLocked && !isEscOpen && !isPaused && !isCinematic && !isChestOpen) {
           requestPointerLock();
         } else if (isPointerLocked) {
           executePrimaryAttack();
@@ -637,13 +732,12 @@
       });
 
       document.addEventListener('mousemove', (e) => {
-        if (!isPointerLocked || isPaused || isEscOpen || isCinematic) return;
+        if (!isPointerLocked || isPaused || isEscOpen || isCinematic || isChestOpen) return;
 
         const sensitivity = 0.0025;
         cameraOrbit.yaw -= e.movementX * sensitivity;
         cameraOrbit.pitch += e.movementY * sensitivity;
 
-        // Clamp pitch so camera doesn't flip or clip underground
         cameraOrbit.pitch = Math.max(-0.15, Math.min(Math.PI / 2.3, cameraOrbit.pitch));
       });
 
@@ -662,26 +756,22 @@
     }
 
     function getTerrainHeight(x, z) {
-      const distFromCenter = Math.hypot(x, z);
-
-      // Lake basin depression (shallow, walkable)
       const lakeDist = getLakeDistance(x, z);
       if (lakeDist < CONFIG.LAKE_RADIUS) {
         const t = lakeDist / CONFIG.LAKE_RADIUS;
         return -2.2 + Math.pow(t, 2) * 2.2 - 0.2;
       }
 
-      // Continuous, uniform procedural terrain across entire map (safe zone matches outside world)
+      // Continuous uniform terrain
       const wave1 = Math.sin(x * 0.025) * Math.cos(z * 0.025) * 3.2;
       const wave2 = Math.cos(x * 0.012 + 0.5) * Math.sin(z * 0.014) * 2.8;
 
-      // Gentle rolling landscape everywhere
       return wave1 + wave2;
     }
 
     function buildWorld() {
-      // Single continuous ground terrain mesh for perfect match inside and outside safe zone
-      const geo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 200, 200);
+      // Single continuous ground terrain mesh
+      const geo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 220, 220);
       geo.rotateX(-Math.PI / 2);
 
       const pos = geo.attributes.position;
@@ -693,7 +783,7 @@
       geo.computeVertexNormals();
 
       const mat = new THREE.MeshStandardMaterial({
-        color: 0x337a28,
+        color: 0x388e3c,
         roughness: 0.85,
         flatShading: true
       });
@@ -708,11 +798,25 @@
       // Palisade with NO GAPS and 2 ARCH GATES
       buildGaplessPalisadeWithTwoGates();
 
-      // Safe Zone Structures
+      // Safe Zone Structures & Expanded Village
       buildAnimatedBonfire();
       buildPlayerHouseCabin();
-      buildBlacksmithForgeArea();
-      buildOutdoorLibraryArea();
+      buildStoneCastleKeep();
+      buildFiveVariedHouses();
+      buildShopsAndStalls();
+      buildCartsCratesFruitsBarrels();
+      buildFlagsAndBanners();
+
+      // Interactive Chests in Safe Zone
+      spawnInteractiveChest(-12, 12, 'Safezone Market Chest');
+      spawnInteractiveChest(18, -12, 'Keep Storage Chest');
+      spawnInteractiveChest(-22, -8, 'Library Vault Chest');
+
+      // Structures Outside Safe Zone
+      buildRuinedCastleOutside();
+      buildRuinedWatchtowers();
+      buildStoneStackedMonument();
+      buildStonePyramid();
 
       // Dense Pointy Grass Cover across ALL green terrain & Forest biomes
       buildDenseGrassAndEnvironment();
@@ -753,25 +857,24 @@
        ========================================================================= */
     function buildGaplessPalisadeWithTwoGates() {
       const radius = CONFIG.PALISADE_RADIUS;
-      const count = CONFIG.PALISADE_LOG_COUNT; // 210 logs guarantee 0 gaps
+      const count = CONFIG.PALISADE_LOG_COUNT;
       const logGroup = new THREE.Group();
       
       const logMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.9 });
       const tipMat = new THREE.MeshStandardMaterial({ color: 0x3d2514, roughness: 0.8 });
       const archMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
 
-      const NORTH_GATE_ANGLE = Math.PI / 2;      // North entrance (z positive)
-      const SOUTH_GATE_ANGLE = (3 * Math.PI) / 2; // South entrance (z negative)
+      const NORTH_GATE_ANGLE = Math.PI / 2;      // North entrance
+      const SOUTH_GATE_ANGLE = (3 * Math.PI) / 2; // South entrance
       const GATE_WIDTH_ANGLE = 0.18;
 
       for (let i = 0; i < count; i++) {
         const angle = (i / count) * Math.PI * 2;
 
-        // Check if inside North or South Gate Entrances
         const isNorthGate = Math.abs(angle - NORTH_GATE_ANGLE) < GATE_WIDTH_ANGLE;
         const isSouthGate = Math.abs(angle - SOUTH_GATE_ANGLE) < GATE_WIDTH_ANGLE;
 
-        if (isNorthGate || isSouthGate) continue; // Leave open path for entrance
+        if (isNorthGate || isSouthGate) continue;
 
         const x = Math.cos(angle) * radius;
         const z = Math.sin(angle) * radius;
@@ -791,7 +894,7 @@
         colliders.push({ type: 'cylinder', x: x, z: z, radius: logRadius + 0.2 });
       }
 
-      // BUILD WOODEN ARCH GATES FOR NORTH & SOUTH ENTRANCES
+      // WOODEN ARCH GATES
       [NORTH_GATE_ANGLE, SOUTH_GATE_ANGLE].forEach(gateAngle => {
         const gx = Math.cos(gateAngle) * radius;
         const gz = Math.sin(gateAngle) * radius;
@@ -814,7 +917,7 @@
     }
 
     /* =========================================================================
-       8. SAFE ZONE STRUCTURES & WORKING HOUSE
+       8. SAFE ZONE STRUCTURES & EXPANDED VILLAGE
        ========================================================================= */
     function buildAnimatedBonfire() {
       const x = -6, z = -4;
@@ -887,38 +990,418 @@
       colliders.push({ type: 'box', x: hx, z: hz, width: 8.5, depth: 9.5 });
     }
 
-    function buildBlacksmithForgeArea() {
-      const bx = -14, bz = 12;
-      const by = getTerrainHeight(bx, bz);
+    // STONE CASTLE / KEEP IN SAFEZONE
+    function buildStoneCastleKeep() {
+      const cx = 22, cz = -18;
+      const cy = getTerrainHeight(cx, cz);
+      const keep = new THREE.Group();
 
-      const furnace = new THREE.Mesh(new THREE.BoxGeometry(3.5, 3.0, 3.5), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 }));
-      furnace.position.set(bx, by + 1.5, bz);
-      scene.add(furnace);
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
+      const darkStoneMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
 
-      const magma = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.2, 0.2), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-      magma.position.set(bx, by + 1.5, bz + 1.76);
-      scene.add(magma);
+      // Main Keep Building
+      const main = new THREE.Mesh(new THREE.BoxGeometry(14, 10, 14), stoneMat);
+      main.position.y = 5;
+      main.castShadow = true;
+      keep.add(main);
 
-      const anvil = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 }));
-      anvil.position.set(bx + 2.8, by + 0.5, bz + 1.8);
-      scene.add(anvil);
+      // Four Corner Towers
+      const towerGeo = new THREE.CylinderGeometry(2.5, 2.5, 14, 12);
+      const towerRoofGeo = new THREE.ConeGeometry(3.2, 4, 12);
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.6 });
 
-      colliders.push({ type: 'box', x: bx, z: bz, width: 4.0, depth: 4.0 });
+      [[-7, -7], [7, -7], [-7, 7], [7, 7]].forEach(([tx, tz]) => {
+        const tower = new THREE.Mesh(towerGeo, darkStoneMat);
+        tower.position.set(tx, 7, tz);
+        tower.castShadow = true;
+        keep.add(tower);
+
+        const roof = new THREE.Mesh(towerRoofGeo, roofMat);
+        roof.position.set(tx, 16, tz);
+        roof.castShadow = true;
+        keep.add(roof);
+      });
+
+      // Archway Entrance
+      const archFrame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 5.5, 1.2), darkStoneMat);
+      archFrame.position.set(0, 2.75, 7.1);
+      keep.add(archFrame);
+
+      const archCut = new THREE.Mesh(new THREE.BoxGeometry(3.0, 4.2, 1.5), new THREE.MeshBasicMaterial({ color: 0x0f172a }));
+      archCut.position.set(0, 2.1, 7.1);
+      keep.add(archCut);
+
+      keep.position.set(cx, cy, cz);
+      scene.add(keep);
+
+      colliders.push({ type: 'box', x: cx, z: cz, width: 16, depth: 16 });
+      spawnNPC(cx, cy, cz + 8.2, 0x1e40af, "Guard Captain");
     }
 
-    function buildOutdoorLibraryArea() {
-      const lx = -14, lz = -14;
-      const ly = getTerrainHeight(lx, lz);
+    // 5 VARIED HOUSES IN SAFEZONE
+    function buildFiveVariedHouses() {
+      const houseConfigs = [
+        { x: -22, z: 18, w: 7, h: 4, d: 7, wallColor: 0x9a3412, roofColor: 0xb91c1c, roofType: 'cone', npcName: 'Baker Hans' },
+        { x: 18, z: -2, w: 6, h: 5, d: 8, wallColor: 0x1e293b, roofColor: 0x1d4ed8, roofType: 'gable', npcName: 'Tailor Lyra' },
+        { x: -16, z: -22, w: 8, h: 4.5, d: 7, wallColor: 0x78350f, roofColor: 0x854d0e, roofType: 'cone', npcName: 'Herbalist Nora' },
+        { x: 4, z: 24, w: 7, h: 5.5, d: 6, wallColor: 0x3f6212, roofColor: 0x3f2314, roofType: 'gable', npcName: 'Farmer Bob' },
+        { x: -26, z: -4, w: 9, h: 6, d: 8, wallColor: 0x475569, roofColor: 0x431407, roofType: 'gable', npcName: 'Scholar Donald' }
+      ];
 
-      const shelf = new THREE.Mesh(new THREE.BoxGeometry(4.5, 4.0, 1.2), new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 }));
-      shelf.position.set(lx, ly + 2.0, lz);
-      scene.add(shelf);
+      houseConfigs.forEach(cfg => {
+        const hy = getTerrainHeight(cfg.x, cfg.z);
+        const group = new THREE.Group();
 
-      colliders.push({ type: 'box', x: lx, z: lz, width: 5.0, depth: 3.0 });
+        const wallMat = new THREE.MeshStandardMaterial({ color: cfg.wallColor, roughness: 0.8 });
+        const roofMat = new THREE.MeshStandardMaterial({ color: cfg.roofColor, roughness: 0.7 });
+
+        const walls = new THREE.Mesh(new THREE.BoxGeometry(cfg.w, cfg.h, cfg.d), wallMat);
+        walls.position.y = cfg.h / 2;
+        walls.castShadow = true;
+        group.add(walls);
+
+        if (cfg.roofType === 'cone') {
+          const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(cfg.w, cfg.d) * 0.75, 3.5, 4), roofMat);
+          roof.position.y = cfg.h + 1.75;
+          roof.rotation.y = Math.PI / 4;
+          roof.castShadow = true;
+          group.add(roof);
+        } else {
+          const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(cfg.w, cfg.d) * 0.7, 3.2, 4), roofMat);
+          roof.position.y = cfg.h + 1.6;
+          roof.rotation.y = Math.PI / 4;
+          roof.castShadow = true;
+          group.add(roof);
+        }
+
+        const door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.8, 0.2), new THREE.MeshStandardMaterial({ color: 0x27170a }));
+        door.position.set(0, 1.4, cfg.d / 2 + 0.05);
+        group.add(door);
+
+        group.position.set(cfg.x, hy, cfg.z);
+        scene.add(group);
+
+        colliders.push({ type: 'box', x: cfg.x, z: cfg.z, width: cfg.w + 0.5, depth: cfg.d + 0.5 });
+        spawnNPC(cfg.x, hy, cfg.z + cfg.d / 2 + 2.0, cfg.roofColor, cfg.npcName);
+      });
+    }
+
+    // SHOPS AND STALLS
+    function buildShopsAndStalls() {
+      const sx = -12, sz = 2;
+      const sy = getTerrainHeight(sx, sz);
+
+      const stallMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
+      const clothMat = new THREE.MeshStandardMaterial({ color: 0xd97706 });
+
+      const counter = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.2, 1.8), stallMat);
+      counter.position.set(sx, sy + 0.6, sz);
+      scene.add(counter);
+
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.3, 2.5), clothMat);
+      roof.position.set(sx, sy + 3.0, sz);
+      scene.add(roof);
+
+      colliders.push({ type: 'box', x: sx, z: sz, width: 4.8, depth: 2.0 });
+      spawnNPC(sx, sy, sz - 1.2, 0xd97706, "Merchant Joe");
+    }
+
+    // CARTS, CRATES WITH FRUITS & BARRELS
+    function buildCartsCratesFruitsBarrels() {
+      const locations = [
+        { x: -8, z: 14 },
+        { x: 12, z: -10 },
+        { x: -18, z: 8 }
+      ];
+
+      locations.forEach(loc => {
+        const y = getTerrainHeight(loc.x, loc.z);
+
+        // Wagon
+        const cartMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21 });
+        const cart = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 3.8), cartMat);
+        cart.position.set(loc.x, y + 0.8, loc.z);
+        scene.add(cart);
+
+        // Crates with fruits
+        const crateMat = new THREE.MeshStandardMaterial({ color: 0x854d0e });
+        const crate = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), crateMat);
+        crate.position.set(loc.x + 1.8, y + 0.5, loc.z);
+        scene.add(crate);
+
+        // Apples/Oranges inside crate
+        const fruitMat = new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0xef4444 : 0xf97316 });
+        for (let i = 0; i < 5; i++) {
+          const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.18, 6, 6), fruitMat);
+          fruit.position.set(loc.x + 1.8 + (Math.random() - 0.5) * 0.6, y + 1.1, loc.z + (Math.random() - 0.5) * 0.6);
+          scene.add(fruit);
+        }
+
+        // Barrel
+        const barrelMat = new THREE.MeshStandardMaterial({ color: 0x451a03 });
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.3, 10), barrelMat);
+        barrel.position.set(loc.x - 1.8, y + 0.65, loc.z + 0.8);
+        scene.add(barrel);
+
+        colliders.push({ type: 'cylinder', x: loc.x, z: loc.z, radius: 2.2 });
+      });
+    }
+
+    // FLAGS AND BANNERS
+    function buildFlagsAndBanners() {
+      const flagPositions = [
+        { x: 0, z: 35 },
+        { x: 0, z: -35 },
+        { x: 20, z: -10 }
+      ];
+
+      flagPositions.forEach(p => {
+        const y = getTerrainHeight(p.x, p.z);
+
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 7, 8), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+        pole.position.set(p.x, y + 3.5, p.z);
+        scene.add(pole);
+
+        const banner = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.8, 0.05), new THREE.MeshStandardMaterial({ color: 0xd97706 }));
+        banner.position.set(p.x + 0.9, y + 5.0, p.z);
+        scene.add(banner);
+      });
+    }
+
+    // FRIENDLY ANIMATED NPCS
+    function spawnNPC(x, y, z, colorHex, name) {
+      const group = new THREE.Group();
+      const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.6 });
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xfed7aa });
+
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 1.3, 10), bodyMat);
+      body.position.y = 1.3;
+      group.add(body);
+
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), skinMat);
+      head.position.y = 2.15;
+      group.add(head);
+
+      group.position.set(x, y, z);
+      scene.add(group);
+
+      npcs.push({ group: group, baseY: y, animTime: Math.random() * 10 });
+    }
+
+    function updateNPCs(delta) {
+      npcs.forEach(npc => {
+        npc.animTime += delta * 2;
+        npc.group.position.y = npc.baseY + Math.sin(npc.animTime) * 0.08;
+        npc.group.rotation.y = Math.sin(npc.animTime * 0.5) * 0.25;
+      });
     }
 
     /* =========================================================================
-       9. EXTREMELY DENSE POINTY GRASS COVERAGE & ENVIRONMENT
+       9. INTERACTIVE CHESTS SYSTEM
+       ========================================================================= */
+    function spawnInteractiveChest(x, z, title = 'Treasure Chest') {
+      const y = getTerrainHeight(x, z);
+      const group = new THREE.Group();
+
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 });
+      const ironMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.3 });
+
+      // Base Box
+      const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 1.1), woodMat);
+      base.position.y = 0.45;
+      base.castShadow = true;
+      group.add(base);
+
+      // Lid
+      const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1.6, 12, 1, false, 0, Math.PI), woodMat);
+      lid.rotation.z = Math.PI / 2;
+      lid.position.y = 0.9;
+      lid.castShadow = true;
+      group.add(lid);
+
+      // Lock
+      const lock = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.25, 0.1), ironMat);
+      lock.position.set(0, 0.7, 0.58);
+      group.add(lock);
+
+      group.position.set(x, y, z);
+      scene.add(group);
+
+      const chestData = { x: x, y: y, z: z, group: group, title: title };
+      chests.push(chestData);
+      colliders.push({ type: 'cylinder', x: x, z: z, radius: 1.0 });
+
+      return chestData;
+    }
+
+    /* =========================================================================
+       10. STRUCTURES OUTSIDE THE SAFEZONE
+       ========================================================================= */
+    // 1. RUINED CASTLE WITH COURTYARD CHEST
+    function buildRuinedCastleOutside() {
+      const cx = -90, cz = -85;
+      const cy = getTerrainHeight(cx, cz);
+      const ruinedCastle = new THREE.Group();
+
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9, flatShading: true });
+      const mossMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.8 });
+
+      // Broken Courtyard Perimeter Walls
+      for (let i = 0; i < 14; i++) {
+        const angle = (i / 14) * Math.PI * 2;
+        if (i === 3 || i === 4) continue; // Broken Entrance Gap
+
+        const wx = Math.cos(angle) * 18;
+        const wz = Math.sin(angle) * 18;
+        const wallH = 3 + Math.random() * 5;
+
+        const wall = new THREE.Mesh(new THREE.BoxGeometry(4.5, wallH, 1.8), stoneMat);
+        wall.position.set(wx, wallH / 2, wz);
+        wall.rotation.y = -angle;
+        wall.castShadow = true;
+        ruinedCastle.add(wall);
+      }
+
+      // Fallen Columns
+      for (let i = 0; i < 6; i++) {
+        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.9, 6, 8), stoneMat);
+        col.position.set((Math.random() - 0.5) * 20, 0.4, (Math.random() - 0.5) * 20);
+        col.rotation.z = Math.PI / 2 + (Math.random() - 0.5) * 0.4;
+        col.rotation.y = Math.random() * Math.PI;
+        ruinedCastle.add(col);
+      }
+
+      // Arched Entrance Pillar Arch
+      const archP1 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 8, 2.5), stoneMat);
+      archP1.position.set(-6, 4, 18);
+      ruinedCastle.add(archP1);
+
+      const archP2 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 8, 2.5), stoneMat);
+      archP2.position.set(6, 4, 18);
+      ruinedCastle.add(archP2);
+
+      const archBeam = new THREE.Mesh(new THREE.BoxGeometry(14.5, 2.0, 2.5), stoneMat);
+      archBeam.position.set(0, 8.5, 18);
+      ruinedCastle.add(archBeam);
+
+      ruinedCastle.position.set(cx, cy, cz);
+      scene.add(ruinedCastle);
+
+      colliders.push({ type: 'cylinder', x: cx, z: cz, radius: 20 });
+
+      // Interactive Treasure Chest in Courtyard Center
+      spawnInteractiveChest(cx, cz, 'Ruined Castle Ancient Chest');
+    }
+
+    // 2. RUINED WATCHTOWERS
+    function buildRuinedWatchtowers() {
+      const towerPositions = [
+        { x: 85, z: 80 },
+        { x: -110, z: 65 },
+        { x: 100, z: -95 }
+      ];
+
+      towerPositions.forEach(p => {
+        const y = getTerrainHeight(p.x, p.z);
+        const group = new THREE.Group();
+        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
+
+        // Cylindrical Tower Body
+        const height = 12 + Math.random() * 6;
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.8, height, 12), stoneMat);
+        tower.position.y = height / 2;
+        tower.castShadow = true;
+        group.add(tower);
+
+        // Broken Top Crest Rubble
+        for (let i = 0; i < 5; i++) {
+          const rubble = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2), stoneMat);
+          rubble.position.set((Math.random() - 0.5) * 3, height + 0.5, (Math.random() - 0.5) * 3);
+          group.add(rubble);
+        }
+
+        group.position.set(p.x, y, p.z);
+        scene.add(group);
+
+        colliders.push({ type: 'cylinder', x: p.x, z: p.z, radius: 4.2 });
+      });
+    }
+
+    // 3. MASSIVE STONE STACKED MONUMENT (STONEHENGE MEGALITH)
+    function buildStoneStackedMonument() {
+      const mx = 105, mz = 35;
+      const my = getTerrainHeight(mx, mz);
+      const monument = new THREE.Group();
+
+      const megalithMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95, flatShading: true });
+      const count = 8;
+      const radius = 12;
+
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const sx = Math.cos(angle) * radius;
+        const sz = Math.sin(angle) * radius;
+
+        // Standing Stone Pillar
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7.5, 1.8), megalithMat);
+        pillar.position.set(sx, 3.75, sz);
+        pillar.rotation.y = -angle;
+        pillar.castShadow = true;
+        monument.add(pillar);
+
+        // Lintels bridging pairs
+        if (i % 2 === 0) {
+          const lintel = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.8, 2.2), megalithMat);
+          lintel.position.set(sx * 0.9, 8.2, sz * 0.9);
+          lintel.rotation.y = -angle + Math.PI / 4;
+          lintel.castShadow = true;
+          monument.add(lintel);
+        }
+      }
+
+      // Center Altar Stone
+      const altar = new THREE.Mesh(new THREE.BoxGeometry(4.0, 1.5, 2.5), megalithMat);
+      altar.position.set(0, 0.75, 0);
+      monument.add(altar);
+
+      monument.position.set(mx, my, mz);
+      scene.add(monument);
+
+      colliders.push({ type: 'cylinder', x: mx, z: mz, radius: 14 });
+    }
+
+    // 4. ANCIENT STONE PYRAMID
+    function buildStonePyramid() {
+      const px = -65, pz = 110;
+      const py = getTerrainHeight(px, pz);
+      const pyramid = new THREE.Group();
+
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.9, flatShading: true });
+
+      // Stepped Pyramid Layers
+      const layers = 6;
+      for (let i = 0; i < layers; i++) {
+        const size = (layers - i) * 6;
+        const h = 2.5;
+        const step = new THREE.Mesh(new THREE.BoxGeometry(size, h, size), stoneMat);
+        step.position.y = i * h + h / 2;
+        step.castShadow = true;
+        pyramid.add(step);
+      }
+
+      // Entrance Pedestal
+      const entrance = new THREE.Mesh(new THREE.BoxGeometry(4.0, 3.5, 3.0), stoneMat);
+      entrance.position.set(0, 1.75, (layers * 6) / 2 - 0.5);
+      pyramid.add(entrance);
+
+      pyramid.position.set(px, py, pz);
+      scene.add(pyramid);
+
+      colliders.push({ type: 'box', x: px, z: pz, width: 38, depth: 38 });
+    }
+
+    /* =========================================================================
+       11. EXTREMELY DENSE POINTY GRASS COVERAGE & ENVIRONMENT
        ========================================================================= */
     function buildDenseGrassAndEnvironment() {
       const grassMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.7, side: THREE.DoubleSide });
@@ -926,22 +1409,19 @@
       const treeMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8, flatShading: true });
       const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
 
-      // INSTANCED DENSE POINTY GRASS COVERAGE (2,500 CLUSTERS = 12,500 INDIVIDUAL BLADES)
-      // Covers both Safe Zone and outer wilderness green ground
+      // INSTANCED DENSE POINTY GRASS COVERAGE (45% DENSE = 2,800 CLUSTERS)
       const bladeGeo = new THREE.ConeGeometry(0.22, 1.1, 3);
-      const totalClusters = 2500;
+      const totalClusters = 2800;
 
       for (let i = 0; i < totalClusters; i++) {
         const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 20);
         const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 20);
 
-        // Don't place grass inside deep water body
         if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS - 1.0) continue;
 
         const y = getTerrainHeight(x, z);
         const cluster = new THREE.Group();
 
-        // 5 Pointy blades per cluster with randomized rotations
         for (let j = 0; j < 5; j++) {
           const blade = new THREE.Mesh(bladeGeo, grassMat);
           const offsetX = (Math.random() - 0.5) * 0.8;
@@ -956,10 +1436,10 @@
         scene.add(cluster);
       }
 
-      // 280 FOREST TREES SURROUNDING SAFEZONE & WILDERNESS
-      for (let i = 0; i < 280; i++) {
+      // 320 FOREST TREES
+      for (let i = 0; i < 320; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const dist = CONFIG.SAFE_ZONE_RADIUS + 3 + Math.random() * 115;
+        const dist = CONFIG.SAFE_ZONE_RADIUS + 4 + Math.random() * 130;
         const x = Math.cos(angle) * dist;
         const z = Math.sin(angle) * dist;
 
@@ -981,10 +1461,10 @@
         colliders.push({ type: 'cylinder', x: x, z: z, radius: 0.8 });
       }
 
-      // 120 BOULDERS & ROCKS
-      for (let i = 0; i < 120; i++) {
-        const x = (Math.random() - 0.5) * 330;
-        const z = (Math.random() - 0.5) * 330;
+      // 140 BOULDERS & ROCKS
+      for (let i = 0; i < 140; i++) {
+        const x = (Math.random() - 0.5) * 360;
+        const z = (Math.random() - 0.5) * 360;
         if (Math.hypot(x, z) < CONFIG.SAFE_ZONE_RADIUS || getLakeDistance(x, z) < CONFIG.LAKE_RADIUS) continue;
 
         const y = getTerrainHeight(x, z);
@@ -1002,7 +1482,7 @@
     }
 
     /* =========================================================================
-       10. HERO CHARACTER CREATION
+       12. HERO CHARACTER CREATION
        ========================================================================= */
     function createHeroCharacter() {
       if (playerBody) scene.remove(playerBody);
@@ -1095,15 +1575,15 @@
     }
 
     /* =========================================================================
-       11. CUTE BOUNCING SLIME ENEMIES
+       13. CUTE BOUNCING SLIME ENEMIES
        ========================================================================= */
     function spawnSlimes() {
       slimes.forEach(s => scene.remove(s.mesh));
       slimes.length = 0;
 
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 25; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const dist = CONFIG.SAFE_ZONE_RADIUS + 12 + Math.random() * 60;
+        const dist = CONFIG.SAFE_ZONE_RADIUS + 12 + Math.random() * 70;
         const x = Math.cos(angle) * dist;
         const z = Math.sin(angle) * dist;
 
@@ -1212,10 +1692,10 @@
     }
 
     /* =========================================================================
-       12. PRIMARY LEFT-CLICK ATTACKS & PARTICLE SYSTEM
+       14. ATTACKS, PROJECTILES & PARTICLES
        ========================================================================= */
     function executePrimaryAttack() {
-      if (isPaused || isEscOpen || isCinematic || playerState.attackCooldown > 0) return;
+      if (isPaused || isEscOpen || isCinematic || isChestOpen || playerState.attackCooldown > 0) return;
 
       playerState.isAttacking = true;
       playerState.attackCooldown = 0.35;
@@ -1325,7 +1805,6 @@
       }
     }
 
-    // WATER WADING RIPPLE AND SPLASH EFFECT GENERATOR
     function createWaterSplashRipple(x, z) {
       const ringMat = new THREE.MeshBasicMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
       const ringMesh = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.4, 16), ringMat);
@@ -1335,7 +1814,6 @@
 
       waterRipples.push({ mesh: ringMesh, scale: 1.0, opacity: 0.85 });
 
-      // Water droplet splashes
       const splashMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.9 });
       for (let i = 0; i < 4; i++) {
         const p = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1), splashMat);
@@ -1385,7 +1863,7 @@
     }
 
     /* =========================================================================
-       13. WORKING HOUSE SLEEP & INPUTS
+       15. CHEST & HOUSE SLEEP INTERACTIONS & INPUTS
        ========================================================================= */
     function setupInputListeners() {
       window.addEventListener('keydown', (e) => {
@@ -1396,14 +1874,19 @@
         if (key === 'd' || key === 'arrowright') keys.d = true;
         if (e.shiftKey) keys.shift = true;
         if (e.code === 'Space') keys.space = true;
+        
         if (key === 'f') triggerHouseSleepCinematic();
+        if (key === 'e') triggerChestOpen();
 
         if (key === '1') useSkill(1);
         if (key === '2') useSkill(2);
         if (key === '3') useSkill(3);
 
         if (key === 'p') togglePause();
-        if (e.key === 'Escape') toggleEscMenu();
+        if (e.key === 'Escape') {
+          if (isChestOpen) toggleChestInventory(false);
+          else toggleEscMenu();
+        }
       });
 
       window.addEventListener('keyup', (e) => {
@@ -1415,6 +1898,21 @@
         if (!e.shiftKey) keys.shift = false;
         if (e.code === 'Space') keys.space = false;
       });
+    }
+
+    function triggerChestOpen() {
+      if (activeChestNear && !isChestOpen) {
+        playSound('chest');
+        toggleChestInventory(true);
+      }
+    }
+
+    function toggleChestInventory(forceState) {
+      isChestOpen = forceState !== undefined ? forceState : !isChestOpen;
+      document.getElementById('chest-inventory-modal').classList.toggle('hidden', !isChestOpen);
+      if (isChestOpen && document.exitPointerLock) {
+        document.exitPointerLock();
+      }
     }
 
     function triggerHouseSleepCinematic() {
@@ -1433,7 +1931,7 @@
         }
 
         setTimeout(() => {
-          gameTimeSeconds = 200; // Morning 8:00 AM
+          gameTimeSeconds = 200; // Bright Morning 8:00 AM
           playerState.hp = playerState.maxHp;
           playerState.mp = playerState.maxMp;
           updateHUD();
@@ -1452,10 +1950,10 @@
     }
 
     /* =========================================================================
-       14. SKILLS & HUD UTILITIES
+       16. SKILLS & HUD UTILITIES
        ========================================================================= */
     function useSkill(slot) {
-      if (isPaused || isEscOpen || isCinematic) return;
+      if (isPaused || isEscOpen || isCinematic || isChestOpen) return;
 
       if (slot === 1) {
         executePrimaryAttack();
@@ -1479,7 +1977,7 @@
     }
 
     function togglePause() {
-      if (isEscOpen || isCinematic) return;
+      if (isEscOpen || isCinematic || isChestOpen) return;
       isPaused = !isPaused;
       document.getElementById('pause-overlay').classList.toggle('hidden', !isPaused);
     }
@@ -1530,7 +2028,7 @@
     }
 
     /* =========================================================================
-       15. SMOOTH MOVEMENT & COLLISION
+       17. SMOOTH MOVEMENT & COLLISION
        ========================================================================= */
     function checkCollisions(nextX, nextZ) {
       for (let i = 0; i < colliders.length; i++) {
@@ -1545,13 +2043,12 @@
     }
 
     function updatePlayerMovement(delta) {
-      if (!playerBody || isPaused || isEscOpen || isCinematic) return;
+      if (!playerBody || isPaused || isEscOpen || isCinematic || isChestOpen) return;
 
       if (playerState.attackCooldown > 0) {
         playerState.attackCooldown -= delta;
       }
 
-      // Smooth movement speed (wading in water slows slightly)
       const baseSpeed = keys.shift ? 11.5 : 6.5;
       const inLake = getLakeDistance(playerState.posX, playerState.posZ) < CONFIG.LAKE_RADIUS - 1.0;
       const speed = inLake ? baseSpeed * 0.72 : baseSpeed;
@@ -1563,7 +2060,6 @@
       if (keys.a) moveX -= 1;
       if (keys.d) moveX += 1;
 
-      // Make player mesh follow camera look yaw smoothly
       playerState.rotY = THREE.MathUtils.lerp(playerState.rotY, cameraOrbit.yaw, delta * 18);
       playerBody.rotation.y = playerState.rotY;
 
@@ -1587,27 +2083,23 @@
         if (!checkCollisions(nextX, playerState.posZ)) playerState.posX = nextX;
         if (!checkCollisions(playerState.posX, nextZ)) playerState.posZ = nextZ;
 
-        // Limb gait animation
         playerState.animTime += delta * speed * 1.8;
         playerBody.leftArm.rotation.x = Math.sin(playerState.animTime) * 0.55;
         if (!playerState.isAttacking) playerBody.rightArm.rotation.x = -Math.sin(playerState.animTime) * 0.55;
         playerBody.leftLeg.rotation.x = -Math.sin(playerState.animTime) * 0.55;
         playerBody.rightLeg.rotation.x = Math.sin(playerState.animTime) * 0.55;
 
-        // Trigger lake water wading ripples & sound
         if (inLake && Math.random() < 0.35) {
           createWaterSplashRipple(playerState.posX, playerState.posZ);
           if (Math.random() < 0.15) playSound('splash');
         }
       } else {
-        // Idle limb positioning
         playerBody.leftArm.rotation.x = THREE.MathUtils.lerp(playerBody.leftArm.rotation.x, 0, delta * 10);
         if (!playerState.isAttacking) playerBody.rightArm.rotation.x = THREE.MathUtils.lerp(playerBody.rightArm.rotation.x, 0, delta * 10);
         playerBody.leftLeg.rotation.x = THREE.MathUtils.lerp(playerBody.leftLeg.rotation.x, 0, delta * 10);
         playerBody.rightLeg.rotation.x = THREE.MathUtils.lerp(playerBody.rightLeg.rotation.x, 0, delta * 10);
       }
 
-      // Jump mechanics
       if (keys.space && playerState.isGrounded) {
         playerState.velocity.y = 7.5;
         playerState.isGrounded = false;
@@ -1629,6 +2121,16 @@
       const distToDoor = Math.hypot(playerState.posX - houseDoorPosition.x, playerState.posZ - houseDoorPosition.z);
       document.getElementById('interact-prompt').classList.toggle('hidden', distToDoor >= 3.8);
 
+      // Chest Proximity Prompt Check
+      activeChestNear = null;
+      chests.forEach(c => {
+        const distToChest = Math.hypot(playerState.posX - c.x, playerState.posZ - c.z);
+        if (distToChest < 3.5) {
+          activeChestNear = c;
+        }
+      });
+      document.getElementById('chest-prompt').classList.toggle('hidden', !activeChestNear);
+
       playerState.inSafeZone = Math.hypot(playerState.posX, playerState.posZ) <= CONFIG.SAFE_ZONE_RADIUS;
       document.getElementById('hud-zone').innerText = playerState.inSafeZone ? 'Safe Zone' : 'Wilderness';
       document.getElementById('hud-zone').className = playerState.inSafeZone ? 'text-[10px] font-semibold text-emerald-400' : 'text-[10px] font-semibold text-rose-400';
@@ -1643,7 +2145,7 @@
     }
 
     /* =========================================================================
-       16. DAY/NIGHT CYCLE
+       18. BRIGHT DAY & DYNAMIC DAY/NIGHT CYCLE
        ========================================================================= */
     function updateDayNightCycle(delta) {
       gameTimeSeconds = (gameTimeSeconds + delta) % 600;
@@ -1651,21 +2153,25 @@
       const timeRatio = gameTimeSeconds / 600;
       const sunAngle = timeRatio * Math.PI * 2;
 
-      const sunX = Math.sin(sunAngle) * 120;
-      const sunY = Math.cos(sunAngle) * 120;
-      sunLight.position.set(sunX, Math.max(10, sunY), 60);
+      const sunX = Math.sin(sunAngle) * 140;
+      const sunY = Math.cos(sunAngle) * 140;
+      sunLight.position.set(sunX, Math.max(10, sunY), 80);
 
       const isDay = sunY > 0;
 
       if (isDay) {
-        scene.background.setHSL(0.58, 0.6, 0.45 * (sunY / 120));
-        scene.fog.color.setHSL(0.58, 0.6, 0.45 * (sunY / 120));
-        ambientLight.intensity = 0.35 + 0.4 * (sunY / 120);
+        // Bright Vibrant Light Sky Blue
+        scene.background.setHSL(0.57, 0.75, 0.65);
+        scene.fog.color.setHSL(0.57, 0.75, 0.65);
+        ambientLight.intensity = 0.95;
+        hemisphereLight.intensity = 0.95;
         document.getElementById('time-icon').innerText = '☀️';
       } else {
+        // Night Time
         scene.background.setHSL(0.65, 0.8, 0.05);
         scene.fog.color.setHSL(0.65, 0.8, 0.05);
-        ambientLight.intensity = 0.18;
+        ambientLight.intensity = 0.2;
+        hemisphereLight.intensity = 0.2;
         document.getElementById('time-icon').innerText = '🌙';
       }
 
@@ -1677,7 +2183,7 @@
     }
 
     /* =========================================================================
-       17. HUD & MINIMAP RENDERER
+       19. HUD & MINIMAP RENDERER
        ========================================================================= */
     function updateHUD() {
       document.getElementById('hud-level').innerText = `Lv. ${playerState.level}`;
@@ -1732,7 +2238,7 @@
     }
 
     /* =========================================================================
-       18. MAIN ANIMATION LOOP
+       20. MAIN ANIMATION LOOP
        ========================================================================= */
     function animate() {
       requestAnimationFrame(animate);
@@ -1748,6 +2254,8 @@
         updateWaterRipples(delta);
         updateLakeWaterAnimation(time);
         updateDayNightCycle(delta);
+        updateClouds(delta);
+        updateNPCs(delta);
 
         if (fireLight) fireLight.intensity = 2.2 + Math.sin(time * 12) * 0.6;
         fireParticles.forEach(p => {
