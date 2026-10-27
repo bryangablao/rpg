@@ -91,6 +91,45 @@
       100% { opacity: 0; transform: translate(-50%, -120%) scale(0.9); }
     }
 
+    /* Crosshair Center Reticle */
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 20;
+    }
+    #crosshair::before, #crosshair::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: 0 0 4px rgba(0,0,0,0.8);
+    }
+    #crosshair::before {
+      top: 6px;
+      left: 0;
+      width: 14px;
+      height: 2px;
+    }
+    #crosshair::after {
+      top: 0;
+      left: 6px;
+      width: 2px;
+      height: 14px;
+    }
+    #crosshair-dot {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      width: 4px;
+      height: 4px;
+      background: #f59e0b;
+      border-radius: 50%;
+    }
+
     #cinematic-overlay {
       transition: opacity 0.8s ease-in-out;
     }
@@ -100,6 +139,11 @@
 
   <!-- 3D Render Canvas -->
   <div id="canvas-container"></div>
+
+  <!-- CROSSHAIR RETICLE -->
+  <div id="crosshair">
+    <div id="crosshair-dot"></div>
+  </div>
 
   <!-- UI OVERLAY LAYER -->
   <div class="ui-layer p-4 md:p-6 flex flex-col justify-between">
@@ -215,9 +259,14 @@
       </div>
     </div>
 
-    <!-- CENTER INTERACTION PROMPT FOR HOUSE SLEEP -->
-    <div id="interact-prompt" class="self-center glass-panel px-6 py-3 rounded-full border border-amber-400/60 text-amber-300 font-semibold text-sm hidden animate-bounce shadow-2xl">
-      Press <span class="bg-amber-500 text-slate-950 px-2.5 py-1 rounded-md font-black mx-1 shadow-md">F</span> to Enter House & Rest
+    <!-- CENTER INTERACTION PROMPT FOR HOUSE SLEEP / CLICK TO LOCK -->
+    <div class="self-center flex flex-col items-center gap-2">
+      <div id="interact-prompt" class="glass-panel px-6 py-3 rounded-full border border-amber-400/60 text-amber-300 font-semibold text-sm hidden animate-bounce shadow-2xl">
+        Press <span class="bg-amber-500 text-slate-950 px-2.5 py-1 rounded-md font-black mx-1 shadow-md">F</span> to Enter House & Rest
+      </div>
+      <div id="pointer-lock-hint" class="glass-panel px-5 py-2 rounded-full border border-sky-400/50 text-sky-200 font-medium text-xs shadow-lg hidden">
+        Click game area to lock camera view
+      </div>
     </div>
 
     <!-- HUD BOTTOM ROW: SKILL SLOTS & CONTROLS -->
@@ -225,9 +274,9 @@
       
       <!-- Controls Hint -->
       <div class="glass-panel p-3.5 rounded-2xl hidden lg:block text-[11px] text-slate-300 space-y-1 border border-slate-800">
-        <div><span class="text-amber-400 font-bold">Left-Click</span>: Attack | <span class="text-amber-400 font-bold">Right-Click + Drag</span>: Orbit View</div>
+        <div><span class="text-amber-400 font-bold">Mouse Look</span>: Aim | <span class="text-amber-400 font-bold">Left-Click</span>: Attack / Lock View</div>
         <div><span class="text-amber-400 font-bold">WASD</span>: Move | <span class="text-amber-400 font-bold">Shift</span>: Sprint | <span class="text-amber-400 font-bold">Space</span>: Jump</div>
-        <div><span class="text-amber-400 font-bold">1, 2, 3</span>: Skills | <span class="text-amber-400 font-bold">P</span>: Pause | <span class="text-amber-400 font-bold">ESC</span>: Menu</div>
+        <div><span class="text-amber-400 font-bold">1, 2, 3</span>: Skills | <span class="text-amber-400 font-bold">P</span>: Pause | <span class="text-amber-400 font-bold">ESC</span>: Menu / Unlock</div>
       </div>
 
       <!-- Skill Action Slots -->
@@ -365,6 +414,7 @@
     let isPaused = false;
     let isEscOpen = false;
     let isCinematic = false;
+    let isPointerLocked = false;
 
     // Web Audio Context
     let audioCtx;
@@ -373,14 +423,11 @@
     let gameTimeSeconds = 300;
     let sunLight, ambientLight;
 
-    // Camera Orbit Controls
+    // Pointer Lock / Crosshair Camera Controls
     const cameraOrbit = {
-      azimuth: 0,
-      elevation: 0.42,
-      distance: 14,
-      isDragging: false,
-      previousMouseX: 0,
-      previousMouseY: 0
+      yaw: 0,
+      pitch: 0.28,
+      distance: 12
     };
 
     // Player State
@@ -401,6 +448,7 @@
       velocity: new THREE.Vector3(),
       isGrounded: true,
       inSafeZone: true,
+      inWater: false,
       animTime: 0,
       isAttacking: false,
       attackCooldown: 0
@@ -415,6 +463,7 @@
     // Projectiles & Dynamic Particle Effects
     const projectiles = [];
     const particleEffects = [];
+    const waterRipples = [];
 
     // Inputs State
     const keys = { w: false, a: false, s: false, d: false, shift: false, space: false };
@@ -464,6 +513,14 @@
           gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
           osc.start(now);
           osc.stop(now + 0.45);
+        } else if (type === 'splash') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(180, now);
+          osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
         }
       } catch (e) {}
     }
@@ -495,13 +552,14 @@
         initEngine();
         buildWorld();
         setupInputListeners();
-        setupMouseOrbitControls();
+        setupPointerLockControls();
       }
       
       createHeroCharacter();
       spawnSlimes();
       updateHUD();
       
+      requestPointerLock();
       animate();
     }
 
@@ -552,49 +610,52 @@
     }
 
     /* =========================================================================
-       5. MOUSE ORBIT CAMERA CONTROLS
+       5. POINTER LOCK CROSSHAIR CONTROLS
        ========================================================================= */
-    function setupMouseOrbitControls() {
-      const el = renderer.domElement;
+    function requestPointerLock() {
+      const dom = renderer ? renderer.domElement : document.body;
+      if (dom && dom.requestPointerLock) {
+        dom.requestPointerLock();
+      }
+    }
 
-      el.addEventListener('contextmenu', (e) => e.preventDefault());
+    function setupPointerLockControls() {
+      const dom = renderer.domElement;
 
-      el.addEventListener('mousedown', (e) => {
-        if (e.button === 0) {
+      dom.addEventListener('click', () => {
+        if (!isPointerLocked && !isEscOpen && !isPaused && !isCinematic) {
+          requestPointerLock();
+        } else if (isPointerLocked) {
           executePrimaryAttack();
-        } else if (e.button === 2) {
-          cameraOrbit.isDragging = true;
-          cameraOrbit.previousMouseX = e.clientX;
-          cameraOrbit.previousMouseY = e.clientY;
         }
       });
 
-      window.addEventListener('mousemove', (e) => {
-        if (!cameraOrbit.isDragging) return;
-
-        const deltaX = e.clientX - cameraOrbit.previousMouseX;
-        const deltaY = e.clientY - cameraOrbit.previousMouseY;
-
-        cameraOrbit.azimuth -= deltaX * 0.005;
-        cameraOrbit.elevation += deltaY * 0.005;
-        cameraOrbit.elevation = Math.max(0.1, Math.min(Math.PI / 2 - 0.05, cameraOrbit.elevation));
-
-        cameraOrbit.previousMouseX = e.clientX;
-        cameraOrbit.previousMouseY = e.clientY;
+      document.addEventListener('pointerlockchange', () => {
+        isPointerLocked = (document.pointerLockElement === dom);
+        const hint = document.getElementById('pointer-lock-hint');
+        if (hint) hint.classList.toggle('hidden', isPointerLocked);
       });
 
-      window.addEventListener('mouseup', (e) => {
-        if (e.button === 2) cameraOrbit.isDragging = false;
+      document.addEventListener('mousemove', (e) => {
+        if (!isPointerLocked || isPaused || isEscOpen || isCinematic) return;
+
+        const sensitivity = 0.0025;
+        cameraOrbit.yaw -= e.movementX * sensitivity;
+        cameraOrbit.pitch += e.movementY * sensitivity;
+
+        // Clamp pitch so camera doesn't flip or clip underground
+        cameraOrbit.pitch = Math.max(-0.15, Math.min(Math.PI / 2.3, cameraOrbit.pitch));
       });
 
-      el.addEventListener('wheel', (e) => {
+      dom.addEventListener('wheel', (e) => {
+        if (!isPointerLocked) return;
         cameraOrbit.distance += e.deltaY * 0.01;
-        cameraOrbit.distance = Math.max(6, Math.min(32, cameraOrbit.distance));
+        cameraOrbit.distance = Math.max(5, Math.min(28, cameraOrbit.distance));
       });
     }
 
     /* =========================================================================
-       6. TERRAIN & BIOME HEIGHT FORMULA (NO MOUNTAINS IN SAFE ZONE)
+       6. UNIFORM GROUND & PROCEDURAL HEIGHT FORMULA
        ========================================================================= */
     function getLakeDistance(x, z) {
       return Math.hypot(x - CONFIG.LAKE_CENTER_X, z - CONFIG.LAKE_CENTER_Z);
@@ -603,29 +664,24 @@
     function getTerrainHeight(x, z) {
       const distFromCenter = Math.hypot(x, z);
 
-      // 1. ABSOLUTELY NO MOUNTAINS OR HILLS IN SAFE ZONE (FLAT & CLEAR)
-      if (distFromCenter <= CONFIG.SAFE_ZONE_RADIUS + 3) {
-        return 0;
-      }
-
-      // 2. 10% WATER LAKE BASIN DEPRESSION
+      // Lake basin depression (shallow, walkable)
       const lakeDist = getLakeDistance(x, z);
       if (lakeDist < CONFIG.LAKE_RADIUS) {
         const t = lakeDist / CONFIG.LAKE_RADIUS;
-        return -3.5 + Math.pow(t, 2) * 3.5 - 0.4;
+        return -2.2 + Math.pow(t, 2) * 2.2 - 0.2;
       }
 
-      // 3. 15% SMOOTH NAVIGABLE MOUNTAINS & ROLLING HILLS (Gentle slopes for walking)
-      let h = Math.sin(x * 0.03) * Math.cos(z * 0.03) * 4.2 + Math.cos(x * 0.015) * 3.5;
-      if (distFromCenter > 110) {
-        h += Math.sin((distFromCenter - 110) * 0.05) * 6.5;
-      }
-      return Math.max(-0.2, h);
+      // Continuous, uniform procedural terrain across entire map (safe zone matches outside world)
+      const wave1 = Math.sin(x * 0.025) * Math.cos(z * 0.025) * 3.2;
+      const wave2 = Math.cos(x * 0.012 + 0.5) * Math.sin(z * 0.014) * 2.8;
+
+      // Gentle rolling landscape everywhere
+      return wave1 + wave2;
     }
 
     function buildWorld() {
-      // Ground Terrain Mesh
-      const geo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 160, 160);
+      // Single continuous ground terrain mesh for perfect match inside and outside safe zone
+      const geo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 200, 200);
       geo.rotateX(-Math.PI / 2);
 
       const pos = geo.attributes.position;
@@ -636,13 +692,17 @@
       }
       geo.computeVertexNormals();
 
-      const mat = new THREE.MeshStandardMaterial({ color: 0x2e6b22, roughness: 0.85, flatShading: true });
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x337a28,
+        roughness: 0.85,
+        flatShading: true
+      });
       terrainMesh = new THREE.Mesh(geo, mat);
       terrainMesh.receiveShadow = true;
       terrainMesh.castShadow = true;
       scene.add(terrainMesh);
 
-      // 10% Animated Lake Water Body
+      // Walkable Animated Lake Water Surface
       buildAnimatedLakeWater();
 
       // Palisade with NO GAPS and 2 ARCH GATES
@@ -654,24 +714,24 @@
       buildBlacksmithForgeArea();
       buildOutdoorLibraryArea();
 
-      // Proportional Landscape Coverage (45% Grass, 25% Trees, 5% Rocks)
-      buildProportionalEnvironmentBiomes();
+      // Dense Pointy Grass Cover across ALL green terrain & Forest biomes
+      buildDenseGrassAndEnvironment();
     }
 
     function buildAnimatedLakeWater() {
-      const waterGeo = new THREE.CircleGeometry(CONFIG.LAKE_RADIUS - 1, 36);
+      const waterGeo = new THREE.CircleGeometry(CONFIG.LAKE_RADIUS, 48);
       waterGeo.rotateX(-Math.PI / 2);
 
       const waterMat = new THREE.MeshStandardMaterial({
         color: 0x0284c7,
         roughness: 0.1,
-        metalness: 0.8,
+        metalness: 0.85,
         transparent: true,
-        opacity: 0.85
+        opacity: 0.82
       });
 
       waterMesh = new THREE.Mesh(waterGeo, waterMat);
-      waterMesh.position.set(CONFIG.LAKE_CENTER_X, -0.6, CONFIG.LAKE_CENTER_Z);
+      waterMesh.position.set(CONFIG.LAKE_CENTER_X, -0.4, CONFIG.LAKE_CENTER_Z);
       scene.add(waterMesh);
     }
 
@@ -681,7 +741,7 @@
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i);
         const z = pos.getZ(i);
-        const waveY = Math.sin(time * 2.8 + x * 0.3 + z * 0.4) * 0.2 + Math.cos(time * 2.0 + z * 0.5) * 0.12;
+        const waveY = Math.sin(time * 2.5 + x * 0.35 + z * 0.4) * 0.15 + Math.cos(time * 1.8 + z * 0.5) * 0.1;
         pos.setY(i, waveY);
       }
       waterMesh.geometry.attributes.position.needsUpdate = true;
@@ -858,37 +918,47 @@
     }
 
     /* =========================================================================
-       9. PROPORTIONAL MAP LANDSCAPE (45% Grass, 25% Trees, 5% Rocks)
+       9. EXTREMELY DENSE POINTY GRASS COVERAGE & ENVIRONMENT
        ========================================================================= */
-    function buildProportionalEnvironmentBiomes() {
+    function buildDenseGrassAndEnvironment() {
       const grassMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.7, side: THREE.DoubleSide });
       const rockMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9, flatShading: true });
       const treeMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8, flatShading: true });
       const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
 
-      // 1. 45% DENSE INSTANCED GRASS COVERAGE (600 GRASS CLUSTERS)
-      const grassBladeGeo = new THREE.ConeGeometry(0.18, 0.85, 3);
-      for (let i = 0; i < 600; i++) {
-        const x = (Math.random() - 0.5) * 320;
-        const z = (Math.random() - 0.5) * 320;
-        if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS) continue;
+      // INSTANCED DENSE POINTY GRASS COVERAGE (2,500 CLUSTERS = 12,500 INDIVIDUAL BLADES)
+      // Covers both Safe Zone and outer wilderness green ground
+      const bladeGeo = new THREE.ConeGeometry(0.22, 1.1, 3);
+      const totalClusters = 2500;
+
+      for (let i = 0; i < totalClusters; i++) {
+        const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 20);
+        const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 20);
+
+        // Don't place grass inside deep water body
+        if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS - 1.0) continue;
 
         const y = getTerrainHeight(x, z);
         const cluster = new THREE.Group();
+
+        // 5 Pointy blades per cluster with randomized rotations
         for (let j = 0; j < 5; j++) {
-          const blade = new THREE.Mesh(grassBladeGeo, grassMat);
-          blade.position.set((Math.random() - 0.5) * 0.7, 0.42, (Math.random() - 0.5) * 0.7);
-          blade.rotation.z = (Math.random() - 0.5) * 0.4;
+          const blade = new THREE.Mesh(bladeGeo, grassMat);
+          const offsetX = (Math.random() - 0.5) * 0.8;
+          const offsetZ = (Math.random() - 0.5) * 0.8;
+          blade.position.set(offsetX, 0.55, offsetZ);
+          blade.rotation.y = Math.random() * Math.PI;
+          blade.rotation.z = (Math.random() - 0.5) * 0.35;
           cluster.add(blade);
         }
+
         cluster.position.set(x, y, z);
         scene.add(cluster);
       }
 
-      // 2. 25% DENSE FOREST TREES SURROUNDING SAFEZONE & WILDERNESS (280 TREES)
+      // 280 FOREST TREES SURROUNDING SAFEZONE & WILDERNESS
       for (let i = 0; i < 280; i++) {
         const angle = Math.random() * Math.PI * 2;
-        // Ring heavily surrounding safe zone palisade (dist >= 36)
         const dist = CONFIG.SAFE_ZONE_RADIUS + 3 + Math.random() * 115;
         const x = Math.cos(angle) * dist;
         const z = Math.sin(angle) * dist;
@@ -911,7 +981,7 @@
         colliders.push({ type: 'cylinder', x: x, z: z, radius: 0.8 });
       }
 
-      // 3. 5% BIG AND SMALL BOULDERS & ROCKS (120 ROCKS)
+      // 120 BOULDERS & ROCKS
       for (let i = 0; i < 120; i++) {
         const x = (Math.random() - 0.5) * 330;
         const z = (Math.random() - 0.5) * 330;
@@ -1181,8 +1251,8 @@
 
       if (!isMage) proj.rotation.x = Math.PI / 2;
 
-      const dirX = Math.sin(playerState.rotY);
-      const dirZ = Math.cos(playerState.rotY);
+      const dirX = -Math.sin(cameraOrbit.yaw);
+      const dirZ = -Math.cos(cameraOrbit.yaw);
 
       proj.position.set(playerState.posX + dirX * 1.2, playerState.posY + 1.4, playerState.posZ + dirZ * 1.2);
       scene.add(proj);
@@ -1252,6 +1322,48 @@
           vz: (Math.random() - 0.5) * 6,
           life: 0.4
         });
+      }
+    }
+
+    // WATER WADING RIPPLE AND SPLASH EFFECT GENERATOR
+    function createWaterSplashRipple(x, z) {
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+      const ringMesh = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.4, 16), ringMat);
+      ringMesh.rotation.x = Math.PI / 2;
+      ringMesh.position.set(x, -0.35, z);
+      scene.add(ringMesh);
+
+      waterRipples.push({ mesh: ringMesh, scale: 1.0, opacity: 0.85 });
+
+      // Water droplet splashes
+      const splashMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.9 });
+      for (let i = 0; i < 4; i++) {
+        const p = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1), splashMat);
+        p.position.set(x, -0.3, z);
+        scene.add(p);
+        particleEffects.push({
+          mesh: p,
+          vx: (Math.random() - 0.5) * 3,
+          vy: Math.random() * 2.5 + 1.2,
+          vz: (Math.random() - 0.5) * 3,
+          life: 0.35
+        });
+      }
+    }
+
+    function updateWaterRipples(delta) {
+      for (let i = waterRipples.length - 1; i >= 0; i--) {
+        const r = waterRipples[i];
+        r.scale += delta * 3.5;
+        r.opacity -= delta * 1.6;
+
+        r.mesh.scale.set(r.scale, r.scale, r.scale);
+        r.mesh.material.opacity = Math.max(0, r.opacity);
+
+        if (r.opacity <= 0) {
+          scene.remove(r.mesh);
+          waterRipples.splice(i, 1);
+        }
       }
     }
 
@@ -1418,12 +1530,9 @@
     }
 
     /* =========================================================================
-       15. COLLISIONS & MOVEMENT
+       15. SMOOTH MOVEMENT & COLLISION
        ========================================================================= */
     function checkCollisions(nextX, nextZ) {
-      // Water body bounds
-      if (getLakeDistance(nextX, nextZ) < CONFIG.LAKE_RADIUS - 1.5) return true;
-
       for (let i = 0; i < colliders.length; i++) {
         const c = colliders[i];
         if (c.type === 'cylinder') {
@@ -1442,7 +1551,11 @@
         playerState.attackCooldown -= delta;
       }
 
-      const speed = keys.shift ? 11.5 : 6.5;
+      // Smooth movement speed (wading in water slows slightly)
+      const baseSpeed = keys.shift ? 11.5 : 6.5;
+      const inLake = getLakeDistance(playerState.posX, playerState.posZ) < CONFIG.LAKE_RADIUS - 1.0;
+      const speed = inLake ? baseSpeed * 0.72 : baseSpeed;
+
       let moveX = 0, moveZ = 0;
 
       if (keys.w) moveZ -= 1;
@@ -1450,12 +1563,16 @@
       if (keys.a) moveX -= 1;
       if (keys.d) moveX += 1;
 
+      // Make player mesh follow camera look yaw smoothly
+      playerState.rotY = THREE.MathUtils.lerp(playerState.rotY, cameraOrbit.yaw, delta * 18);
+      playerBody.rotation.y = playerState.rotY;
+
       if (moveX !== 0 || moveZ !== 0) {
         const len = Math.hypot(moveX, moveZ);
         moveX /= len;
         moveZ /= len;
 
-        const camYaw = cameraOrbit.azimuth;
+        const camYaw = cameraOrbit.yaw;
         const forwardX = -Math.sin(camYaw);
         const forwardZ = -Math.cos(camYaw);
         const rightX = Math.cos(camYaw);
@@ -1464,23 +1581,33 @@
         const dirX = forwardX * (-moveZ) + rightX * moveX;
         const dirZ = forwardZ * (-moveZ) + rightZ * moveX;
 
-        const targetRot = Math.atan2(dirX, dirZ);
-        playerState.rotY = THREE.MathUtils.lerp(playerState.rotY, targetRot, delta * 12);
-        playerBody.rotation.y = playerState.rotY;
-
-        const nextX = playerState.posX + Math.sin(playerState.rotY) * speed * delta;
-        const nextZ = playerState.posZ + Math.cos(playerState.rotY) * speed * delta;
+        const nextX = playerState.posX + dirX * speed * delta;
+        const nextZ = playerState.posZ + dirZ * speed * delta;
 
         if (!checkCollisions(nextX, playerState.posZ)) playerState.posX = nextX;
         if (!checkCollisions(playerState.posX, nextZ)) playerState.posZ = nextZ;
 
+        // Limb gait animation
         playerState.animTime += delta * speed * 1.8;
         playerBody.leftArm.rotation.x = Math.sin(playerState.animTime) * 0.55;
         if (!playerState.isAttacking) playerBody.rightArm.rotation.x = -Math.sin(playerState.animTime) * 0.55;
         playerBody.leftLeg.rotation.x = -Math.sin(playerState.animTime) * 0.55;
         playerBody.rightLeg.rotation.x = Math.sin(playerState.animTime) * 0.55;
+
+        // Trigger lake water wading ripples & sound
+        if (inLake && Math.random() < 0.35) {
+          createWaterSplashRipple(playerState.posX, playerState.posZ);
+          if (Math.random() < 0.15) playSound('splash');
+        }
+      } else {
+        // Idle limb positioning
+        playerBody.leftArm.rotation.x = THREE.MathUtils.lerp(playerBody.leftArm.rotation.x, 0, delta * 10);
+        if (!playerState.isAttacking) playerBody.rightArm.rotation.x = THREE.MathUtils.lerp(playerBody.rightArm.rotation.x, 0, delta * 10);
+        playerBody.leftLeg.rotation.x = THREE.MathUtils.lerp(playerBody.leftLeg.rotation.x, 0, delta * 10);
+        playerBody.rightLeg.rotation.x = THREE.MathUtils.lerp(playerBody.rightLeg.rotation.x, 0, delta * 10);
       }
 
+      // Jump mechanics
       if (keys.space && playerState.isGrounded) {
         playerState.velocity.y = 7.5;
         playerState.isGrounded = false;
@@ -1506,10 +1633,10 @@
       document.getElementById('hud-zone').innerText = playerState.inSafeZone ? 'Safe Zone' : 'Wilderness';
       document.getElementById('hud-zone').className = playerState.inSafeZone ? 'text-[10px] font-semibold text-emerald-400' : 'text-[10px] font-semibold text-rose-400';
 
-      // Orbit Camera Positioning
-      const camX = playerState.posX + cameraOrbit.distance * Math.sin(cameraOrbit.azimuth) * Math.cos(cameraOrbit.elevation);
-      const camY = playerState.posY + cameraOrbit.distance * Math.sin(cameraOrbit.elevation) + 1.5;
-      const camZ = playerState.posZ + cameraOrbit.distance * Math.cos(cameraOrbit.azimuth) * Math.cos(cameraOrbit.elevation);
+      // Crosshair Third-Person Orbit Camera Positioning
+      const camX = playerState.posX + cameraOrbit.distance * Math.sin(cameraOrbit.yaw) * Math.cos(cameraOrbit.pitch);
+      const camY = playerState.posY + cameraOrbit.distance * Math.sin(cameraOrbit.pitch) + 1.6;
+      const camZ = playerState.posZ + cameraOrbit.distance * Math.cos(cameraOrbit.yaw) * Math.cos(cameraOrbit.pitch);
 
       camera.position.set(camX, camY, camZ);
       camera.lookAt(playerState.posX, playerState.posY + 1.4, playerState.posZ);
@@ -1618,6 +1745,7 @@
         updateSlimes(delta);
         updateProjectiles(delta);
         updateParticles(delta);
+        updateWaterRipples(delta);
         updateLakeWaterAnimation(time);
         updateDayNightCycle(delta);
 
