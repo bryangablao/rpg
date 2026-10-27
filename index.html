@@ -370,7 +370,21 @@ const CLASSES={
  assassin:{name:'Assassin',weapon:'Daggers',desc:'Throws daggers in rapid pairs. Brutal critical strikes.',hp:85,spd:198,armor:0,
   atk:{type:'proj',cd:.42,dmg:8,n:2,spd:660,pierce:0,size:4,range:430,col:'#d6f4ff',crit:.28}},
  lancer:{name:'Lancer',weapon:'Spear',desc:'Long spear thrusts pierce every enemy in a line.',hp:115,spd:170,armor:1,
-  atk:{type:'thrust',cd:.9,dmg:21,n:1,len:210,width:34,range:210,crit:.1}}
+  atk:{type:'thrust',cd:.9,dmg:21,n:1,len:210,width:34,range:210,crit:.1}},
+ reaper:{hidden:1,name:'Soul Reaper',weapon:'Cursed Scythe',desc:'Death and souls. A full-circle scythe sweep that drains life. Soul Harvest bursts every 12s.',hp:120,spd:175,armor:2,
+  atk:{type:'arc',cd:.8,dmg:38,n:1,arc:6.283,range:125,crit:.1,ls:.06}},
+ dragon:{hidden:1,name:'Dragon Emperor',weapon:'Dragon Greatsword',desc:'Huge greatsword arcs. Transforms into a dragon every 22s for massive power and reach.',hp:190,spd:160,armor:4,
+  atk:{type:'arc',cd:1,dmg:60,n:1,arc:2.6,range:140,crit:.12}},
+ seraph:{hidden:1,name:'Seraph',weapon:'Celestial Halberd',desc:'Divine light. Wide halberd thrusts hit both sides. Divine Light heals and smites every 9s.',hp:160,spd:170,armor:3,
+  atk:{type:'thrust',cd:.7,dmg:42,n:2,len:260,width:60,range:260,crit:.1}},
+ chrono:{hidden:1,name:'Chronomancer',weapon:'Temporal Hourglass',desc:'Time manipulation. Twin seeking time orbs. Time Stop freezes foes and speeds you up every 11s.',hp:110,spd:175,armor:1,
+  atk:{type:'orb',cd:.6,dmg:34,n:2,spd:380,aoe:70,size:10,range:680,col:'#7fd0ee',crit:.1}},
+ abyssal:{hidden:1,name:'Abyssal Overlord',weapon:'Twin Infernal Chains',desc:'Demonic domination. Long chain lashes drain life. Dominion drags and binds foes every 10s.',hp:170,spd:165,armor:3,
+  atk:{type:'thrust',cd:.55,dmg:30,n:2,len:300,width:30,range:300,crit:.15,ls:.03}},
+ fist:{hidden:1,name:'Divine Fist',weapon:'Sacred Gauntlets',desc:'Godlike martial arts. Rapid double shockwave strikes. Heaven’s Palm shields you and blasts every 6s.',hp:200,spd:190,armor:5,
+  atk:{type:'slam',cd:.5,dmg:30,n:2,range:105,crit:.2}},
+ fate:{hidden:1,name:'Fate Weaver',weapon:'Threads of Destiny',desc:'Fate manipulation. Triple piercing threads. Fate Sealed guarantees critical hits every 12s.',hp:100,spd:190,armor:1,
+  atk:{type:'proj',cd:.3,dmg:22,n:3,spd:700,pierce:3,size:5,range:600,col:'#ffd0ff',crit:.35}}
 };
 const ENEMY_BASE={slime:{hp:14,spd:55,r:11,dmg:6,xp:1},bat:{hp:8,spd:102,r:9,dmg:5,xp:1},brute:{hp:62,spd:46,r:17,dmg:11,xp:4},wisp:{hp:12,spd:80,r:10,dmg:6,xp:1},spider:{hp:22,spd:90,r:11,dmg:7,xp:2}};
 const REALMS=[
@@ -435,7 +449,14 @@ const WNAMES={
  guardian:['Oak Club & Buckler','Iron Mace & Kite Shield','Spiked Morningstar & Heater','Titan Warhammer & Tower Shield','Worldbreaker & Aegis'],
  mage:['Apprentice Staff','Oakheart Staff','Crystal Staff','Archmage Staff','Starweaver Staff'],
  assassin:['Rusty Daggers','Steel Stilettos','Venom Fangs','Shadow Kris','Nightbane Blades'],
- lancer:['Wooden Spear','Iron Pike','Steel Glaive','Wyvern Lance','Skypiercer']};
+ lancer:['Wooden Spear','Iron Pike','Steel Glaive','Wyvern Lance','Skypiercer'],
+ reaper:['Bone Sickle','Grave Scythe','Soulrender','Cursed Scythe','Scythe of Endless Night'],
+ dragon:['Wyrmling Blade','Drake Cleaver','Dragonfang Blade','Emperor’s Wrath','Dragon Greatsword'],
+ seraph:['Pilgrim Halberd','Blessed Halberd','Radiant Halberd','Archon’s Halberd','Celestial Halberd'],
+ chrono:['Broken Hourglass','Brass Hourglass','Sandglass of Eras','Temporal Hourglass','Hourglass of Eternity'],
+ abyssal:['Rusted Chains','Iron Infernal Chains','Hellforged Chains','Demon Chains','Twin Infernal Chains'],
+ fist:['Wrapped Fists','Iron Gauntlets','Monk’s Gauntlets','Holy Gauntlets','Sacred Gauntlets'],
+ fate:['Silk Threads','Silver Threads','Moonthread','Loom of Fates','Threads of Destiny']};
 const W_PERK=[{d:1},{d:1.2,c:.04},{d:1.4,h:.92},{d:1.7,a:1.12,c:.04,p:1},{d:2.1,h:.9,c:.08,a:1.1,p:1}],W_PRICE=[0,160,420,1000,2400];
 const WEAPONS=[];Object.keys(WNAMES).forEach(cls=>WNAMES[cls].forEach((n,i)=>{const P=W_PERK[i];WEAPONS.push({id:`w_${cls}_${i}`,cls,i,n,d:P.d,c:P.c||0,h:P.h||1,a:P.a||1,p:(cls==='archer'||cls==='assassin')?(P.p||0):0,price:W_PRICE[i]})}));
 const WEAPON_BY=Object.fromEntries(WEAPONS.map(w=>[w.id,w]));
@@ -546,7 +567,7 @@ function show(id){cur=id;$$('.screen').forEach(s=>s.classList.toggle('on',s.id==
 function pvLoop(t){requestAnimationFrame(pvLoop);$$('canvas.pv').forEach(c=>{if(c.offsetParent===null)return;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);if(c.dataset.cls)drawPortrait(g,c.width,c.height,c.dataset.cls,c.dataset.gen||'m',t/1000)})}
 const GENDER_LABEL={m:'Male',f:'Female'};
 function buildClassCards(){const box=$('#classCards');box.innerHTML='';
- for(const [id,c] of Object.entries(CLASSES)){const el=document.createElement('button');el.className='card';el.dataset.id=id;el.type='button';
+ for(const [id,c] of Object.entries(CLASSES)){if(c.hidden&&!S.unlockedClasses)continue;const el=document.createElement('button');el.className='card';el.dataset.id=id;el.type='button';
   el.innerHTML=`<canvas class="pv" width="150" height="170" data-cls="${id}" data-gen="m"></canvas><b>${c.name}</b><em>${c.weapon}</em><span>${c.desc}</span><div class="stats">HP ${c.hp} · SPD ${c.spd} · ARMOR ${c.armor}</div>`;
   el.onclick=()=>{sel.cls=id;sfx('click');$$('#classCards .card').forEach(x=>x.classList.toggle('sel',x===el));$('#classNext').disabled=false};box.appendChild(el)}}
 function enterClass(){buildClassCards();sel={cls:null,gender:null};$('#classNext').disabled=true;
@@ -611,7 +632,7 @@ let shopTab='items';
 function openShop(tab,reset){tab=tab||shopTab;shopTab=tab;const was=$('#sheetModal').classList.contains('on'),sc=$('#sheet').scrollTop,items=S.items;let body='';
  if(tab==='items'){const cats=Object.keys(CAT_LABEL);body=cats.map(cat=>`<div class="sec">${CAT_LABEL[cat]}</div><div class="rows">`+ITEMS.filter(i=>i.cat===cat).map(it=>{const n=items[it.id]||0;return `<div class="row">${icon(it.c)}<div class="tx"><b>${it.n}${n?` <small class="own">×${n}</small>`:''}</b><span>${it.d}</span></div><div class="act"><button class="btn small" data-buyitem="${it.id}" ${S.gold<it.price||n>=99?'disabled':''}>${n>=99?'Full':'Buy · '+it.price+'g'}</button></div></div>`}).join('')+'</div>').join('')}
  else if(tab==='armors'){body='<div class="rows">'+ARMORS.map(a=>gearRow(a,false)).join('')+'</div>'}
- else if(tab==='weapons'){const order=[S.hero.cls].concat(Object.keys(CLASSES).filter(c=>c!==S.hero.cls));body=order.map(cls=>`<div class="sec">${CLASSES[cls].name} · ${CLASSES[cls].weapon}${cls===S.hero.cls?' (your class)':''}</div><div class="rows">`+WEAPONS.filter(w=>w.cls===cls).map(w=>gearRow(w,true)).join('')+'</div>').join('')}
+ else if(tab==='weapons'){const order=[S.hero.cls].concat(Object.keys(CLASSES).filter(c=>c!==S.hero.cls&&(!CLASSES[c].hidden||S.unlockedClasses)));body=order.map(cls=>`<div class="sec">${CLASSES[cls].name} · ${CLASSES[cls].weapon}${cls===S.hero.cls?' (your class)':''}</div><div class="rows">`+WEAPONS.filter(w=>w.cls===cls).map(w=>gearRow(w,true)).join('')+'</div>').join('')}
  else if(tab==='up'){body='<div class="rows">'+UPS.map(u=>{const lv=S.up[u.k],max=lv>=UPMAX,cost=upCost(u,lv);return `<div class="row">${icon(u.c)}<div class="tx"><b>${u.n} · Lv ${lv}/${UPMAX}</b><span>${u.d}</span><div class="pips">${Array.from({length:UPMAX},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div></div><div class="act"><button class="btn small" data-up="${u.k}" ${max||S.gold<cost?'disabled':''}>${max?'Maxed':'Upgrade · '+cost+'g'}</button></div></div>`}).join('')+'</div>'}
  else{const ks=Object.keys(MATS).filter(k=>items[k]>0);body=ks.length?'<div class="rows">'+ks.map(k=>`<div class="row">${icon(MATS[k].c)}<div class="tx"><b>${k} × ${items[k]}</b><span>${SELL_PRICE}g each</span></div><div class="act"><button class="btn small" data-sell="${k}" data-n="1">Sell 1</button><button class="btn small" data-sell="${k}" data-n="all">Sell all · ${items[k]*SELL_PRICE}g</button></div></div>`).join('')+'</div>':'<p class="sub">You have no materials to sell. Defeat monsters in the realms to find some.</p>'}
  const TABS=[['items','Items'],['armors','Armors'],['weapons','Weapons'],['up','Upgrades'],['sell','Sell']];
@@ -702,7 +723,14 @@ const LOOK={
  guardian:{body:'#35589c',trim:'#e3b550',hat:'helm2',hatc:'#c9a24a',hm:'#2a1d14',hf:'#6a3a2a',rest:-.7},
  mage:{body:'#6a48c0',trim:'#e3b550',hat:'wizard',hatc:'#4e34a0',hm:'#bfbfd8',hf:'#e0a0d0',rest:-1.1},
  assassin:{body:'#2c2935',trim:'#2fb5a8',hat:'mask',hatc:'#1c1a24',hm:'#1a1a22',hf:'#3a2a50',rest:.5},
- lancer:{body:'#d4dce8',trim:'#3a62a8',hat:'plume',hatc:'#c0c8d4',hm:'#6a4a2a',hf:'#c8a85a',rest:-1.0}};
+ lancer:{body:'#d4dce8',trim:'#3a62a8',hat:'plume',hatc:'#c0c8d4',hm:'#6a4a2a',hf:'#c8a85a',rest:-1.0},
+ reaper:{body:'#2a2338',trim:'#b07aff',hat:'hood',hatc:'#1c1428',hm:'#bfbfd8',hf:'#bfbfd8',rest:-.9},
+ dragon:{body:'#8a2a20',trim:'#e3b550',hat:'helm',hatc:'#c9a24a',hm:'#2a1d14',hf:'#6a3a2a',rest:-.5},
+ seraph:{body:'#f2ecd8',trim:'#e3b550',hat:'plume',hatc:'#fff3c0',hm:'#e8c878',hf:'#e8c878',rest:-1.0},
+ chrono:{body:'#2a5a7a',trim:'#7fd0ee',hat:'wizard',hatc:'#1f3f5a',hm:'#cfe8f5',hf:'#cfe8f5',rest:-.2},
+ abyssal:{body:'#3a1020',trim:'#ff3a3a',hat:'mask',hatc:'#240810',hm:'#1a0a10',hf:'#3a1020',rest:.3},
+ fist:{body:'#e8d8b0',trim:'#d9434f',hat:'hood',hatc:'#e3b550',hm:'#2a1d14',hf:'#2a1d14',rest:.2},
+ fate:{body:'#5a3a8a',trim:'#ffd0ff',hat:'hood',hatc:'#3a2a6a',hm:'#ffd0ff',hf:'#ffd0ff',rest:-.3}};
 function drawWeapon(g,cls,t,fire){
  g.lineCap='round';
  switch(cls){
@@ -711,6 +739,13 @@ function drawWeapon(g,cls,t,fire){
   case'guardian':g.strokeStyle='#5a3a1e';g.lineWidth=4;g.beginPath();g.moveTo(-3,0);g.lineTo(22,0);g.stroke();g.fillStyle='#6a6e78';g.beginPath();g.arc(27,0,8,0,TAU);g.fill();g.fillStyle='#9aa0ac';for(let i=0;i<6;i++){const a=i*TAU/6;g.beginPath();g.moveTo(27+Math.cos(a-.25)*7,Math.sin(a-.25)*7);g.lineTo(27+Math.cos(a)*12,Math.sin(a)*12);g.lineTo(27+Math.cos(a+.25)*7,Math.sin(a+.25)*7);g.fill()}break;
   case'mage':g.strokeStyle='#7a5430';g.lineWidth=3;g.beginPath();g.moveTo(-8,0);g.lineTo(30,0);g.stroke();g.save();g.shadowColor='#c9a6ff';g.shadowBlur=12;g.fillStyle='#e6d4ff';g.beginPath();g.arc(33,0,5+Math.sin(t*6)*.8,0,TAU);g.fill();g.restore();break;
   case'assassin':for(const oy of[-3,3]){const bg2=g.createLinearGradient(0,oy-2,0,oy+2);bg2.addColorStop(0,'#fff');bg2.addColorStop(1,'#8fa0b4');g.fillStyle=bg2;g.beginPath();g.moveTo(0,oy-2);g.lineTo(14,oy-1);g.lineTo(19,oy);g.lineTo(14,oy+1);g.lineTo(0,oy+2);g.fill();g.fillStyle='#2fb5a8';g.fillRect(-4,oy-1.5,5,3)}break;
+  case'reaper':g.strokeStyle='#4a3a5a';g.lineWidth=3;g.beginPath();g.moveTo(-12,0);g.lineTo(34,0);g.stroke();g.save();g.shadowColor='#b07aff';g.shadowBlur=12;g.fillStyle='#c9a6ff';g.beginPath();g.moveTo(30,-2);g.quadraticCurveTo(52,-4,56,-26);g.quadraticCurveTo(42,-14,28,2);g.closePath();g.fill();g.restore();break;
+  case'dragon':g.fillStyle='#6a4426';g.fillRect(-4,-2,10,4);g.fillStyle='#e3b550';g.fillRect(5,-8,4,16);g.save();g.shadowColor='#ff6a2a';g.shadowBlur=10;g.fillStyle='#d8dce8';g.beginPath();g.moveTo(9,-5);g.lineTo(42,-6);g.lineTo(54,0);g.lineTo(42,6);g.lineTo(9,5);g.closePath();g.fill();g.fillStyle='#ff6a2a';g.fillRect(12,-1,34,2);g.restore();break;
+  case'seraph':g.strokeStyle='#e8d8a0';g.lineWidth=3;g.beginPath();g.moveTo(-12,0);g.lineTo(40,0);g.stroke();g.save();g.shadowColor='#fff3b0';g.shadowBlur=14;g.fillStyle='#fff3c0';g.beginPath();g.moveTo(32,0);g.quadraticCurveTo(36,-16,48,-14);g.quadraticCurveTo(44,-6,40,0);g.quadraticCurveTo(44,6,48,14);g.quadraticCurveTo(36,16,32,0);g.fill();g.beginPath();g.moveTo(40,-3);g.lineTo(58,0);g.lineTo(40,3);g.fill();g.restore();break;
+  case'chrono':g.save();g.translate(14,0);g.rotate(t*1.5);g.strokeStyle='#7fd0ee';g.lineWidth=2;g.shadowColor='#7fd0ee';g.shadowBlur=10;g.fillStyle='rgba(127,208,238,.55)';g.beginPath();g.moveTo(-7,-10);g.lineTo(7,-10);g.lineTo(0,0);g.closePath();g.fill();g.stroke();g.beginPath();g.moveTo(-7,10);g.lineTo(7,10);g.lineTo(0,0);g.closePath();g.fill();g.stroke();g.restore();break;
+  case'abyssal':g.save();g.strokeStyle='#8a2030';g.lineWidth=3;g.shadowColor='#ff3a3a';g.shadowBlur=8;for(let k=-1;k<=1;k+=2){g.beginPath();for(let i=0;i<=8;i++){const xx=i*5,yy=k*(4+Math.sin(t*6+i+k)*3+i*.6);i?g.lineTo(xx,yy):g.moveTo(xx,yy)}g.stroke();g.fillStyle='#ff3a3a';g.beginPath();g.moveTo(40,k*8);g.lineTo(48,k*8+3);g.lineTo(40,k*8+6);g.fill()}g.restore();break;
+  case'fist':g.save();g.shadowColor='#ffd24a';g.shadowBlur=12;for(const oy of[-5,5]){g.fillStyle='#e3b550';g.beginPath();g.arc(8,oy,6.5,0,TAU);g.fill();g.fillStyle='#fff3b0';g.fillRect(9,oy-4,5,2);g.fillRect(9,oy+2,5,2)}g.restore();break;
+  case'fate':g.save();g.lineWidth=1.6;g.shadowColor='#ffd0ff';g.shadowBlur=8;['#ffd0ff','#9fe3ff','#ffe08a'].forEach((col,i)=>{g.strokeStyle=col;g.beginPath();g.moveTo(0,0);g.bezierCurveTo(16,-14+i*14+Math.sin(t*4+i)*5,30,10-i*10,48,(i-1)*10+Math.sin(t*3+i)*4);g.stroke()});g.fillStyle='#fff';g.beginPath();g.arc(48,0,2,0,TAU);g.fill();g.restore();break;
   case'lancer':g.strokeStyle='#8a6a3a';g.lineWidth=3;g.beginPath();g.moveTo(-12,0);g.lineTo(36,0);g.stroke();g.fillStyle='#e8eef8';g.beginPath();g.moveTo(34,-4);g.lineTo(52,0);g.lineTo(34,4);g.lineTo(37,0);g.closePath();g.fill();g.fillStyle='#c0392b';g.fillRect(30,-3,5,6);break}}
 function drawHero(g,x,y,s,cls,gen,o){o=o||{};const L=LOOK[cls],f=o.face||1,t=o.t||0,mv=o.moving,bob=mv?Math.sin(t*14)*1.5:Math.sin(t*2.2)*.8,fem=gen==='f';
  g.save();g.translate(x,y);g.scale(s,s);ell(g,0,1,12,4,'rgba(0,0,0,.35)');
@@ -887,7 +922,7 @@ function closeDialog(){closeModal('#dlgModal');if(G&&G.state==='dialog'){G.state
 function addXP(v){const h=G.hero;h.xp+=v;while(h.xp>=h.next){h.xp-=h.next;h.lvl++;h.next=Math.round(h.next*1.27+3);G.pendingLv++;sfx('level');G.fx.push({t:'ring',x:h.x,y:h.y,r:70,life:.6,max:.6,col:'#7fd0ee'})}
  if(G.pendingLv>0&&G.state==='play')openLevel()}
 function upgradePool(){const t=G.atk.type,cls=G.cls;
- const multi={archer:['Volley','Fire +1 arrow per shot'],assassin:['Twin Blades','Throw +1 dagger per volley'],mage:['Arcane Split','Cast +1 orb per cast'],warrior:['Whirlwind','Add another swing on the opposite side'],guardian:['Aftershock','Add another shockwave pulse'],lancer:['Phalanx','Add another thrust on the opposite side']}[cls];
+ const multi={archer:['Volley','Fire +1 arrow per shot'],assassin:['Twin Blades','Throw +1 dagger per volley'],mage:['Arcane Split','Cast +1 orb per cast'],warrior:['Whirlwind','Add another swing on the opposite side'],guardian:['Aftershock','Add another shockwave pulse'],lancer:['Phalanx','Add another thrust on the opposite side']}[cls]||['Echo','Add +1 attack to every strike'];
  const P=[{id:'might',n:'Might',d:'+15% damage',max:8,ap:()=>G.m.dmg+=.15},{id:'haste',n:'Haste',d:'Attack 10% faster',max:8,ap:()=>G.m.cd*=.9},{id:'multi',n:multi[0],d:multi[1],max:4,ap:()=>G.atk.n++},
   {id:'reach',n:'Reach',d:'+20% weapon range and area',max:6,ap:()=>G.m.area+=.2},{id:'crit',n:'Keen Eye',d:'+8% critical chance',max:6,ap:()=>G.m.crit+=.08},{id:'swift',n:'Swiftness',d:'+10% move speed',max:5,ap:()=>G.hero.spd*=1.1},
   {id:'vital',n:'Vitality',d:'+25 max health and heal 25',max:8,ap:()=>{G.hero.maxhp+=25;G.hero.hp=Math.min(G.hero.maxhp,G.hero.hp+25)}},{id:'regen',n:'Recovery',d:'Regenerate 0.6 health per second',max:6,ap:()=>G.hero.regen+=.6},
@@ -906,7 +941,7 @@ function openLevel(){if(G.state==='level')return;G.state='level';G.pendingLv--;l
 /* combat */
 function nearest(x,y,maxd){let best=null,bd=maxd*maxd;for(const e of G.enemies){if(e.dead)continue;const d=(e.x-x)**2+(e.y-y)**2;if(d<bd){bd=d;best=e}}return best}
 function dmgNum(x,y,txt,col,big){if(!S.set.dmgnum&&!big)return;if(G.texts.length>45)G.texts.shift();G.texts.push({x,y,txt,col,life:.7,max:.7,big})}
-function hurt(e,dmg,kb,ang){if(e.dead)return;const a=G.atk;let crit=false;if(Math.random()<a.crit+G.m.crit){dmg*=2;crit=true}dmg=Math.round(dmg);e.hp-=dmg;e.flash=.1;
+function hurt(e,dmg,kb,ang){if(e.dead)return;const a=G.atk;let crit=false;if(Math.random()<a.crit+G.m.crit){dmg*=2;crit=true}dmg=Math.round(dmg);e.hp-=dmg;e.flash=.1;if(a.ls)G.hero.hp=Math.min(G.hero.maxhp,G.hero.hp+dmg*a.ls);
  if(kb){e.kx+=Math.cos(ang)*kb;e.ky+=Math.sin(ang)*kb*(e.boss?.3:1);if(e.boss){e.kx*=.25;e.ky*=.25}}
  dmgNum(e.x,e.y-e.r-8,String(dmg),crit?'#ffd24a':'#fff');sfx('hit');if(e.hp<=0)killEnemy(e)}
 function dmgBase(){return G.atk.dmg*G.m.dmg*(1+.03*(G.hero.lvl-1))}
@@ -958,6 +993,19 @@ function usePotion(){if(!G||G.state!=='play')return;const h=G.hero;if((S.items.p
  S.items.potion--;const v=Math.round(h.maxhp*.5);h.hp=Math.min(h.maxhp,h.hp+v);dmgNum(h.x,h.y-44,'+'+v,'#8fe58a',true);G.fx.push({t:'ring',x:h.x,y:h.y,r:50,life:.5,max:.5,col:'#8fe58a'});sfx('pick');updateHud(true)}
 
 /* update */
+/* ============ HIDDEN CLASS SPECIALS ============ */
+function aoeHit(r,k,col){const h=G.hero,d=dmgBase()*k;G.fx.push({t:'boom',x:h.x,y:h.y,r:r,life:.5,max:.5});G.fx.push({t:'ring',x:h.x,y:h.y,r:r,life:.6,max:.6,col});for(const e of G.enemies){if(e.dead)continue;if(Math.hypot(e.x-h.x,e.y-h.y)<r+e.r)hurt(e,d,200,Math.atan2(e.y-h.y,e.x-h.x))}sfx('slam')}
+const healP=p=>{const h=G.hero;h.hp=Math.min(h.maxhp,h.hp+h.maxhp*p)};
+const SPECIAL={
+ reaper:{n:'Soul Harvest',cd:12,fn(){aoeHit(280,1.5,'#b07aff');healP(.08)}},
+ dragon:{n:'Dragon Form',cd:22,fn(){addBuff({id:'dragonform',n:'Dragon Form',c:'#ff6a2a',fx:{stat:'dmg',v:.7,dur:8}});addBuff({id:'dragonreach',n:'Dragon Wings',c:'#ff9a4a',fx:{stat:'area',v:.35,dur:8}});aoeHit(240,2,'#ff6a2a')}},
+ seraph:{n:'Divine Light',cd:9,fn(){aoeHit(240,1.6,'#fff3b0');healP(.12)}},
+ chrono:{n:'Time Stop',cd:11,fn(){const h=G.hero;for(const e of G.enemies)if(!e.dead&&Math.hypot(e.x-h.x,e.y-h.y)<560)e.stun=Math.max(e.stun,3.5);addBuff({id:'timewarp',n:'Time Warp',c:'#7fd0ee',fx:{stat:'haste',v:.35,dur:4}});G.fx.push({t:'ring',x:h.x,y:h.y,r:560,life:.8,max:.8,col:'#7fd0ee'})}},
+ abyssal:{n:'Dominion',cd:10,fn(){const h=G.hero,d=dmgBase()*1.5;for(const e of G.enemies){if(e.dead)continue;if(Math.hypot(e.x-h.x,e.y-h.y)<360){if(!e.boss){e.x+=(h.x-e.x)*.55;e.y+=(h.y-e.y)*.55}e.stun=Math.max(e.stun,2.5);hurt(e,d,0,0)}}G.fx.push({t:'ring',x:h.x,y:h.y,r:360,life:.7,max:.7,col:'#ff3a3a'})}},
+ fist:{n:'Heaven’s Palm',cd:6,fn(){G.hero.inv=Math.max(G.hero.inv,1.2);aoeHit(170,2.2,'#ffd24a')}},
+ fate:{n:'Fate Sealed',cd:12,fn(){addBuff({id:'fatecrit',n:'Fate Sealed',c:'#ffd0ff',fx:{stat:'crit',v:1,dur:5}})}}
+};
+function specialTick(dt){const sp=SPECIAL[G.cls];if(!sp)return;G.spT=(G.spT==null?sp.cd*.4:G.spT)-dt;if(G.spT<=0){G.spT=sp.cd;sp.fn();toast(sp.n,1800);sfx('quest')}}
 /* ============ GEAR + ITEMS IN A RUN ============ */
 function applyGear(){const W=equippedW();G.atk.dmg*=W.d;G.atk.crit+=W.c;G.m.cd*=W.h;G.m.area*=W.a;if(W.p&&G.atk.pierce!=null)G.atk.pierce+=W.p;G.m.xp=1;G.buffs=[];G.buffAcc=0}
 function buffOps(stat,v){const h=G.hero,m=G.m;return({dmg:[()=>m.dmg+=v,()=>m.dmg-=v],haste:[()=>m.cd*=1-v,()=>m.cd/=1-v],spd:[()=>h.spd*=1+v,()=>h.spd/=1+v],armor:[()=>h.armor+=v,()=>h.armor-=v],crit:[()=>m.crit+=v,()=>m.crit-=v],mag:[()=>h.mag*=1+v,()=>h.mag/=1+v],xp:[()=>m.xp+=v,()=>m.xp-=v],gold:[()=>m.gold+=v,()=>m.gold-=v],area:[()=>m.area+=v,()=>m.area-=v],regen:[()=>h.regen+=v,()=>h.regen-=v]})[stat]}
@@ -1003,7 +1051,7 @@ function update(dt){
  if(joy.id!==null){ix+=joy.dx;iy+=joy.dy}const il=Math.hypot(ix,iy);if(il>1){ix/=il;iy/=il}
  h.moving=il>.12;if(h.moving){h.x=clamp(h.x+ix*h.spd*dt,24,WORLD-24);h.y=clamp(h.y+iy*h.spd*dt,24,WORLD-24);if(h.fire<=0&&Math.abs(ix)>.08)h.face=ix>0?1:-1}
  h.inv-=dt;h.fire-=dt;if(h.regen>0)h.hp=Math.min(h.maxhp,h.hp+h.regen*dt);tickBuffs(dt);
- h.atkT-=dt;if(h.atkT<=0){h.atkT=fireWeapon()?a.cd*m.cd*(CH.nocd?.12:1):.08}
+ specialTick(dt);h.atkT-=dt;if(h.atkT<=0){h.atkT=fireWeapon()?a.cd*m.cd*(CH.nocd?.12:1):.08}
  for(let i=G.later.length-1;i>=0;i--){const l=G.later[i];l.t-=dt;if(l.t<=0){G.later.splice(i,1);l.fn()}}
  /* spawning */
  const rate=Math.min(9,1.2+G.t/38);G.spawnAcc+=dt*rate;while(G.spawnAcc>=1){G.spawnAcc--;if(G.enemies.length<170)spawnEnemy(false)}
@@ -1119,7 +1167,7 @@ function runCmd(line){const p=line.trim().replace(/^\//,'').split(/\s+/),c=(p[0]
  const ok=m=>cmsg(m,'ok');
  switch(c){
   case'':break;
-  case'commandhelp':case'help':cmsg('COMMANDS\n/gold <n>  set saved gold\n/rungold <n>  set gold of this run\n/god  toggle infinite health\n/mana or /nocd  toggle infinite attacks (no mana in this game, so no cooldown)\n/heal  full health\n/boss <n>  spawn n bosses now (max 20)\n/spawn <n>  spawn n normal enemies\n/kill  kill every enemy\n/xp <n>  give experience\n/level <n>  gain n levels\n/speed <x>  move speed multiplier\n/vac  pull all drops to you\n/give <id> <n>  add item (see /items)\n/items  list item ids\n/maxall  own and equip best gear, 99 of every item, max upgrades\n/unlockshop  unlock all gear and make the shop free\n/free  toggle free shop only\n/clear  clear this log');break;
+  case'commandhelp':case'help':cmsg('COMMANDS\n/gold <n>  set saved gold\n/rungold <n>  set gold of this run\n/god  toggle infinite health\n/mana or /nocd  toggle infinite attacks (no mana in this game, so no cooldown)\n/heal  full health\n/boss <n>  spawn n bosses now (max 20)\n/spawn <n>  spawn n normal enemies\n/kill  kill every enemy\n/xp <n>  give experience\n/level <n>  gain n levels\n/speed <x>  move speed multiplier\n/vac  pull all drops to you\n/give <id> <n>  add item (see /items)\n/items  list item ids\n/maxall  own and equip best gear, 99 of every item, max upgrades\n/unlockshop  unlock all gear and make the shop free\n/free  toggle free shop only\n/classes  list all 13 class ids\n/unlockclasses  reveal or hide the 7 hidden classes\n/class <id>  switch your hero class (from the hub)\n/clear  clear this log');break;
   case'gold':if(isNaN(n)||n<0)return cmsg('Usage: /gold <amount>','bad');S.gold=Math.floor(n);save();refreshGold();ok('Gold set to '+S.gold);break;
   case'rungold':if(need())return;if(isNaN(n)||n<0)return cmsg('Usage: /rungold <amount>','bad');G.gold=Math.floor(n);updateHud(true);ok('Run gold set to '+G.gold);break;
   case'god':CH.god=!CH.god;ok('Infinite health: '+(CH.god?'ON':'OFF'));break;
@@ -1137,6 +1185,9 @@ function runCmd(line){const p=line.trim().replace(/^\//,'').split(/\s+/),c=(p[0]
   case'maxall':ownAll();ITEMS.forEach(i=>S.items[i.id]=99);UPS.forEach(u=>S.up[u.k]=UPMAX);if(S.hero){S.equip.w='w_'+S.hero.cls+'_4';S.equip.a='a_29'}save();ok('All gear owned and best equipped, items x99, upgrades maxed. Start a new run to apply.');break;
   case'unlockshop':ownAll();setFree(true);save();ok('Everything unlocked and the shop is free');break;
   case'free':setFree(!freeShop);ok('Free shop: '+(freeShop?'ON':'OFF'));break;
+  case'classes':cmsg(Object.keys(CLASSES).join(', '));break;
+  case'unlockclasses':S.unlockedClasses=!S.unlockedClasses;save();if(cur==='sClass')enterClass();ok('Hidden classes: '+(S.unlockedClasses?'UNLOCKED. Pick them on the class screen.':'locked'));break;
+  case'class':{const id=(p[1]||'').toLowerCase();if(!CLASSES[id])return cmsg('Unknown class. Use /classes','bad');if(G)return cmsg('Retreat to the hub first.','bad');if(!S.hero)return cmsg('Create a hero first.','bad');if(CLASSES[id].hidden)S.unlockedClasses=true;S.hero.cls=id;S.equip.w=null;save();enterHub();ok('Class changed to '+CLASSES[id].name);break}
   case'clear':chLog.innerHTML='';break;
   default:cmsg('Unknown command "'+c+'". Type /commandhelp','bad')}}
 window.addEventListener('keydown',e=>{
