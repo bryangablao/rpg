@@ -53,7 +53,7 @@
 
     /* Glassmorphism Styling */
     .glass-panel {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -91,7 +91,6 @@
       100% { opacity: 0; transform: translate(-50%, -120%) scale(0.9); }
     }
 
-    /* Sleep Screen Transition Overlay */
     #cinematic-overlay {
       transition: opacity 0.8s ease-in-out;
     }
@@ -111,7 +110,7 @@
         <h1 class="font-cinzel text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 mb-2 tracking-wide">
           SPELLBLADE RPG
         </h1>
-        <p class="text-slate-400 text-xs md:text-sm mb-6">Choose your Champion and Weapon Class to enter the Realm</p>
+        <p class="text-slate-400 text-xs md:text-sm mb-6">Select your Champion and Weapon Class to enter the Realm</p>
 
         <!-- Gender Selection -->
         <div class="mb-6">
@@ -226,7 +225,7 @@
       
       <!-- Controls Hint -->
       <div class="glass-panel p-3.5 rounded-2xl hidden lg:block text-[11px] text-slate-300 space-y-1 border border-slate-800">
-        <div><span class="text-amber-400 font-bold">Left-Click</span>: Primary Attack | <span class="text-amber-400 font-bold">Right-Click + Drag</span>: Orbit View</div>
+        <div><span class="text-amber-400 font-bold">Left-Click</span>: Attack | <span class="text-amber-400 font-bold">Right-Click + Drag</span>: Orbit View</div>
         <div><span class="text-amber-400 font-bold">WASD</span>: Move | <span class="text-amber-400 font-bold">Shift</span>: Sprint | <span class="text-amber-400 font-bold">Space</span>: Jump</div>
         <div><span class="text-amber-400 font-bold">1, 2, 3</span>: Skills | <span class="text-amber-400 font-bold">P</span>: Pause | <span class="text-amber-400 font-bold">ESC</span>: Menu</div>
       </div>
@@ -348,14 +347,16 @@
   <!-- GAME ENGINE LOGIC -->
   <script>
     /* =========================================================================
-       1. GAME CONFIGURATION & GLOBALS
+       1. GAME CONFIGURATION & PROPORTIONAL MAP BIOMES
        ========================================================================= */
     const CONFIG = {
-      SAFE_ZONE_RADIUS: 38,
+      SAFE_ZONE_RADIUS: 34,
       WORLD_SIZE: 380,
-      PALISADE_RADIUS: 40,
-      PALISADE_LOG_COUNT: 110,
-      GATE_ANGLE_WIDTH: 0.38
+      PALISADE_RADIUS: 34,
+      PALISADE_LOG_COUNT: 210, // Tightly packed logs - zero gaps
+      LAKE_CENTER_X: 55,
+      LAKE_CENTER_Z: -55,
+      LAKE_RADIUS: 38
     };
 
     let scene, camera, renderer, clock;
@@ -382,7 +383,7 @@
       previousMouseY: 0
     };
 
-    // Player State & SAFE SPAWN AT (0, 0, 8)
+    // Player State
     const playerState = {
       gender: 'male',
       classType: 'Warrior',
@@ -393,8 +394,8 @@
       maxMp: 50,
       exp: 0,
       maxExp: 100,
-      posX: 0,   // SAFE OPEN SPAWN CLEAR OF BUILDINGS AT (0, 0, 8)
-      posZ: 8,
+      posX: 0,   // Safe spawn inside palisade town
+      posZ: 6,
       posY: 0,
       rotY: 0,
       velocity: new THREE.Vector3(),
@@ -405,11 +406,11 @@
       attackCooldown: 0
     };
 
-    // Interactive Safe Zone Objects & Colliders
+    // Colliders & Interactive Objects
     const colliders = [];
     const fireParticles = [];
     let fireLight = null;
-    const houseDoorPosition = new THREE.Vector3(14, 0, 11.5); // Front of House Door
+    const houseDoorPosition = new THREE.Vector3(14, 0, 11.5);
 
     // Projectiles & Dynamic Particle Effects
     const projectiles = [];
@@ -463,14 +464,6 @@
           gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
           osc.start(now);
           osc.stop(now + 0.45);
-        } else if (type === 'slime_bounce') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(180, now);
-          osc.frequency.exponentialRampToValueAtTime(260, now + 0.15);
-          gain.gain.setValueAtTime(0.12, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
-          osc.start(now);
-          osc.stop(now + 0.15);
         }
       } catch (e) {}
     }
@@ -518,8 +511,8 @@
     function initEngine() {
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0284c7);
-      scene.fog = new THREE.FogExp2(0x0284c7, 0.005);
+      scene.background = new THREE.Color(0x38bdf8);
+      scene.fog = new THREE.FogExp2(0x38bdf8, 0.004);
 
       camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
       
@@ -532,11 +525,10 @@
 
       clock = new THREE.Clock();
 
-      // Lighting
-      ambientLight = new THREE.AmbientLight(0xe0f2fe, 0.65);
+      ambientLight = new THREE.AmbientLight(0xe0f2fe, 0.7);
       scene.add(ambientLight);
 
-      sunLight = new THREE.DirectionalLight(0xfffbeb, 1.3);
+      sunLight = new THREE.DirectionalLight(0xfffbeb, 1.35);
       sunLight.position.set(90, 130, 70);
       sunLight.castShadow = true;
       sunLight.shadow.mapSize.width = 2048;
@@ -560,7 +552,7 @@
     }
 
     /* =========================================================================
-       5. MOUSE ORBIT CAMERA CONTROLS & LEFT-CLICK ATTACK
+       5. MOUSE ORBIT CAMERA CONTROLS
        ========================================================================= */
     function setupMouseOrbitControls() {
       const el = renderer.domElement;
@@ -569,10 +561,8 @@
 
       el.addEventListener('mousedown', (e) => {
         if (e.button === 0) {
-          // Left-click triggers primary attack
           executePrimaryAttack();
         } else if (e.button === 2) {
-          // Right-click enables camera orbit
           cameraOrbit.isDragging = true;
           cameraOrbit.previousMouseX = e.clientX;
           cameraOrbit.previousMouseY = e.clientY;
@@ -587,7 +577,6 @@
 
         cameraOrbit.azimuth -= deltaX * 0.005;
         cameraOrbit.elevation += deltaY * 0.005;
-
         cameraOrbit.elevation = Math.max(0.1, Math.min(Math.PI / 2 - 0.05, cameraOrbit.elevation));
 
         cameraOrbit.previousMouseX = e.clientX;
@@ -595,9 +584,7 @@
       });
 
       window.addEventListener('mouseup', (e) => {
-        if (e.button === 2) {
-          cameraOrbit.isDragging = false;
-        }
+        if (e.button === 2) cameraOrbit.isDragging = false;
       });
 
       el.addEventListener('wheel', (e) => {
@@ -607,33 +594,38 @@
     }
 
     /* =========================================================================
-       6. TERRAIN & ANIMATED WATER LAKE
+       6. TERRAIN & BIOME HEIGHT FORMULA (NO MOUNTAINS IN SAFE ZONE)
        ========================================================================= */
     function getLakeDistance(x, z) {
-      // Natural Lake centered around (x: 45, z: -45)
-      return Math.hypot(x - 45, z + 45);
+      return Math.hypot(x - CONFIG.LAKE_CENTER_X, z - CONFIG.LAKE_CENTER_Z);
     }
 
     function getTerrainHeight(x, z) {
       const distFromCenter = Math.hypot(x, z);
-      if (distFromCenter < 35) return 0; // Flat safe zone
 
+      // 1. ABSOLUTELY NO MOUNTAINS OR HILLS IN SAFE ZONE (FLAT & CLEAR)
+      if (distFromCenter <= CONFIG.SAFE_ZONE_RADIUS + 3) {
+        return 0;
+      }
+
+      // 2. 10% WATER LAKE BASIN DEPRESSION
       const lakeDist = getLakeDistance(x, z);
-      if (lakeDist < 26) {
-        // Natural depression for the animated lake basin
-        return -2.8 + Math.pow(lakeDist / 26, 2) * 2.8 - 0.5;
+      if (lakeDist < CONFIG.LAKE_RADIUS) {
+        const t = lakeDist / CONFIG.LAKE_RADIUS;
+        return -3.5 + Math.pow(t, 2) * 3.5 - 0.4;
       }
 
-      let h = Math.sin(x * 0.04) * Math.cos(z * 0.04) * 3.5 + Math.sin(x * 0.015) * 5;
-      if (distFromCenter > 130) {
-        h += Math.pow((distFromCenter - 130) * 0.25, 1.8);
+      // 3. 15% SMOOTH NAVIGABLE MOUNTAINS & ROLLING HILLS (Gentle slopes for walking)
+      let h = Math.sin(x * 0.03) * Math.cos(z * 0.03) * 4.2 + Math.cos(x * 0.015) * 3.5;
+      if (distFromCenter > 110) {
+        h += Math.sin((distFromCenter - 110) * 0.05) * 6.5;
       }
-      return h;
+      return Math.max(-0.2, h);
     }
 
     function buildWorld() {
-      // Ground Terrain
-      const geo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 140, 140);
+      // Ground Terrain Mesh
+      const geo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 160, 160);
       geo.rotateX(-Math.PI / 2);
 
       const pos = geo.attributes.position;
@@ -644,26 +636,30 @@
       }
       geo.computeVertexNormals();
 
-      const mat = new THREE.MeshStandardMaterial({ color: 0x3d662b, roughness: 0.85, flatShading: true });
+      const mat = new THREE.MeshStandardMaterial({ color: 0x2e6b22, roughness: 0.85, flatShading: true });
       terrainMesh = new THREE.Mesh(geo, mat);
       terrainMesh.receiveShadow = true;
       terrainMesh.castShadow = true;
       scene.add(terrainMesh);
 
-      // ANIMATED LAKE WATER
+      // 10% Animated Lake Water Body
       buildAnimatedLakeWater();
 
-      // DENSE ENVIRONMENT & DECORATIONS
-      buildPointyWoodenPalisade();
+      // Palisade with NO GAPS and 2 ARCH GATES
+      buildGaplessPalisadeWithTwoGates();
+
+      // Safe Zone Structures
       buildAnimatedBonfire();
       buildPlayerHouseCabin();
       buildBlacksmithForgeArea();
       buildOutdoorLibraryArea();
-      buildRichEnvironmentDetails();
+
+      // Proportional Landscape Coverage (45% Grass, 25% Trees, 5% Rocks)
+      buildProportionalEnvironmentBiomes();
     }
 
     function buildAnimatedLakeWater() {
-      const waterGeo = new THREE.CircleGeometry(26, 32);
+      const waterGeo = new THREE.CircleGeometry(CONFIG.LAKE_RADIUS - 1, 36);
       waterGeo.rotateX(-Math.PI / 2);
 
       const waterMat = new THREE.MeshStandardMaterial({
@@ -671,11 +667,11 @@
         roughness: 0.1,
         metalness: 0.8,
         transparent: true,
-        opacity: 0.82
+        opacity: 0.85
       });
 
       waterMesh = new THREE.Mesh(waterGeo, waterMat);
-      waterMesh.position.set(45, -0.6, -45);
+      waterMesh.position.set(CONFIG.LAKE_CENTER_X, -0.6, CONFIG.LAKE_CENTER_Z);
       scene.add(waterMesh);
     }
 
@@ -685,7 +681,7 @@
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i);
         const z = pos.getZ(i);
-        const waveY = Math.sin(time * 2.5 + x * 0.4 + z * 0.3) * 0.18 + Math.cos(time * 1.8 + z * 0.5) * 0.12;
+        const waveY = Math.sin(time * 2.8 + x * 0.3 + z * 0.4) * 0.2 + Math.cos(time * 2.0 + z * 0.5) * 0.12;
         pos.setY(i, waveY);
       }
       waterMesh.geometry.attributes.position.needsUpdate = true;
@@ -693,106 +689,123 @@
     }
 
     /* =========================================================================
-       7. PALISADE WOODEN LOG WALL BOUNDARY
+       7. GAPLESS PALISADE & 2 GATES (NORTH & SOUTH)
        ========================================================================= */
-    function buildPointyWoodenPalisade() {
+    function buildGaplessPalisadeWithTwoGates() {
       const radius = CONFIG.PALISADE_RADIUS;
-      const count = CONFIG.PALISADE_LOG_COUNT;
+      const count = CONFIG.PALISADE_LOG_COUNT; // 210 logs guarantee 0 gaps
       const logGroup = new THREE.Group();
       
       const logMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.9 });
       const tipMat = new THREE.MeshStandardMaterial({ color: 0x3d2514, roughness: 0.8 });
+      const archMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+
+      const NORTH_GATE_ANGLE = Math.PI / 2;      // North entrance (z positive)
+      const SOUTH_GATE_ANGLE = (3 * Math.PI) / 2; // South entrance (z negative)
+      const GATE_WIDTH_ANGLE = 0.18;
 
       for (let i = 0; i < count; i++) {
         const angle = (i / count) * Math.PI * 2;
 
-        const isNorthGate = Math.abs(angle - Math.PI / 2) < CONFIG.GATE_ANGLE_WIDTH;
-        const isSouthGate = Math.abs(angle - (3 * Math.PI / 2)) < CONFIG.GATE_ANGLE_WIDTH;
-        if (isNorthGate || isSouthGate) continue;
+        // Check if inside North or South Gate Entrances
+        const isNorthGate = Math.abs(angle - NORTH_GATE_ANGLE) < GATE_WIDTH_ANGLE;
+        const isSouthGate = Math.abs(angle - SOUTH_GATE_ANGLE) < GATE_WIDTH_ANGLE;
+
+        if (isNorthGate || isSouthGate) continue; // Leave open path for entrance
 
         const x = Math.cos(angle) * radius;
         const z = Math.sin(angle) * radius;
         const y = getTerrainHeight(x, z);
 
-        const logHeight = 4.5 + (Math.random() * 0.3);
-        const logRadius = 0.45;
-        const cylinderGeo = new THREE.CylinderGeometry(logRadius, logRadius, logHeight, 7);
-        const logMesh = new THREE.Mesh(cylinderGeo, logMat);
+        const logHeight = 4.8 + (Math.random() * 0.2);
+        const logRadius = 0.55;
+        const logMesh = new THREE.Mesh(new THREE.CylinderGeometry(logRadius, logRadius, logHeight, 6), logMat);
         logMesh.position.set(x, y + logHeight / 2, z);
         logMesh.castShadow = true;
 
-        const coneGeo = new THREE.ConeGeometry(logRadius, 0.9, 7);
-        const coneMesh = new THREE.Mesh(coneGeo, tipMat);
+        const coneMesh = new THREE.Mesh(new THREE.ConeGeometry(logRadius, 0.9, 6), tipMat);
         coneMesh.position.set(0, logHeight / 2 + 0.45, 0);
         logMesh.add(coneMesh);
 
         logGroup.add(logMesh);
-        colliders.push({ type: 'cylinder', x: x, z: z, radius: logRadius + 0.35 });
+        colliders.push({ type: 'cylinder', x: x, z: z, radius: logRadius + 0.2 });
       }
+
+      // BUILD WOODEN ARCH GATES FOR NORTH & SOUTH ENTRANCES
+      [NORTH_GATE_ANGLE, SOUTH_GATE_ANGLE].forEach(gateAngle => {
+        const gx = Math.cos(gateAngle) * radius;
+        const gz = Math.sin(gateAngle) * radius;
+        const gy = getTerrainHeight(gx, gz);
+
+        const archPillar1 = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 6, 8), archMat);
+        archPillar1.position.set(gx - 2.8, gy + 3, gz);
+        scene.add(archPillar1);
+
+        const archPillar2 = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 6, 8), archMat);
+        archPillar2.position.set(gx + 2.8, gy + 3, gz);
+        scene.add(archPillar2);
+
+        const beam = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.8, 0.8), archMat);
+        beam.position.set(gx, gy + 5.8, gz);
+        scene.add(beam);
+      });
 
       scene.add(logGroup);
     }
 
     /* =========================================================================
-       8. ANIMATED BONFIRE
+       8. SAFE ZONE STRUCTURES & WORKING HOUSE
        ========================================================================= */
     function buildAnimatedBonfire() {
-      const x = -8, z = -6;
+      const x = -6, z = -4;
       const y = getTerrainHeight(x, z);
 
-      const ringGeo = new THREE.TorusGeometry(2.0, 0.3, 8, 16);
-      const ringMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
-      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      const ringMesh = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.28, 8, 16), new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 }));
       ringMesh.rotation.x = Math.PI / 2;
       ringMesh.position.set(x, y + 0.15, z);
       scene.add(ringMesh);
 
       const logMat = new THREE.MeshStandardMaterial({ color: 0x3f2314, roughness: 0.9 });
       for (let i = 0; i < 6; i++) {
-        const logGeo = new THREE.CylinderGeometry(0.18, 0.22, 2.5, 6);
-        const log = new THREE.Mesh(logGeo, logMat);
+        const log = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.2, 6), logMat);
         const rot = (i / 6) * Math.PI * 2;
-        log.position.set(x + Math.cos(rot) * 0.6, y + 0.4, z + Math.sin(rot) * 0.6);
+        log.position.set(x + Math.cos(rot) * 0.5, y + 0.4, z + Math.sin(rot) * 0.5);
         log.rotation.z = Math.PI / 3.2;
         log.rotation.y = rot;
         scene.add(log);
       }
 
-      colliders.push({ type: 'cylinder', x: x, z: z, radius: 2.1 });
+      colliders.push({ type: 'cylinder', x: x, z: z, radius: 2.0 });
 
-      fireLight = new THREE.PointLight(0xf97316, 2.8, 24);
-      fireLight.position.set(x, y + 1.6, z);
+      fireLight = new THREE.PointLight(0xf97316, 2.8, 22);
+      fireLight.position.set(x, y + 1.5, z);
       scene.add(fireLight);
 
       for (let i = 0; i < 16; i++) {
-        const pGeo = new THREE.DodecahedronGeometry(0.2);
-        const pMat = new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xef4444 : 0xf59e0b, transparent: true, opacity: 0.85 });
-        const pMesh = new THREE.Mesh(pGeo, pMat);
-        pMesh.position.set(x + (Math.random() - 0.5) * 1.0, y + 0.5 + Math.random() * 1.5, z + (Math.random() - 0.5) * 1.0);
+        const pMesh = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(0.2),
+          new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xef4444 : 0xf59e0b, transparent: true, opacity: 0.85 })
+        );
+        pMesh.position.set(x + (Math.random() - 0.5) * 0.9, y + 0.5 + Math.random() * 1.5, z + (Math.random() - 0.5) * 0.9);
         scene.add(pMesh);
         fireParticles.push({ mesh: pMesh, baseY: y + 0.5, speed: 1.2 + Math.random() * 1.5 });
       }
     }
 
-    /* =========================================================================
-       9. SAFE ZONE STRUCTURES & WORKING HOUSE
-       ========================================================================= */
     function buildPlayerHouseCabin() {
-      const hx = 14, hz = 16;
+      const hx = 14, hz = 12;
       const hy = getTerrainHeight(hx, hz);
       const group = new THREE.Group();
 
       const wallMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
       const roofMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.7 });
 
-      const wallsGeo = new THREE.BoxGeometry(8, 4.5, 9);
-      const walls = new THREE.Mesh(wallsGeo, wallMat);
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(8, 4.5, 9), wallMat);
       walls.position.y = 2.25;
       walls.castShadow = true;
       group.add(walls);
 
-      const roofGeo = new THREE.ConeGeometry(7, 3.5, 4);
-      const roof = new THREE.Mesh(roofGeo, roofMat);
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(7, 3.5, 4), roofMat);
       roof.position.y = 6.0;
       roof.rotation.y = Math.PI / 4;
       roof.castShadow = true;
@@ -800,12 +813,10 @@
 
       // FUNCTIONING HOUSE DOOR (PIVOTED FOR OPENING)
       const doorPivot = new THREE.Group();
-      doorPivot.position.set(-1.0, 0, -4.55); // Left hinge location
+      doorPivot.position.set(-1.0, 0, -4.55);
 
-      const doorMat = new THREE.MeshStandardMaterial({ color: 0x3f2314, roughness: 0.6 });
-      const doorGeo = new THREE.BoxGeometry(2.0, 3.2, 0.2);
-      houseDoorMesh = new THREE.Mesh(doorGeo, doorMat);
-      houseDoorMesh.position.set(1.0, 1.6, 0); // Offset from hinge
+      houseDoorMesh = new THREE.Mesh(new THREE.BoxGeometry(2.0, 3.2, 0.2), new THREE.MeshStandardMaterial({ color: 0x3f2314, roughness: 0.6 }));
+      houseDoorMesh.position.set(1.0, 1.6, 0);
       doorPivot.add(houseDoorMesh);
       group.add(doorPivot);
 
@@ -817,35 +828,29 @@
     }
 
     function buildBlacksmithForgeArea() {
-      const bx = -16, bz = 14;
+      const bx = -14, bz = 12;
       const by = getTerrainHeight(bx, bz);
 
-      const furnaceGeo = new THREE.BoxGeometry(3.5, 3.0, 3.5);
-      const furnaceMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
-      const furnace = new THREE.Mesh(furnaceGeo, furnaceMat);
+      const furnace = new THREE.Mesh(new THREE.BoxGeometry(3.5, 3.0, 3.5), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 }));
       furnace.position.set(bx, by + 1.5, bz);
       scene.add(furnace);
 
-      const magmaGeo = new THREE.BoxGeometry(2.0, 1.2, 0.2);
-      const magmaMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-      const magma = new THREE.Mesh(magmaGeo, magmaMat);
+      const magma = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.2, 0.2), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
       magma.position.set(bx, by + 1.5, bz + 1.76);
       scene.add(magma);
 
-      const anvilMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 });
-      const anvil = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), anvilMat);
-      anvil.position.set(bx + 3.0, by + 0.5, bz + 2.0);
+      const anvil = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 }));
+      anvil.position.set(bx + 2.8, by + 0.5, bz + 1.8);
       scene.add(anvil);
 
       colliders.push({ type: 'box', x: bx, z: bz, width: 4.0, depth: 4.0 });
     }
 
     function buildOutdoorLibraryArea() {
-      const lx = -15, lz = -15;
+      const lx = -14, lz = -14;
       const ly = getTerrainHeight(lx, lz);
 
-      const shelfMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 });
-      const shelf = new THREE.Mesh(new THREE.BoxGeometry(4.5, 4.0, 1.2), shelfMat);
+      const shelf = new THREE.Mesh(new THREE.BoxGeometry(4.5, 4.0, 1.2), new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 }));
       shelf.position.set(lx, ly + 2.0, lz);
       scene.add(shelf);
 
@@ -853,28 +858,26 @@
     }
 
     /* =========================================================================
-       10. RICH ENVIRONMENT: GRASS, ROCKS, PINES, MUSHROOMS
+       9. PROPORTIONAL MAP LANDSCAPE (45% Grass, 25% Trees, 5% Rocks)
        ========================================================================= */
-    function buildRichEnvironmentDetails() {
+    function buildProportionalEnvironmentBiomes() {
       const grassMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.7, side: THREE.DoubleSide });
       const rockMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9, flatShading: true });
-      const mushroomCapMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.5 });
-      const mushroomStemMat = new THREE.MeshStandardMaterial({ color: 0xfef08a });
       const treeMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8, flatShading: true });
       const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
 
-      // 1. Grass Patches
-      const grassGeo = new THREE.ConeGeometry(0.15, 0.8, 3);
-      for (let i = 0; i < 220; i++) {
-        const x = (Math.random() - 0.5) * 260;
-        const z = (Math.random() - 0.5) * 260;
-        if (Math.hypot(x, z) < 32 || getLakeDistance(x, z) < 28) continue;
+      // 1. 45% DENSE INSTANCED GRASS COVERAGE (600 GRASS CLUSTERS)
+      const grassBladeGeo = new THREE.ConeGeometry(0.18, 0.85, 3);
+      for (let i = 0; i < 600; i++) {
+        const x = (Math.random() - 0.5) * 320;
+        const z = (Math.random() - 0.5) * 320;
+        if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS) continue;
 
         const y = getTerrainHeight(x, z);
         const cluster = new THREE.Group();
         for (let j = 0; j < 5; j++) {
-          const blade = new THREE.Mesh(grassGeo, grassMat);
-          blade.position.set((Math.random() - 0.5) * 0.6, 0.4, (Math.random() - 0.5) * 0.6);
+          const blade = new THREE.Mesh(grassBladeGeo, grassMat);
+          blade.position.set((Math.random() - 0.5) * 0.7, 0.42, (Math.random() - 0.5) * 0.7);
           blade.rotation.z = (Math.random() - 0.5) * 0.4;
           cluster.add(blade);
         }
@@ -882,60 +885,24 @@
         scene.add(cluster);
       }
 
-      // 2. Big Boulders & Small Rocks
-      for (let i = 0; i < 80; i++) {
-        const x = (Math.random() - 0.5) * 280;
-        const z = (Math.random() - 0.5) * 280;
-        if (Math.hypot(x, z) < 34) continue;
-
-        const y = getTerrainHeight(x, z);
-        const scale = 0.5 + Math.random() * 2.5;
-        const rockGeo = new THREE.DodecahedronGeometry(scale, 1);
-        const rock = new THREE.Mesh(rockGeo, rockMat);
-        rock.position.set(x, y + scale * 0.6, z);
-        rock.rotation.set(Math.random(), Math.random(), Math.random());
-        rock.castShadow = true;
-        scene.add(rock);
-
-        if (scale > 1.4) {
-          colliders.push({ type: 'cylinder', x: x, z: z, radius: scale * 0.85 });
-        }
-      }
-
-      // 3. Cute Wild Mushrooms
-      for (let i = 0; i < 45; i++) {
-        const x = (Math.random() - 0.5) * 220;
-        const z = (Math.random() - 0.5) * 220;
-        if (Math.hypot(x, z) < 32 || getLakeDistance(x, z) < 28) continue;
-
-        const y = getTerrainHeight(x, z);
-        const shroom = new THREE.Group();
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.4, 8), mushroomStemMat);
-        stem.position.y = 0.2;
-        const cap = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.3, 8), mushroomCapMat);
-        cap.position.y = 0.45;
-        shroom.add(stem);
-        shroom.add(cap);
-        shroom.position.set(x, y, z);
-        scene.add(shroom);
-      }
-
-      // 4. Forest Pines
-      for (let i = 0; i < 90; i++) {
+      // 2. 25% DENSE FOREST TREES SURROUNDING SAFEZONE & WILDERNESS (280 TREES)
+      for (let i = 0; i < 280; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const dist = 48 + Math.random() * 110;
+        // Ring heavily surrounding safe zone palisade (dist >= 36)
+        const dist = CONFIG.SAFE_ZONE_RADIUS + 3 + Math.random() * 115;
         const x = Math.cos(angle) * dist;
         const z = Math.sin(angle) * dist;
-        if (getLakeDistance(x, z) < 28) continue;
+
+        if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS + 2) continue;
 
         const y = getTerrainHeight(x, z);
 
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 4, 8), trunkMat);
-        trunk.position.set(x, y + 2, z);
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.65, 4.2, 8), trunkMat);
+        trunk.position.set(x, y + 2.1, z);
         trunk.castShadow = true;
 
-        const leaves = new THREE.Mesh(new THREE.ConeGeometry(3.2, 7, 8), treeMat);
-        leaves.position.set(x, y + 6.5, z);
+        const leaves = new THREE.Mesh(new THREE.ConeGeometry(3.5, 7.5, 8), treeMat);
+        leaves.position.set(x, y + 6.8, z);
         leaves.castShadow = true;
 
         scene.add(trunk);
@@ -943,10 +910,29 @@
 
         colliders.push({ type: 'cylinder', x: x, z: z, radius: 0.8 });
       }
+
+      // 3. 5% BIG AND SMALL BOULDERS & ROCKS (120 ROCKS)
+      for (let i = 0; i < 120; i++) {
+        const x = (Math.random() - 0.5) * 330;
+        const z = (Math.random() - 0.5) * 330;
+        if (Math.hypot(x, z) < CONFIG.SAFE_ZONE_RADIUS || getLakeDistance(x, z) < CONFIG.LAKE_RADIUS) continue;
+
+        const y = getTerrainHeight(x, z);
+        const scale = 0.6 + Math.random() * 2.4;
+        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(scale, 1), rockMat);
+        rock.position.set(x, y + scale * 0.5, z);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        rock.castShadow = true;
+        scene.add(rock);
+
+        if (scale > 1.3) {
+          colliders.push({ type: 'cylinder', x: x, z: z, radius: scale * 0.85 });
+        }
+      }
     }
 
     /* =========================================================================
-       11. HERO CHARACTER CREATION
+       10. HERO CHARACTER CREATION
        ========================================================================= */
     function createHeroCharacter() {
       if (playerBody) scene.remove(playerBody);
@@ -960,19 +946,16 @@
       });
       const hairMat = new THREE.MeshStandardMaterial({ color: isMale ? 0x451a03 : 0xf59e0b });
 
-      // Torso
       const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.35, 1.3, 12), clothMat);
       torso.position.y = 1.35;
       torso.castShadow = true;
       playerBody.add(torso);
 
-      // Head
       const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), skinMat);
       head.position.y = 2.2;
       head.castShadow = true;
       playerBody.add(head);
 
-      // Hair & Cap
       if (isMale) {
         const cap = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.3, 12), clothMat);
         cap.position.set(0, 2.45, 0);
@@ -987,7 +970,6 @@
         playerBody.add(dress);
       }
 
-      // Limbs
       const limbGeo = new THREE.CylinderGeometry(0.11, 0.1, 0.85, 10);
 
       playerBody.leftArm = new THREE.Mesh(limbGeo, clothMat);
@@ -1008,10 +990,10 @@
 
       equipWeaponMesh();
 
-      // SAFE SPAWN AT (0, 0, 8) IN FRONT OF CAMP
+      // Safe Spawn Point inside Safe Zone
       playerState.posX = 0;
-      playerState.posZ = 8;
-      playerState.posY = getTerrainHeight(0, 8);
+      playerState.posZ = 6;
+      playerState.posY = getTerrainHeight(0, 6);
       playerBody.position.set(playerState.posX, playerState.posY, playerState.posZ);
       scene.add(playerBody);
     }
@@ -1043,19 +1025,19 @@
     }
 
     /* =========================================================================
-       12. CUTE BOUNCING SLIME ENEMIES
+       11. CUTE BOUNCING SLIME ENEMIES
        ========================================================================= */
     function spawnSlimes() {
       slimes.forEach(s => scene.remove(s.mesh));
       slimes.length = 0;
 
-      for (let i = 0; i < 16; i++) {
+      for (let i = 0; i < 20; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const dist = 52 + Math.random() * 55;
+        const dist = CONFIG.SAFE_ZONE_RADIUS + 12 + Math.random() * 60;
         const x = Math.cos(angle) * dist;
         const z = Math.sin(angle) * dist;
 
-        if (getLakeDistance(x, z) < 28) continue; // Avoid spawning inside lake water
+        if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS) continue;
 
         const slimeMesh = createCuteSlimeMesh();
         const y = getTerrainHeight(x, z);
@@ -1079,7 +1061,6 @@
     function createCuteSlimeMesh() {
       const group = new THREE.Group();
 
-      // Slime Jelly Body
       const bodyMat = new THREE.MeshStandardMaterial({
         color: 0x10b981,
         roughness: 0.1,
@@ -1087,8 +1068,7 @@
         transparent: true,
         opacity: 0.88
       });
-      const bodyGeo = new THREE.SphereGeometry(1.0, 16, 16);
-      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      const body = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 16), bodyMat);
       body.position.y = 0.9;
       body.scale.set(1.1, 0.9, 1.1);
       body.castShadow = true;
@@ -1096,7 +1076,6 @@
       group.bodyMesh = body;
       group.bodyMat = bodyMat;
 
-      // Cute Eyes
       const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
       const eyeGeo = new THREE.SphereGeometry(0.12, 8, 8);
 
@@ -1108,10 +1087,7 @@
       rightEye.position.set(0.35, 1.05, 0.85);
       group.add(rightEye);
 
-      // Smiling Mouth Arc
-      const mouthGeo = new THREE.TorusGeometry(0.18, 0.03, 6, 10, Math.PI);
-      const mouthMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
-      const mouth = new THREE.Mesh(mouthGeo, mouthMat);
+      const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.03, 6, 10, Math.PI), eyeMat);
       mouth.position.set(0, 0.82, 0.88);
       mouth.rotation.x = Math.PI;
       group.add(mouth);
@@ -1126,7 +1102,6 @@
         s.bounceTime += delta * 4;
         s.attackCooldown = Math.max(0, s.attackCooldown - delta);
 
-        // Flash red when hit
         if (s.hitFlashTimer > 0) {
           s.hitFlashTimer -= delta;
           s.mesh.bodyMat.color.setHex(0xef4444);
@@ -1136,7 +1111,6 @@
 
         const distToPlayer = Math.hypot(playerState.posX - s.x, playerState.posZ - s.z);
 
-        // Slime Bounce & AI Chase
         if (!playerState.inSafeZone && distToPlayer < 22) {
           const angle = Math.atan2(playerState.posZ - s.z, playerState.posX - s.x);
           s.mesh.rotation.y = angle - Math.PI / 2;
@@ -1144,7 +1118,6 @@
           s.x += Math.cos(angle) * 3.8 * delta;
           s.z += Math.sin(angle) * 3.8 * delta;
 
-          // Cute Bounce / Stretch effect
           const bounceY = Math.abs(Math.sin(s.bounceTime)) * 0.8;
           const squish = 1 + Math.sin(s.bounceTime) * 0.2;
           s.mesh.bodyMesh.scale.set(1 / squish, squish, 1 / squish);
@@ -1152,7 +1125,6 @@
           const terrainY = getTerrainHeight(s.x, s.z);
           s.mesh.position.set(s.x, terrainY + bounceY, s.z);
 
-          // Slime Jump Attack Player
           if (distToPlayer < 2.2 && s.attackCooldown <= 0) {
             s.attackCooldown = 1.6;
             playerState.hp = Math.max(0, playerState.hp - 12);
@@ -1161,7 +1133,6 @@
             updateHUD();
           }
         } else {
-          // Idle gentle breathing animation
           const terrainY = getTerrainHeight(s.x, s.z);
           const breath = 1 + Math.sin(s.bounceTime * 0.5) * 0.05;
           s.mesh.bodyMesh.scale.set(breath, 1 / breath, breath);
@@ -1171,7 +1142,7 @@
     }
 
     /* =========================================================================
-       13. PRIMARY LEFT-CLICK ATTACKS & PARTICLE SYSTEM
+       12. PRIMARY LEFT-CLICK ATTACKS & PARTICLE SYSTEM
        ========================================================================= */
     function executePrimaryAttack() {
       if (isPaused || isEscOpen || isCinematic || playerState.attackCooldown > 0) return;
@@ -1182,7 +1153,6 @@
 
       const cls = playerState.classType;
 
-      // Weapon swing animation
       if (playerBody && playerBody.rightArm) {
         playerBody.rightArm.rotation.x = -1.5;
         setTimeout(() => {
@@ -1192,10 +1162,8 @@
       }
 
       if (cls === 'Archer' || cls === 'Mage') {
-        // Spawn Projectile (Arrow or Magic Arcana Bolt)
         spawnProjectile(cls);
       } else {
-        // Melee Attack Impact Check
         slimes.forEach(s => {
           if (s.hp <= 0) return;
           const dist = Math.hypot(s.x - playerState.posX, s.z - playerState.posZ);
@@ -1209,8 +1177,7 @@
     function spawnProjectile(cls) {
       const isMage = cls === 'Mage';
       const pGeo = isMage ? new THREE.SphereGeometry(0.3, 8, 8) : new THREE.CylinderGeometry(0.04, 0.04, 1.2, 6);
-      const pMat = new THREE.MeshBasicMaterial({ color: isMage ? 0x38bdf8 : 0xf59e0b });
-      const proj = new THREE.Mesh(pGeo, pMat);
+      const proj = new THREE.Mesh(pGeo, new THREE.MeshBasicMaterial({ color: isMage ? 0x38bdf8 : 0xf59e0b }));
 
       if (!isMage) proj.rotation.x = Math.PI / 2;
 
@@ -1220,14 +1187,7 @@
       proj.position.set(playerState.posX + dirX * 1.2, playerState.posY + 1.4, playerState.posZ + dirZ * 1.2);
       scene.add(proj);
 
-      projectiles.push({
-        mesh: proj,
-        dirX: dirX,
-        dirZ: dirZ,
-        speed: 28,
-        life: 1.5,
-        isMage: isMage
-      });
+      projectiles.push({ mesh: proj, dirX: dirX, dirZ: dirZ, speed: 28, life: 1.5, isMage: isMage });
     }
 
     function updateProjectiles(delta) {
@@ -1238,7 +1198,6 @@
         p.mesh.position.x += p.dirX * p.speed * delta;
         p.mesh.position.z += p.dirZ * p.speed * delta;
 
-        // Check Collision with Slimes
         let hit = false;
         slimes.forEach(s => {
           if (s.hp <= 0 || hit) return;
@@ -1314,7 +1273,7 @@
     }
 
     /* =========================================================================
-       14. WORKING HOUSE INTERACTION & CINEMATIC SLEEP
+       13. WORKING HOUSE SLEEP & INPUTS
        ========================================================================= */
     function setupInputListeners() {
       window.addEventListener('keydown', (e) => {
@@ -1349,7 +1308,6 @@
     function triggerHouseSleepCinematic() {
       const distToDoor = Math.hypot(playerState.posX - houseDoorPosition.x, playerState.posZ - houseDoorPosition.z);
       
-      // Can enter house anytime when standing right in front of the door (dist < 3.8)
       if (distToDoor < 3.8 && !isCinematic) {
         isCinematic = true;
         playSound('sleep');
@@ -1358,19 +1316,16 @@
         overlay.classList.remove('opacity-0', 'pointer-events-none');
         overlay.classList.add('opacity-100');
 
-        // Rotate door open
         if (houseDoorMesh && houseDoorMesh.parent) {
           houseDoorMesh.parent.rotation.y = -Math.PI / 2;
         }
 
         setTimeout(() => {
-          // Fast forward time to morning (8:00 AM) and restore HP/MP
-          gameTimeSeconds = 200;
+          gameTimeSeconds = 200; // Morning 8:00 AM
           playerState.hp = playerState.maxHp;
           playerState.mp = playerState.maxMp;
           updateHUD();
 
-          // Close door
           if (houseDoorMesh && houseDoorMesh.parent) {
             houseDoorMesh.parent.rotation.y = 0;
           }
@@ -1385,7 +1340,7 @@
     }
 
     /* =========================================================================
-       15. SKILLS & HUD UTILITIES
+       14. SKILLS & HUD UTILITIES
        ========================================================================= */
     function useSkill(slot) {
       if (isPaused || isEscOpen || isCinematic) return;
@@ -1463,11 +1418,11 @@
     }
 
     /* =========================================================================
-       16. COLLISIONS & MOVEMENT
+       15. COLLISIONS & MOVEMENT
        ========================================================================= */
     function checkCollisions(nextX, nextZ) {
-      // Lake collision
-      if (getLakeDistance(nextX, nextZ) < 25.5) return true;
+      // Water body bounds
+      if (getLakeDistance(nextX, nextZ) < CONFIG.LAKE_RADIUS - 1.5) return true;
 
       for (let i = 0; i < colliders.length; i++) {
         const c = colliders[i];
@@ -1543,10 +1498,9 @@
 
       playerBody.position.set(playerState.posX, playerState.posY, playerState.posZ);
 
-      // House Door Sleep Interaction Prompt
+      // House Sleep Prompt Check
       const distToDoor = Math.hypot(playerState.posX - houseDoorPosition.x, playerState.posZ - houseDoorPosition.z);
-      const canSleep = distToDoor < 3.8;
-      document.getElementById('interact-prompt').classList.toggle('hidden', !canSleep);
+      document.getElementById('interact-prompt').classList.toggle('hidden', distToDoor >= 3.8);
 
       playerState.inSafeZone = Math.hypot(playerState.posX, playerState.posZ) <= CONFIG.SAFE_ZONE_RADIUS;
       document.getElementById('hud-zone').innerText = playerState.inSafeZone ? 'Safe Zone' : 'Wilderness';
@@ -1562,7 +1516,7 @@
     }
 
     /* =========================================================================
-       17. DAY/NIGHT CYCLE
+       16. DAY/NIGHT CYCLE
        ========================================================================= */
     function updateDayNightCycle(delta) {
       gameTimeSeconds = (gameTimeSeconds + delta) % 600;
@@ -1596,7 +1550,7 @@
     }
 
     /* =========================================================================
-       18. HUD & MINIMAP RENDERER
+       17. HUD & MINIMAP RENDERER
        ========================================================================= */
     function updateHUD() {
       document.getElementById('hud-level').innerText = `Lv. ${playerState.level}`;
@@ -1621,7 +1575,7 @@
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, w, h);
 
-      // Safe Zone Circle
+      // Safe Zone Perimeter
       ctx.beginPath();
       ctx.arc(w / 2, h / 2, CONFIG.SAFE_ZONE_RADIUS * scale, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
@@ -1629,11 +1583,11 @@
 
       // Lake Water Body
       ctx.beginPath();
-      ctx.arc(w / 2 + 45 * scale, h / 2 - 45 * scale, 26 * scale, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(2, 132, 199, 0.5)';
+      ctx.arc(w / 2 + CONFIG.LAKE_CENTER_X * scale, h / 2 + CONFIG.LAKE_CENTER_Z * scale, CONFIG.LAKE_RADIUS * scale, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(2, 132, 199, 0.55)';
       ctx.fill();
 
-      // Slimes
+      // Slime Enemies
       slimes.forEach(s => {
         if (s.hp > 0) {
           ctx.fillStyle = '#10b981';
@@ -1643,7 +1597,7 @@
         }
       });
 
-      // Player
+      // Player Position Marker
       ctx.fillStyle = '#f59e0b';
       ctx.beginPath();
       ctx.arc(w / 2 + playerState.posX * scale, h / 2 + playerState.posZ * scale, 3.5, 0, Math.PI * 2);
@@ -1651,7 +1605,7 @@
     }
 
     /* =========================================================================
-       19. MAIN ANIMATION LOOP
+       18. MAIN ANIMATION LOOP
        ========================================================================= */
     function animate() {
       requestAnimationFrame(animate);
