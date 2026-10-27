@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Seven Realms</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 8 12v18c0 15 10 26 24 30 14-4 24-15 24-30V12z' fill='%23e3b550' stroke='%23a97c26' stroke-width='3'/%3E%3Cpath d='M32 12 16 18v12c0 10 6 18 16 22z' fill='%23fff3b0' opacity='.5'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="image/shield.png" onerror="this.onerror=null;this.type='image/svg+xml';this.href='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cpath%20d=%22M32%204%208%2012v18c0%2015%2010%2026%2024%2030%2014-4%2024-15%2024-30V12z%22%20fill=%22%23e3b550%22%20stroke=%22%23a97c26%22%20stroke-width=%223%22/%3E%3Cpath%20d=%22M32%2012%2016%2018v12c0%2010%206%2018%2016%2022z%22%20fill=%22%23fff3b0%22%20opacity=%22.5%22/%3E%3C/svg%3E'">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -268,6 +268,41 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 #cheatIn{display:none;pointer-events:auto;width:100%;padding:9px 12px;font:600 16px var(--body);color:var(--gold);background:#0d0916;border:1px solid var(--gold2);border-radius:4px;user-select:text}
 #cheat.open #cheatIn{display:block}
 </style>
+<style>
+/* ornate gate */
+.logoIcon{height:.85em;width:auto;vertical-align:-.08em;margin-right:.28em}
+#sDoors{background:radial-gradient(ellipse at 50% 55%,#35214f,#0b0810 72%)}
+#sDoors .rays{position:absolute;left:50%;top:50%;width:1500px;height:1500px;margin:-750px 0 0 -750px;background:repeating-conic-gradient(rgba(255,200,120,.08) 0 5deg,transparent 5deg 16deg);-webkit-mask-image:radial-gradient(circle,#000 8%,transparent 60%);mask-image:radial-gradient(circle,#000 8%,transparent 60%);animation:gspin 120s linear infinite;pointer-events:none}
+@keyframes gspin{to{transform:rotate(360deg)}}
+.gate{box-shadow:0 0 0 7px #4a4256,0 0 0 10px #8a6f2f,0 0 0 15px #2a2233,0 0 0 17px #6a5a7a,0 0 120px rgba(240,180,70,.38)}
+.gate .glow{z-index:0}
+.gate .ring{position:absolute;left:50%;top:52%;width:92%;aspect-ratio:1;margin-left:-46%;margin-top:-46%;z-index:1;animation:gspin 50s linear infinite;filter:drop-shadow(0 0 8px rgba(255,200,100,.7))}
+.gate .door{z-index:2;background:radial-gradient(ellipse at 100% 50%,rgba(255,190,100,.14),transparent 60%),repeating-linear-gradient(90deg,#51331d 0 18px,#3b2515 18px 20px),#3a2414;box-shadow:inset 0 0 50px rgba(0,0,0,.7),inset 0 0 0 3px rgba(20,12,6,.8)}
+.gate .door::before,.gate .door::after{display:none}
+.door svg{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 0 3px rgba(255,170,80,.45))}
+.door .cr{animation:crpulse 3.2s ease-in-out infinite}
+@keyframes crpulse{50%{filter:drop-shadow(0 0 8px #ffb347) brightness(1.25)}}
+.gate .crest{position:absolute;left:50%;top:12px;width:54px;margin-left:-27px;z-index:4;filter:drop-shadow(0 2px 6px #000) drop-shadow(0 0 8px rgba(255,200,100,.5))}
+.gate.ajar .glow{opacity:.75}
+.gate.ajar .doorL{transform:perspective(1100px) rotateY(-46deg)}
+.gate.ajar .doorR{transform:perspective(1100px) rotateY(46deg)}
+.torch{position:absolute;top:44%;width:14px;height:96px;background:linear-gradient(90deg,#2a1a0c,#5a3a1c,#2a1a0c);border-radius:3px;z-index:3;display:none}
+.torch::before{content:"";position:absolute;left:-10px;top:-8px;width:34px;height:18px;background:#3a3345;border:2px solid #8a6f2f;border-radius:4px 4px 14px 14px}
+.torch i{position:absolute;left:-8px;bottom:84px;width:30px;height:46px;background:radial-gradient(ellipse at 50% 80%,#fff3b0 0%,#ffb347 35%,#e2553b 65%,transparent 72%);border-radius:50% 50% 40% 40%;box-shadow:0 0 46px 16px rgba(255,150,50,.35);animation:flame .4s ease-in-out infinite alternate;transform-origin:50% 100%}
+@keyframes flame{from{transform:scale(1,1) rotate(-3deg)}to{transform:scale(.88,1.12) rotate(3deg)}}
+.torch.tl{left:calc(50% - min(43vw,calc(280px*var(--ui))) - 72px)}
+.torch.tr{left:calc(50% + min(43vw,calc(280px*var(--ui))) + 58px)}
+@media (min-width:780px){.torch{display:block}}
+.modeBox .btn{padding:16px 24px;font-size:20px;letter-spacing:.14em;background:linear-gradient(#6a4a16,#2a1c08);border-color:var(--gold);box-shadow:0 0 26px rgba(227,181,80,.4),inset 0 1px 0 rgba(255,230,160,.35),0 6px 18px rgba(0,0,0,.6)}
+/* map legends */
+.lore{cursor:pointer;transition:filter .2s}
+.lore:hover,.lore:focus-visible{filter:brightness(1.8) drop-shadow(0 0 8px rgba(255,205,120,.85))}
+.lorechips{display:flex;gap:8px;flex-wrap:wrap}
+.lorechips span{border:1px solid var(--gold2);background:rgba(227,181,80,.08);padding:4px 10px;border-radius:12px;font-size:13px;letter-spacing:.05em;color:var(--gold)}
+.lorep{margin:0;font-size:18px;line-height:1.5;color:#e9dfc8}
+.lorecliff{border-color:#8a5ad0!important;background:rgba(138,90,208,.1)!important;box-shadow:0 0 26px rgba(138,90,208,.28)}
+.lorecliff b{color:#c9a6ff!important}
+</style>
 <div id="app">
 
 <section class="screen pad on" id="sClass"><div class="wrap">
@@ -299,7 +334,8 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 </div></section>
 
 <section class="screen" id="sDoors">
-  <div class="gate" id="gate"><div class="glow"></div><div class="door doorL"></div><div class="door doorR"></div></div>
+  <div class="rays"></div><div class="torch tl"><i></i></div><div class="torch tr"><i></i></div>
+  <div class="gate" id="gate"><div class="glow"></div><svg class="ring" viewBox="-100 -100 200 200"></svg><div class="door doorL"><svg viewBox="0 0 100 240" preserveAspectRatio="xMaxYMid slice"></svg></div><div class="door doorR"><svg viewBox="0 0 100 240" preserveAspectRatio="xMinYMid slice"></svg></div><svg class="crest" viewBox="0 0 64 64"><path d="M32 4 8 12v18c0 15 10 26 24 30 14-4 24-15 24-30V12z" fill="#e3b550" stroke="#6a4a10" stroke-width="3"/><path d="M32 14 L36 28 L50 28 L39 36 L43 50 L32 42 L21 50 L25 36 L14 28 L28 28Z" fill="#7a1f2a"/></svg></div>
   <div class="modeBox" id="modeBox"><button class="btn" id="modeOff">Offline</button><button class="btn" id="modeOn">Online</button></div>
   <div class="modal pad" id="onlineModal"><div class="sheet" style="max-width:420px;text-align:center"><div class="sheethead"><h2>Online Mode</h2></div><p class="sub" style="margin:0 auto">Currently in building. This feature is coming soon…</p><button class="btn" id="onlineOk">Back</button></div></div>
   <div class="doormsg" id="doorMsg"></div>
@@ -311,7 +347,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
   <div class="hubBody pad">
     <div class="heropane"><canvas class="pv" id="hubHero" width="240" height="280"></canvas><div class="hname" id="hubName"></div><div class="hcls" id="hubCls"></div></div>
     <nav class="menu">
-      <h1 class="title logo">Seven Realms</h1>
+      <h1 class="title logo"><img class="logoIcon" src="image/shield.png" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cpath%20d=%22M32%204%208%2012v18c0%2015%2010%2026%2024%2030%2014-4%2024-15%2024-30V12z%22%20fill=%22%23e3b550%22%20stroke=%22%23a97c26%22%20stroke-width=%223%22/%3E%3Cpath%20d=%22M32%2012%2016%2018v12c0%2010%206%2018%2016%2022z%22%20fill=%22%23fff3b0%22%20opacity=%22.5%22/%3E%3C/svg%3E'">Seven Realms</h1>
       <button class="big" data-act="play">Play<small>Choose a continent and deploy</small></button>
       <button class="big" data-act="inv">Inventory<small>Gear, potions and materials</small></button>
       <button class="big" data-act="shop">Shop<small>Upgrade gear, buy and sell</small></button>
@@ -324,6 +360,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
   <div class="mapbar"><button class="btn ghost" id="mapBack">Back</button><h2>Choose Your Landing</h2></div>
   <div class="mapbox"><svg id="mapSvg" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Map of Mythara, the Known World"></svg></div>
   <div class="mapcap" id="mapCap">Select a continent to send your light there.</div>
+  <div class="modal pad" id="loreModal"><div class="sheet" id="loreSheet"></div></div>
 </section>
 
 <section class="screen" id="sGame">
@@ -590,6 +627,19 @@ $('#nameNext').onclick=()=>{const raw=$('#nameInput').value;if(!validName(raw))r
  S.hero={name:nm,cls:sel.cls,gender:sel.gender};S.equip.w=null;save();playDoors()};
 $('#contBtn').onclick=()=>{sfx('click');ac();enterHub()};
 
+function buildGate(){const g='#e3b550',d='#a97c26',P=Math.PI;
+ const star=(cx,cy,ro,ri,n,fill)=>{let pts='';for(let i=0;i<n*2;i++){const a=i*P/n-P/2,r=i%2?ri:ro;pts+=(cx+Math.cos(a)*r).toFixed(1)+','+(cy+Math.sin(a)*r).toFixed(1)+' '}return `<polygon points="${pts}" fill="${fill}" stroke="#2a1a05" stroke-width=".8"/>`};
+ let r=`<circle r="94" fill="none" stroke="${g}" stroke-width="2.5"/><circle r="86" fill="none" stroke="${d}" stroke-width="1" stroke-dasharray="2 5"/><circle r="64" fill="none" stroke="${g}" stroke-width="1.5"/>`;
+ for(let i=0;i<32;i++){const a=i*P/16,l=i%2?8:14;r+=`<line x1="${(Math.cos(a)*86).toFixed(1)}" y1="${(Math.sin(a)*86).toFixed(1)}" x2="${(Math.cos(a)*(86-l)).toFixed(1)}" y2="${(Math.sin(a)*(86-l)).toFixed(1)}" stroke="${g}" stroke-width="${i%2?1:2}"/>`}
+ for(let i=0;i<8;i++){const a=i*P/4;r+=`<circle cx="${(Math.cos(a)*74).toFixed(1)}" cy="${(Math.sin(a)*74).toFixed(1)}" r="3.5" fill="${g}"/>`}
+ r+=star(0,0,60,26,8,'rgba(227,181,80,.35)')+`<circle r="10" fill="#fff3b0" opacity=".9"/>`;
+ $('#gate .ring').innerHTML=r;
+ let a=`<rect x="3" y="5" width="94" height="230" rx="3" fill="none" stroke="${d}" stroke-width="1.5"/><rect x="13" y="22" width="70" height="72" rx="7" fill="rgba(0,0,0,.25)" stroke="${d}" stroke-width="1.2"/><rect x="13" y="150" width="70" height="72" rx="7" fill="rgba(0,0,0,.25)" stroke="${d}" stroke-width="1.2"/><path d="M22 86V42Q48 24 74 42V86" fill="none" stroke="${d}" stroke-width="1" opacity=".75"/><path d="M48 160L72 186 48 212 24 186Z" fill="none" stroke="${d}" stroke-width="1" opacity=".75"/><path d="M48 172L60 186 48 200 36 186Z" fill="rgba(227,181,80,.25)" stroke="${g}" stroke-width=".8"/>`;
+ for(const y of[100,132]){a+=`<rect x="0" y="${y}" width="100" height="8" fill="#1d1822" stroke="${d}" stroke-width=".8"/>`;for(let x=8;x<100;x+=14)a+=`<circle cx="${x}" cy="${y+4}" r="2" fill="${g}"/>`}
+ a+=`<rect x="0" y="30" width="16" height="10" fill="#2a2233" stroke="${g}" stroke-width=".8"/><rect x="0" y="198" width="16" height="10" fill="#2a2233" stroke="${g}" stroke-width=".8"/>`;
+ a+=`<g class="cr"><circle cx="100" cy="120" r="34" fill="#1a1018" stroke="${g}" stroke-width="2.5"/><circle cx="100" cy="120" r="27" fill="none" stroke="${d}" stroke-width="1"/>${star(100,120,24,10,8,g)}<circle cx="100" cy="120" r="5" fill="#ff7a3a"/></g>`;
+ $('#gate .doorL svg').innerHTML=a;$('#gate .doorR svg').innerHTML=`<g transform="translate(100 0) scale(-1 1)">${a}</g>`}
+buildGate();
 function playDoors(){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom','ajar');$('#modeBox').classList.remove('on');$('#onlineModal').classList.remove('on');$('#doorMsg').textContent='The gates of Seven Realms stir…';
  void gate.offsetWidth;setTimeout(()=>{sfx('door');gate.classList.add('ajar')},500);
  setTimeout(()=>{$('#doorMsg').textContent='Welcome, '+S.hero.name+'. Choose your path.';$('#modeBox').classList.add('on')},3600)}
@@ -673,7 +723,8 @@ function seaDeco(){
  const fin=(x,y,s,d)=>`<g transform="translate(${x},${y}) scale(${s})"><g class="mon" style="animation-delay:${d}s"><path d="M-16,3 q22,-7 62,0" fill="none" stroke="rgba(140,200,230,.35)" stroke-width="1.5"/><path d="M0,0 L13,-30 L28,0 Z" fill="${c}" stroke="${ln}" stroke-width="1.2" stroke-linejoin="round"/></g></g>`;
  const spiral=a0=>{let p='';for(let a=0;a<12.5;a+=.3){const r=3+a*2.6;p+=(a?'L':'M')+(Math.cos(a+a0)*r).toFixed(1)+','+(Math.sin(a+a0)*r).toFixed(1)}return `<path d="${p}" fill="none" stroke="rgba(150,205,230,.42)" stroke-width="1.6" stroke-linecap="round"/>`};
  const whirl=`<g transform="translate(418,420) scale(1.25,.8)"><g><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="14s" repeatCount="indefinite"/>${spiral(0)}${spiral(Math.PI)}<circle r="4" fill="#050a14"/></g></g>`;
- return whirl+lab(418,468,'MAELSTROM')+kraken(80,540,1,0)+lab(80,628,'KRAKEN')+serpent(415,584,1,1.2,false)+lab(415,622,'LEVIATHAN')+serpent(705,56,.9,2.1,true)+lab(705,98,'SEA SERPENT')+fin(940,362,1,.6)+fin(903,378,.7,1.8)+lab(935,402,'FINBACK')}
+ const L=(id,x,y,r,inner)=>`<g class="lore" data-lore="${id}" tabindex="0" role="button" aria-label="Read the legend: ${id}">${inner}<circle cx="${x}" cy="${y}" r="${r}" fill="transparent"/></g>`;
+ return L('maelstrom',418,440,62,whirl+lab(418,468,'MAELSTROM'))+L('kraken',80,572,66,kraken(80,540,1,0)+lab(80,628,'KRAKEN'))+L('leviathan',415,588,72,serpent(415,584,1,1.2,false)+lab(415,622,'LEVIATHAN'))+L('serpent',705,66,76,serpent(705,56,.9,2.1,true)+lab(705,98,'SEA SERPENT'))+L('finback',925,380,56,fin(940,362,1,.6)+fin(903,378,.7,1.8)+lab(935,402,'FINBACK'))}
 function mapOverlay(){
  const gold='#e3b550',gd='#a97c26';
  const ticks=Array.from({length:24},(_,i)=>{const a=i*Math.PI/12,r1=i%6===0?35:39,r2=43;return `<line x1="${(Math.sin(a)*r1).toFixed(1)}" y1="${(-Math.cos(a)*r1).toFixed(1)}" x2="${(Math.sin(a)*r2).toFixed(1)}" y2="${(-Math.cos(a)*r2).toFixed(1)}"/>`}).join('');
@@ -696,7 +747,33 @@ function buildMap(){const svg=$('#mapSvg');svg.classList.remove('deploying');
  h+=mapOverlay();
  h+=`<g id="orbG" opacity="0"><circle r="26" fill="#fff0b0" filter="url(#glow)"/><circle r="9" fill="#fffbe6"/></g><circle id="flashC" cx="500" cy="320" r="0" fill="#fff" opacity="0"/>`;
  svg.innerHTML=h;
+ $$('#mapSvg .lore').forEach(g=>{const go=()=>{if(!deploying)openLore(g.dataset.lore)};g.onclick=go;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}};g.onmouseenter=()=>{$('#mapCap').innerHTML='<b>'+LORE[g.dataset.lore].n+'</b>Click to read its legend.'}});
  $$('#mapSvg .land').forEach(g=>{const R=REALM_BY_ID[g.dataset.id];const info=()=>{$('#mapCap').innerHTML=`<b>${R.name} · ${R.sub}</b>${R.desc}`};g.onmouseenter=info;g.onfocus=info;g.onclick=()=>deploy(R);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();deploy(R)}}})}
+const LORE={
+ kraken:{n:'The Kraken',age:'About 3,000 years',by:'The Tidecallers of Thalassara',t:[
+  'When storms first began swallowing the pearl fleets of Thalassara, the Tidecallers struck a bargain with the deep. One sliver of the ocean’s hunger would be bound into flesh and set to drown any ship that carried war to the islands. They named it the Kraken and fed it once every year.',
+  'The Kraken Spawn that crawl the reefs today are only its shed skin, and every one of them is still hungry.'],
+  q:'The Tidecallers’ last log ends mid-sentence on the night the binding broke: ‘We fed it the wrong—’. The wrong what? And who tore out the pages that follow?'},
+ leviathan:{n:'The Leviathan',age:'About 9,000 years',by:'The Sundering of the sky',t:[
+  'Before the maps and before the First Dawn, the Sundering tore the sky from the sea, and its wound fell into the water. What hardened there uncoiled as the Leviathan, older than every realm of Mythara.',
+  'Sailors who survive its wake say it never hunts. It only circles, slow and patient, over one patch of black water, as though guarding the place where the sky once fell.'],
+  q:'Something lies beneath the Leviathan’s coil that even the Sundering failed to destroy. What did the sky leave behind in the sea, and what is the Leviathan so afraid of letting rise?'},
+ serpent:{n:'The Sea Serpent',age:'About 400 years',by:'Void Essence drifting from Umbraxis',t:[
+  'It began as a common harbour eel in the northern waters. Then the black mist of Umbraxis drifted over the tide and Void Essence seeped into the sea. The eel grew for four hundred winters until it was longer than a war galley.',
+  'Northern fishermen now leave their lanterns unlit at night, because the Serpent comes for any light it can see.'],
+  q:'Void Essence turns living things violet and black, yet this creature’s eyes burn the orange of Drakthar’s forges. Who lit that fire in its eyes, and what do they want with it?'},
+ finback:{n:'The Finbacks',age:'About 150 years',by:'The drowned crews of the Pearl Fleet',t:[
+  'A hundred and fifty years ago the Pearl Fleet sailed into a storm off Thalassara and never returned. The next spring the first grey fins cut the water in a perfect line, in the very formation the fleet had sailed.',
+  'Islanders say each fin keeps one lost captain’s course, and that they always swim toward the Maelstrom.'],
+  q:'The fleet had nine ships, yet only eight Finbacks have ever been counted. Where is the ninth, and why does it never surface?'},
+ maelstrom:{n:'The Maelstrom',age:'About 600 years',by:'The drowning of the city of Vael',t:[
+  'Six centuries ago the city of Vael stood where the water now spirals. Its Tidecaller king tried to drain the sea to uncover the Leviathan’s secret. The ocean answered by swallowing the city whole, towers, king and all.',
+  'The whirlpool has turned ever since, and sailors swear it spins faster whenever a hero’s light descends on the world.'],
+  q:'Divers who reach its rim return whispering a single word in a tongue no scholar knows, then refuse to speak again. What word did the king of Vael find at the bottom of the sea?'}};
+function openLore(id){const L=LORE[id];if(!L)return;sfx('quest');$('#loreSheet').innerHTML=`<div class="sheethead"><h2>${L.n}</h2><button class="btn ghost" id="loreX">Close</button></div><div class="lorechips"><span>Age: ${L.age}</span><span>Origin: ${L.by}</span></div>`+L.t.map(x=>`<p class="lorep">${x}</p>`).join('')+`<div class="qbox lorecliff"><b>The Missing Page</b>${L.q}</div>`;$('#loreModal').classList.add('on');$('#loreX').onclick=()=>{sfx('click');closeLore()}}
+function closeLore(){$('#loreModal').classList.remove('on')}
+$('#loreModal').addEventListener('click',e=>{if(e.target.id==='loreModal')closeLore()});
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#loreModal').classList.contains('on')){e.stopPropagation();closeLore()}},true);
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function enterMap(){deploying=false;buildMap();$('#mapCap').textContent='Mythara, the Known World. Select a continent to send your light there.';show('sMap');
  const mb=$('.mapbox');if(mb.scrollWidth>mb.clientWidth+4){mb.scrollLeft=(mb.scrollWidth-mb.clientWidth)/2;$('#mapCap').textContent='Mythara, the Known World. Swipe sideways to look around, then tap a continent.'}}
@@ -1154,7 +1231,7 @@ $('#potBtn').onclick=usePotion;$('#bagBtn').onclick=openBag;
 $('#actBtn').onclick=()=>{if(G&&G.near)tryInteract(G.near)};
 
 /* ============ HIDDEN CONSOLE ============ */
-let freeShop=false;const CH={god:false,nocd:false};let chOpen=false,chPaused=false;
+let freeShop=false,kSl=0,kBs=0;const CH={god:false,nocd:false};let chOpen=false,chPaused=false;
 const chEl=document.createElement('div');chEl.id='cheat';chEl.innerHTML='<div id="cheatLog"></div><input id="cheatIn" autocomplete="off" spellcheck="false" aria-label="Console">';$('#app').appendChild(chEl);
 const chIn=$('#cheatIn'),chLog=$('#cheatLog');
 function cmsg(t,k){const d=document.createElement('div');d.textContent=t;if(k)d.className=k;chLog.appendChild(d);while(chLog.children.length>14)chLog.firstChild.remove();setTimeout(()=>d.remove(),chOpen?30000:9000)}
@@ -1192,7 +1269,7 @@ function runCmd(line){const p=line.trim().replace(/^\//,'').split(/\s+/),c=(p[0]
   default:cmsg('Unknown command "'+c+'". Type /commandhelp','bad')}}
 window.addEventListener('keydown',e=>{
  if(e.target===chIn){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();const v=chIn.value;cmsg(v);runCmd(v);chIn.value='/'}else if(e.key==='Escape'){e.preventDefault();chClose()}return}
- if(e.key==='/'&&!chOpen&&!/INPUT|TEXTAREA/.test((e.target.tagName||''))){e.preventDefault();chOpenFn()}},true);
+ if((e.key==='/'||e.key==='\\')&&!/INPUT|TEXTAREA/.test((e.target.tagName||''))){const nw=performance.now();if(e.key==='/')kSl=nw;else kBs=nw;if(!chOpen&&kSl&&kBs&&Math.abs(kSl-kBs)<800){e.preventDefault();kSl=kBs=0;chOpenFn()}}},true);
 
 /* boot */
 setUI();window.addEventListener('resize',setUI);
