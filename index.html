@@ -1,103 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spellblade RPG: 3D Fantasy Action RPG</title>
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Three.js CDN -->
+  <!-- Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@300;400;600;700&display=swap');
-    
-    * {
-      user-select: none;
-      -webkit-user-select: none;
-      box-sizing: border-box;
-    }
-
-    body {
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@400;600;700&display=swap');
+    body, html {
       margin: 0;
       padding: 0;
-      overflow: hidden;
-      font-family: 'Inter', sans-serif;
-      background-color: #030712;
-      color: #f3f4f6;
-    }
-
-    .font-cinzel { font-family: 'Cinzel', serif; }
-
-    #canvas-container {
-      width: 100vw;
-      height: 100vh;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-    }
-
-    .ui-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
-      z-index: 10;
-      pointer-events: none;
+      overflow: hidden;
+      user-select: none;
+      font-family: 'Inter', sans-serif;
+      background-color: #050508;
+      color: #f3f4f6;
     }
-
-    .interactive {
-      pointer-events: auto;
-    }
-
-    /* Glassmorphism Styling */
-    .glass-panel {
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-    }
-
-    .glass-btn {
-      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .glass-btn:hover {
-      border-color: rgba(245, 158, 11, 0.7);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.25);
-    }
-    .glass-btn.active {
-      border-color: #f59e0b;
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.35) 0%, rgba(180, 83, 9, 0.6) 100%);
-    }
-
-    /* Floating combat text */
-    .damage-text {
-      position: absolute;
-      font-weight: 900;
-      font-family: 'Cinzel', serif;
-      pointer-events: none;
-      animation: floatUp 1s ease-out forwards;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.9);
-      transform: translate(-50%, -50%);
-    }
-    @keyframes floatUp {
-      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
-      50% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
-      100% { opacity: 0; transform: translate(-50%, -120%) scale(0.9); }
-    }
-
-    /* Crosshair Center Reticle */
+    .font-cinzel { font-family: 'Cinzel', serif; }
+    
+    /* Crosshair */
     #crosshair {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       transform: translate(-50%, -50%);
       pointer-events: none;
       z-index: 20;
@@ -108,537 +42,401 @@
       background: rgba(255, 255, 255, 0.85);
       box-shadow: 0 0 4px rgba(0,0,0,0.8);
     }
-    #crosshair::before {
-      top: 6px;
-      left: 0;
-      width: 14px;
-      height: 2px;
-    }
-    #crosshair::after {
-      top: 0;
-      left: 6px;
-      width: 2px;
-      height: 14px;
-    }
-    #crosshair-dot {
+    #crosshair::before { top: 5px; left: 0; width: 12px; height: 2px; }
+    #crosshair::after { top: 0; left: 5px; width: 2px; height: 12px; }
+
+    /* Damage Text Overlay */
+    .damage-text {
       position: absolute;
-      top: 5px;
-      left: 5px;
-      width: 4px;
-      height: 4px;
-      background: #f59e0b;
-      border-radius: 50%;
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: 1.5rem;
+      pointer-events: none;
+      animation: floatUp 0.8s ease-out forwards;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      50% { transform: translate(-50%, -25px) scale(1.3); }
+      100% { opacity: 0; transform: translate(-50%, -50px) scale(0.9); }
     }
 
-    #cinematic-overlay {
-      transition: opacity 0.8s ease-in-out;
-    }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+    ::-webkit-scrollbar-thumb { background: rgba(217, 119, 6, 0.6); border-radius: 3px; }
   </style>
 </head>
-<body class="bg-gray-950 text-gray-100 overflow-hidden">
+<body class="relative w-full h-full">
 
-  <!-- 3D Render Canvas -->
-  <div id="canvas-container"></div>
+  <!-- Game Canvas -->
+  <div id="canvas-container" class="w-full h-full"></div>
 
-  <!-- CROSSHAIR RETICLE -->
-  <div id="crosshair">
-    <div id="crosshair-dot"></div>
-  </div>
+  <!-- UI Overlay: Crosshair -->
+  <div id="crosshair" class="hidden"></div>
 
-  <!-- UI OVERLAY LAYER -->
-  <div class="ui-layer p-4 md:p-6 flex flex-col justify-between">
+  <!-- Start / Character Creation Screen -->
+  <div id="char-select-screen" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="max-w-4xl w-full bg-slate-900/90 border-2 border-amber-600/50 rounded-2xl p-6 md:p-8 shadow-2xl flex flex-col md:flex-row gap-8">
+      <!-- Left: Options -->
+      <div class="flex-1 flex flex-col justify-between">
+        <div>
+          <h1 class="text-4xl md:text-5xl font-extrabold font-cinzel text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500 tracking-wider mb-2">SPELLBLADE</h1>
+          <p class="text-amber-200/70 text-sm mb-6">Choose your hero avatar and weapon class to enter the realm.</p>
 
-    <!-- CHARACTER CREATION MODAL -->
-    <div id="char-creation" class="interactive fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-lg p-4">
-      <div class="glass-panel max-w-xl w-full rounded-3xl p-6 md:p-8 text-center border border-amber-500/30">
-        <h1 class="font-cinzel text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 mb-2 tracking-wide">
-          SPELLBLADE RPG
-        </h1>
-        <p class="text-slate-400 text-xs md:text-sm mb-6">Select your Champion and Weapon Class to enter the Realm</p>
+          <!-- Gender Selection -->
+          <div class="mb-6">
+            <label class="block text-xs font-semibold text-amber-400 uppercase tracking-widest mb-2">Avatar Gender</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button id="btn-gender-male" onclick="setGender('male')" class="py-2.5 px-4 rounded-xl border border-amber-600/40 bg-amber-950/40 text-amber-200 font-semibold flex items-center justify-center gap-2 hover:bg-amber-800/50 transition">
+                <i class="fa-solid font-bold text-lg">♂</i> Male Hero
+              </button>
+              <button id="btn-gender-female" onclick="setGender('female')" class="py-2.5 px-4 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-400 font-semibold flex items-center justify-center gap-2 hover:bg-amber-800/50 transition">
+                <i class="fa-solid font-bold text-lg">♀</i> Female Hero
+              </button>
+            </div>
+          </div>
 
-        <!-- Gender Selection -->
-        <div class="mb-6">
-          <label class="block font-cinzel text-amber-400 text-xs tracking-widest uppercase mb-3 font-semibold">1. Champion Gender</label>
-          <div class="grid grid-cols-2 gap-4 max-w-xs mx-auto">
-            <button id="btn-gender-male" onclick="selectGender('male')" class="glass-btn active py-3 px-4 rounded-2xl flex items-center justify-center gap-2 font-semibold text-sm">
-              <span class="text-lg">♂️</span> Male
-            </button>
-            <button id="btn-gender-female" onclick="selectGender('female')" class="glass-btn py-3 px-4 rounded-2xl flex items-center justify-center gap-2 font-semibold text-sm">
-              <span class="text-lg">♀️</span> Female
-            </button>
+          <!-- Class Selection -->
+          <div class="mb-6">
+            <label class="block text-xs font-semibold text-amber-400 uppercase tracking-widest mb-2">Weapon Class</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="class-options-container">
+              <!-- Dynamically populated classes -->
+            </div>
           </div>
         </div>
 
-        <!-- Class Selection -->
-        <div class="mb-8">
-          <label class="block font-cinzel text-amber-400 text-xs tracking-widest uppercase mb-3 font-semibold">2. Weapon Class</label>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <button id="btn-class-warrior" onclick="selectClass('Warrior')" class="glass-btn active p-3 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-semibold">
-              <span class="text-2xl">⚔️</span> Sword (Warrior)
-            </button>
-            <button id="btn-class-archer" onclick="selectClass('Archer')" class="glass-btn p-3 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-semibold">
-              <span class="text-2xl">🏹</span> Bow (Archer)
-            </button>
-            <button id="btn-class-assassin" onclick="selectClass('Assassin')" class="glass-btn p-3 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-semibold">
-              <span class="text-2xl">🗡️</span> Dagger (Assassin)
-            </button>
-            <button id="btn-class-guardian" onclick="selectClass('Guardian')" class="glass-btn p-3 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-semibold">
-              <span class="text-2xl">🛡️</span> Mace (Guardian)
-            </button>
-            <button id="btn-class-mage" onclick="selectClass('Mage')" class="glass-btn p-3 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-semibold">
-              <span class="text-2xl">🔮</span> Staff (Mage)
-            </button>
-            <button id="btn-class-lancer" onclick="selectClass('Lancer')" class="glass-btn p-3 rounded-2xl flex flex-col items-center gap-1.5 text-xs font-semibold">
-              <span class="text-2xl">🔱</span> Spear (Lancer)
-            </button>
-          </div>
-        </div>
-
-        <button onclick="startGame()" class="w-full py-4 rounded-2xl font-cinzel font-bold text-lg bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 shadow-lg shadow-amber-500/25 hover:brightness-110 active:scale-[0.99] transition-all">
+        <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-extrabold text-lg tracking-wider rounded-xl shadow-lg shadow-amber-600/30 font-cinzel transition transform active:scale-95">
           ENTER REALM
         </button>
       </div>
-    </div>
 
-    <!-- HUD TOP ROW -->
-    <div id="hud-top" class="flex justify-between items-start w-full">
-      
-      <!-- TOP LEFT: Hero Status Panel -->
-      <div class="glass-panel p-4 rounded-2xl w-72 space-y-2 border border-slate-700/50">
-        <div class="flex justify-between items-center mb-1">
-          <div class="flex items-center gap-2">
-            <span id="hud-hero-name" class="font-cinzel text-amber-400 font-bold text-base">Warrior</span>
-            <span id="hud-level" class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-md border border-amber-500/30 font-bold">Lv. 1</span>
+      <!-- Right: Class Details Card -->
+      <div class="w-full md:w-80 bg-slate-950/80 border border-amber-900/40 rounded-xl p-5 flex flex-col justify-between">
+        <div>
+          <div id="class-icon-display" class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-3xl text-amber-400 mb-4">
+            <i class="fa-solid fa-shield-halved"></i>
           </div>
-          <span id="hud-zone" class="text-[10px] font-semibold text-emerald-400">Safe Zone</span>
-        </div>
-
-        <!-- HP Bar -->
-        <div class="space-y-0.5">
-          <div class="flex justify-between text-[11px] font-semibold">
-            <span class="text-red-400">HP</span>
-            <span id="hp-text" class="text-slate-300">100 / 100</span>
-          </div>
-          <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-red-900/40 p-0.5">
-            <div id="hp-bar" class="h-full bg-gradient-to-r from-red-600 to-rose-400 rounded-full transition-all duration-200" style="width: 100%;"></div>
+          <h2 id="class-title-display" class="text-2xl font-bold font-cinzel text-amber-300 mb-1">Sword Knight</h2>
+          <p id="class-desc-display" class="text-xs text-slate-300 leading-relaxed mb-4">Balanced melee combatant wielding a powerful broadsword with heavy slash combos.</p>
+          
+          <div class="space-y-2 border-t border-slate-800 pt-4 text-xs">
+            <div class="flex justify-between text-slate-400"><span>Primary Stat:</span> <span id="class-stat-display" class="text-amber-400 font-bold">Strength</span></div>
+            <div class="flex justify-between text-slate-400"><span>Attack Range:</span> <span id="class-range-display" class="text-slate-200">Melee (3.5m)</span></div>
+            <div class="flex justify-between text-slate-400"><span>Skill 1:</span> <span id="class-s1-display" class="text-sky-300">Whirlwind</span></div>
+            <div class="flex justify-between text-slate-400"><span>Skill 2:</span> <span id="class-s2-display" class="text-amber-300">Ground Slam</span></div>
+            <div class="flex justify-between text-slate-400"><span>Skill 3:</span> <span id="class-s3-display" class="text-emerald-300">Heroic Boost</span></div>
           </div>
         </div>
 
-        <!-- MP Bar -->
-        <div class="space-y-0.5">
-          <div class="flex justify-between text-[11px] font-semibold">
-            <span class="text-sky-400">MP</span>
-            <span id="mp-text" class="text-slate-300">50 / 50</span>
-          </div>
-          <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-sky-900/40 p-0.5">
-            <div id="mp-bar" class="h-full bg-gradient-to-r from-sky-600 to-blue-400 rounded-full transition-all duration-200" style="width: 100%;"></div>
-          </div>
-        </div>
-
-        <!-- EXP Bar -->
-        <div class="space-y-0.5">
-          <div class="flex justify-between text-[10px] font-semibold">
-            <span class="text-amber-400">EXP</span>
-            <span id="exp-text" class="text-slate-400">0 / 100</span>
-          </div>
-          <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-amber-900/40">
-            <div id="exp-bar" class="h-full bg-amber-400 rounded-full transition-all duration-200" style="width: 0%;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TOP RIGHT: Clock & Radar Minimap -->
-      <div class="flex items-center gap-3">
-        <div class="glass-panel px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-semibold border border-slate-700/50">
-          <span id="time-icon">☀️</span>
-          <span id="time-text" class="text-amber-200 font-mono">12:00 PM</span>
-        </div>
-        <div class="glass-panel p-1.5 rounded-2xl border border-amber-500/30 shadow-lg">
-          <canvas id="minimap" width="110" height="110" class="rounded-xl"></canvas>
+        <div class="text-[10px] text-slate-500 text-center mt-4">
+          Controls: WASD Move | Shift Sprint | Space Jump | Mouse Look | Left Click Attack | 1-3 Skills
         </div>
       </div>
     </div>
-
-    <!-- CENTER INTERACTION PROMPTS -->
-    <div class="self-center flex flex-col items-center gap-2">
-      <!-- House Sleep Prompt -->
-      <div id="interact-prompt" class="glass-panel px-6 py-3 rounded-full border border-amber-400/60 text-amber-300 font-semibold text-sm hidden animate-bounce shadow-2xl">
-        Press <span class="bg-amber-500 text-slate-950 px-2.5 py-1 rounded-md font-black mx-1 shadow-md">F</span> to Enter House & Rest
-      </div>
-      <!-- Chest Open Prompt -->
-      <div id="chest-prompt" class="glass-panel px-6 py-3 rounded-full border border-yellow-400/80 text-yellow-300 font-semibold text-sm hidden animate-bounce shadow-2xl">
-        Press <span class="bg-yellow-500 text-slate-950 px-2.5 py-1 rounded-md font-black mx-1 shadow-md">E</span> to Open Chest
-      </div>
-      <!-- Pointer Lock Hint -->
-      <div id="pointer-lock-hint" class="glass-panel px-5 py-2 rounded-full border border-sky-400/50 text-sky-200 font-medium text-xs shadow-lg hidden">
-        Click game area to lock camera view
-      </div>
-    </div>
-
-    <!-- HUD BOTTOM ROW: SKILL SLOTS & CONTROLS -->
-    <div id="hud-bottom" class="flex items-end justify-between w-full">
-      
-      <!-- Controls Hint -->
-      <div class="glass-panel p-3.5 rounded-2xl hidden lg:block text-[11px] text-slate-300 space-y-1 border border-slate-800">
-        <div><span class="text-amber-400 font-bold">Mouse Look</span>: Aim | <span class="text-amber-400 font-bold">Left-Click</span>: Attack / Lock View</div>
-        <div><span class="text-amber-400 font-bold">WASD</span>: Move | <span class="text-amber-400 font-bold">Shift</span>: Sprint | <span class="text-amber-400 font-bold">Space</span>: Jump</div>
-        <div><span class="text-amber-400 font-bold">E</span>: Open Chest | <span class="text-amber-400 font-bold">F</span>: Rest | <span class="text-amber-400 font-bold">1,2,3</span>: Skills | <span class="text-amber-400 font-bold">P</span>: Pause</div>
-      </div>
-
-      <!-- Skill Action Slots -->
-      <div class="glass-panel p-3 rounded-2xl flex items-center gap-3 border border-amber-500/30 mx-auto">
-        <!-- Primary Attack Slot -->
-        <div class="flex flex-col items-center gap-1">
-          <button onclick="executePrimaryAttack()" class="interactive glass-btn w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-amber-400 text-2xl relative shadow-md">
-            ⚔️
-            <span class="absolute -top-1.5 -right-1.5 bg-slate-900 text-amber-400 text-[9px] px-1.5 py-0.5 rounded-full border border-amber-500/60 font-bold">L-Click</span>
-          </button>
-          <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Attack</span>
-        </div>
-        <!-- Slot 1 -->
-        <div class="flex flex-col items-center gap-1">
-          <button onclick="useSkill(1)" class="interactive glass-btn w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-amber-400 text-2xl relative shadow-md">
-            💥
-            <span class="absolute -top-1.5 -right-1.5 bg-slate-900 text-amber-400 text-[10px] w-5 h-5 rounded-full flex items-center justify-center border border-amber-500/60 font-bold">1</span>
-          </button>
-          <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Heavy</span>
-        </div>
-        <!-- Slot 2 -->
-        <div class="flex flex-col items-center gap-1">
-          <button onclick="useSkill(2)" class="interactive glass-btn w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-sky-400 text-2xl relative shadow-md">
-            ✨
-            <span class="absolute -top-1.5 -right-1.5 bg-slate-900 text-sky-400 text-[10px] w-5 h-5 rounded-full flex items-center justify-center border border-sky-500/60 font-bold">2</span>
-          </button>
-          <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Special</span>
-        </div>
-        <!-- Slot 3 -->
-        <div class="flex flex-col items-center gap-1">
-          <button onclick="useSkill(3)" class="interactive glass-btn w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-emerald-400 text-2xl relative shadow-md">
-            🧪
-            <span class="absolute -top-1.5 -right-1.5 bg-slate-900 text-emerald-400 text-[10px] w-5 h-5 rounded-full flex items-center justify-center border border-emerald-500/60 font-bold">3</span>
-          </button>
-          <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Heal</span>
-        </div>
-      </div>
-
-      <!-- Spacer -->
-      <div class="w-48 hidden lg:block"></div>
-    </div>
-
-    <!-- CHEST INVENTORY MODAL -->
-    <div id="chest-inventory-modal" class="interactive fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-      <div class="glass-panel max-w-md w-full rounded-3xl p-6 border border-yellow-500/50 shadow-2xl relative">
-        <button onclick="toggleChestInventory(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold">✕</button>
-        
-        <div class="flex items-center gap-3 mb-4">
-          <span class="text-3xl">📦</span>
-          <div>
-            <h2 class="font-cinzel text-xl font-bold text-yellow-400">TREASURE CHEST</h2>
-            <p class="text-xs text-slate-400">Storage Contents</p>
-          </div>
-        </div>
-
-        <div class="bg-slate-900/90 rounded-2xl p-6 border border-slate-800 text-center space-y-4 mb-4">
-          <p class="text-slate-400 italic text-sm">~ The chest is currently empty ~</p>
-          <div class="grid grid-cols-4 gap-2 pt-2">
-            <div class="h-14 bg-slate-950/80 rounded-xl border border-slate-800 border-dashed flex items-center justify-center text-xs text-slate-600">Empty</div>
-            <div class="h-14 bg-slate-950/80 rounded-xl border border-slate-800 border-dashed flex items-center justify-center text-xs text-slate-600">Empty</div>
-            <div class="h-14 bg-slate-950/80 rounded-xl border border-slate-800 border-dashed flex items-center justify-center text-xs text-slate-600">Empty</div>
-            <div class="h-14 bg-slate-950/80 rounded-xl border border-slate-800 border-dashed flex items-center justify-center text-xs text-slate-600">Empty</div>
-          </div>
-        </div>
-
-        <button onclick="toggleChestInventory(false)" class="w-full py-3 rounded-2xl font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-all text-sm">
-          CLOSE CHEST
-        </button>
-      </div>
-    </div>
-
-    <!-- PAUSE OVERLAY (P KEY) -->
-    <div id="pause-overlay" class="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center">
-      <div class="glass-panel px-10 py-8 rounded-3xl text-center border-amber-500/40 shadow-2xl">
-        <h2 class="font-cinzel text-4xl font-black text-amber-400 tracking-widest mb-2">GAME PAUSED</h2>
-        <p class="text-slate-300 text-sm">Press <span class="text-amber-300 font-bold">P</span> to Resume</p>
-      </div>
-    </div>
-
-    <!-- ESC CHARACTER MENU UI (ESC KEY) -->
-    <div id="esc-menu" class="interactive fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden flex items-center justify-center p-4">
-      <div class="glass-panel max-w-md w-full rounded-3xl p-6 border border-amber-500/40 shadow-2xl relative">
-        <button onclick="toggleEscMenu(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold">✕</button>
-
-        <h2 class="font-cinzel text-2xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 mb-5">
-          HERO STATUS & MENU
-        </h2>
-
-        <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 mb-6 space-y-3">
-          <div class="grid grid-cols-2 gap-3 border-b border-slate-800 pb-3">
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Gender</span>
-              <span id="esc-stat-gender" class="font-bold text-slate-200 capitalize">Male</span>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Class</span>
-              <span id="esc-stat-class" class="font-bold text-amber-400">Warrior</span>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Level</span>
-              <span id="esc-stat-level" class="font-bold text-amber-300 text-base">Level 1</span>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Zone</span>
-              <span id="esc-stat-location" class="font-bold text-emerald-400">Safe Zone</span>
-            </div>
-          </div>
-
-          <div class="space-y-2 text-xs">
-            <div>
-              <div class="flex justify-between mb-0.5">
-                <span class="text-red-400 font-semibold">Health Points</span>
-                <span id="esc-hp-val">100 / 100</span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden"><div id="esc-hp-bar" class="h-full bg-red-500" style="width: 100%;"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between mb-0.5">
-                <span class="text-sky-400 font-semibold">Mana Points</span>
-                <span id="esc-mp-val">50 / 50</span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden"><div id="esc-mp-bar" class="h-full bg-sky-500" style="width: 100%;"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-3">
-          <button onclick="restartToCharacterSelection()" class="w-full py-3 font-cinzel font-bold text-sm bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-lg hover:brightness-110 transition-all rounded-2xl">
-            🔄 RESTART GAME
-          </button>
-          <button onclick="toggleEscMenu(false)" class="w-full py-2.5 rounded-2xl font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 transition-all text-xs">
-            Resume Game
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLEEP TRANSITION CINEMATIC OVERLAY -->
-    <div id="cinematic-overlay" class="fixed inset-0 z-50 bg-black opacity-0 pointer-events-none flex flex-col items-center justify-center">
-      <span id="sleep-title" class="font-cinzel text-amber-300 text-3xl md:text-4xl font-black tracking-widest animate-pulse mb-2">ENTERING HOUSE...</span>
-      <span id="sleep-sub" class="text-slate-400 text-sm">Resting until dawn • Restoring HP & MP</span>
-    </div>
-
   </div>
 
-  <!-- GAME ENGINE LOGIC -->
+  <!-- HUD Overlay -->
+  <div id="hud-overlay" class="absolute inset-0 pointer-events-none hidden z-10 flex flex-col justify-between p-4 md:p-6">
+    <!-- Top Bar: Player Stats & Day/Night Indicator -->
+    <div class="flex justify-between items-start">
+      <!-- Player HP / MP Bars -->
+      <div class="w-64 md:w-80 bg-slate-900/80 backdrop-blur border border-slate-700/80 rounded-xl p-3 shadow-xl">
+        <div class="flex justify-between items-center mb-1">
+          <span id="player-hud-name" class="font-cinzel text-xs font-bold text-amber-400">Hero</span>
+          <span id="player-level" class="text-[10px] font-bold text-amber-500 bg-amber-950/80 border border-amber-600/40 px-2 py-0.5 rounded">Lv. 1</span>
+        </div>
+        <!-- HP -->
+        <div class="w-full bg-slate-950 rounded-full h-3 mb-1.5 p-0.5 overflow-hidden border border-red-950">
+          <div id="hp-bar" class="bg-gradient-to-r from-red-700 to-red-500 h-full rounded-full transition-all duration-200" style="width: 100%;"></div>
+        </div>
+        <!-- MP -->
+        <div class="w-full bg-slate-950 rounded-full h-2 p-0.5 overflow-hidden border border-blue-950">
+          <div id="mp-bar" class="bg-gradient-to-r from-blue-700 to-cyan-400 h-full rounded-full transition-all duration-200" style="width: 100%;"></div>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+          <span id="hp-text">HP: 100 / 100</span>
+          <span id="mp-text">MP: 50 / 50</span>
+        </div>
+      </div>
+
+      <!-- Minimap & Time Widget -->
+      <div class="flex flex-col items-end gap-2">
+        <div class="relative w-32 h-32 md:w-36 md:h-36 rounded-full border-2 border-amber-600/60 bg-slate-950/80 backdrop-blur shadow-2xl overflow-hidden">
+          <canvas id="minimap-canvas" class="w-full h-full"></canvas>
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div class="w-2 h-2 rounded-full bg-amber-400 shadow-md shadow-amber-500"></div>
+          </div>
+          <div class="absolute top-1 left-1/2 -translate-x-1/2 text-[9px] font-bold text-amber-300 font-cinzel">N</div>
+        </div>
+        <div class="bg-slate-900/80 border border-amber-600/30 px-3 py-1 rounded-lg text-xs font-cinzel text-amber-200 flex items-center gap-2">
+          <i id="time-icon" class="fa-solid fa-sun text-amber-400"></i>
+          <span id="time-text">Day (12:00)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interaction Prompt (Center Bottom Context) -->
+    <div id="interaction-prompt" class="self-center hidden bg-slate-900/90 border border-amber-500/60 px-4 py-2 rounded-xl text-amber-200 font-medium text-sm shadow-2xl backdrop-blur animate-bounce">
+      Press <span class="bg-amber-600 text-slate-950 font-bold px-1.5 py-0.5 rounded text-xs ml-1">E</span> to interact
+    </div>
+
+    <!-- Bottom Skill Bar & Controls -->
+    <div class="flex flex-col items-center gap-2">
+      <div class="flex gap-3 bg-slate-900/90 backdrop-blur border border-slate-700/80 rounded-2xl p-2 shadow-2xl">
+        <!-- Skill 1 -->
+        <div class="relative group w-12 h-12 md:w-14 md:h-14 rounded-xl bg-slate-950 border border-slate-700 flex flex-col items-center justify-center">
+          <span class="absolute top-1 left-1 text-[10px] font-bold text-slate-400 bg-slate-800 px-1 rounded">1</span>
+          <i id="skill-1-icon" class="fa-solid fa-bolt text-amber-400 text-lg md:text-xl"></i>
+          <div id="skill-1-cooldown" class="absolute inset-0 bg-slate-950/80 rounded-xl hidden flex items-center justify-center font-bold text-amber-400 text-xs"></div>
+        </div>
+        <!-- Skill 2 -->
+        <div class="relative group w-12 h-12 md:w-14 md:h-14 rounded-xl bg-slate-950 border border-slate-700 flex flex-col items-center justify-center">
+          <span class="absolute top-1 left-1 text-[10px] font-bold text-slate-400 bg-slate-800 px-1 rounded">2</span>
+          <i id="skill-2-icon" class="fa-solid fa-explosion text-sky-400 text-lg md:text-xl"></i>
+          <div id="skill-2-cooldown" class="absolute inset-0 bg-slate-950/80 rounded-xl hidden flex items-center justify-center font-bold text-sky-400 text-xs"></div>
+        </div>
+        <!-- Skill 3 -->
+        <div class="relative group w-12 h-12 md:w-14 md:h-14 rounded-xl bg-slate-950 border border-slate-700 flex flex-col items-center justify-center">
+          <span class="absolute top-1 left-1 text-[10px] font-bold text-slate-400 bg-slate-800 px-1 rounded">3</span>
+          <i id="skill-3-icon" class="fa-solid fa-shield-cat text-emerald-400 text-lg md:text-xl"></i>
+          <div id="skill-3-cooldown" class="absolute inset-0 bg-slate-950/80 rounded-xl hidden flex items-center justify-center font-bold text-emerald-400 text-xs"></div>
+        </div>
+      </div>
+      <div class="text-[11px] text-slate-400 font-mono bg-slate-950/60 px-3 py-1 rounded-full">
+        Click canvas to lock cursor & look around
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory / Chest Modal -->
+  <div id="inventory-modal" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-slate-900 border border-amber-600/50 rounded-2xl p-6 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold font-cinzel text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-box-open"></i> Ancient Chest Loot
+        </h3>
+        <button onclick="closeInventory()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="grid grid-cols-4 gap-3 mb-6" id="chest-grid">
+        <!-- Populated dynamically -->
+      </div>
+      <button onclick="closeInventory()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl transition">
+        Close Storage
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Logic Script -->
   <script>
-    /* =========================================================================
-       1. GAME CONFIGURATION & PROPORTIONAL MAP BIOMES
-       ========================================================================= */
-    const CONFIG = {
-      SAFE_ZONE_RADIUS: 38,
-      WORLD_SIZE: 420,
-      PALISADE_RADIUS: 38,
-      PALISADE_LOG_COUNT: 240, // Tightly packed logs - zero gaps
-      LAKE_CENTER_X: 65,
-      LAKE_CENTER_Z: -65,
-      LAKE_RADIUS: 42
+    // --- WEAPON CLASSES DATA ---
+    const CLASSES = {
+      sword: {
+        name: "Sword Knight",
+        icon: "fa-shield-halved",
+        stat: "Strength",
+        range: "Melee (3.5m)",
+        desc: "Master of close-quarters sword combat with heavy slash combos and high defense.",
+        color: 0x3b82f6,
+        s1: { name: "Whirlwind", icon: "fa-wind", cd: 4, cost: 15 },
+        s2: { name: "Ground Slam", icon: "fa-earth-americas", cd: 8, cost: 25 },
+        s3: { name: "Iron Defense", icon: "fa-shield", cd: 12, cost: 20 }
+      },
+      bow: {
+        name: "Ranger Archer",
+        icon: "fa-bow-arrow",
+        stat: "Agility",
+        range: "Ranged (20m)",
+        desc: "Swift sharpshooter delivering high ranged physical damage from afar.",
+        color: 0x10b981,
+        s1: { name: "Triple Shot", icon: "fa-feather", cd: 3, cost: 10 },
+        s2: { name: "Rain of Arrows", icon: "fa-cloud-showers-heavy", cd: 7, cost: 30 },
+        s3: { name: "Sprint Boost", icon: "fa-person-running", cd: 10, cost: 15 }
+      },
+      dagger: {
+        name: "Shadow Rogue",
+        icon: "fa-mask",
+        stat: "Dexterity",
+        range: "Melee (2.5m)",
+        desc: "Lightning-fast assassin wielding twin daggers for devastating critical strikes.",
+        color: 0xf59e0b,
+        s1: { name: "Shadow Dash", icon: "fa-bolt-lightning", cd: 3, cost: 12 },
+        s2: { name: "Fan of Blades", icon: "fa-bahai", cd: 6, cost: 20 },
+        s3: { name: "Vanish", icon: "fa-eye-slash", cd: 12, cost: 25 }
+      },
+      mace: {
+        name: "Paladin Defender",
+        icon: "fa-hammer",
+        stat: "Vitality",
+        range: "Melee (3m)",
+        desc: "Heavy armored holy warrior with mace and shield, providing durability and light healing.",
+        color: 0x8b5cf6,
+        s1: { name: "Shield Bash", icon: "fa-shield-cat", cd: 4, cost: 15 },
+        s2: { name: "Holy Judgement", icon: "fa-sun", cd: 8, cost: 25 },
+        s3: { name: "Divine Heal", icon: "fa-heart", cd: 14, cost: 35 }
+      },
+      staff: {
+        name: "Arcane Sorcerer",
+        icon: "fa-wand-magic-sparkles",
+        stat: "Intelligence",
+        range: "Ranged (18m)",
+        desc: "Wielder of elemental magic casting powerful fireballs and area arcane bursts.",
+        color: 0xec4899,
+        s1: { name: "Fireball Arc", icon: "fa-fire-flame-curved", cd: 2, cost: 12 },
+        s2: { name: "Frost Nova", icon: "fa-snowflake", cd: 7, cost: 25 },
+        s3: { name: "Mana Barrier", icon: "fa-circle-nodes", cd: 12, cost: 30 }
+      },
+      spear: {
+        name: "Lancer Guard",
+        icon: "fa-location-arrow",
+        stat: "Reach",
+        range: "Medium (5m)",
+        desc: "Tactical polearm warrior controlling distance with sweeping pole thrusts.",
+        color: 0x06b6d4,
+        s1: { name: "Piercing Thrust", icon: "fa-arrow-right-long", cd: 3, cost: 12 },
+        s2: { name: "Sweep Attack", icon: "fa-rotate", cd: 6, cost: 20 },
+        s3: { name: "Charge", icon: "fa-forward", cd: 9, cost: 18 }
+      }
     };
 
-    let scene, camera, renderer, clock;
-    let player, playerBody, weaponMesh, houseDoorMesh;
-    let terrainMesh, waterMesh;
-    let cloudsGroup;
-    let isPaused = false;
-    let isEscOpen = false;
-    let isChestOpen = false;
-    let isCinematic = false;
-    let isPointerLocked = false;
+    // --- GAME STATE VARIABLES ---
+    let selectedGender = 'male';
+    let selectedClass = 'sword';
+    let isGameStarted = false;
 
-    // Web Audio Context
-    let audioCtx;
+    let scene, camera, renderer;
+    let clock = new THREE.Clock();
 
-    // Time & Day/Night System (600s = 10 min loop, 300s = Bright Noon)
-    let gameTimeSeconds = 300;
-    let sunLight, ambientLight, hemisphereLight;
-
-    // Pointer Lock / Crosshair Camera Controls
-    const cameraOrbit = {
-      yaw: 0,
-      pitch: 0.28,
-      distance: 12
-    };
-
-    // Player State
-    const playerState = {
-      gender: 'male',
-      classType: 'Warrior',
-      level: 1,
+    // Player Object & State
+    let player = {
+      mesh: null,
+      bodyGroup: null,
+      hairMesh: null,
+      weaponMesh: null,
+      shieldMesh: null,
       hp: 100,
       maxHp: 100,
       mp: 50,
       maxMp: 50,
-      exp: 0,
-      maxExp: 100,
-      posX: 0,   // Safe spawn inside palisade town
-      posZ: 6,
-      posY: 0,
-      rotY: 0,
-      velocity: new THREE.Vector3(),
+      speed: 12,
+      sprintMult: 1.6,
+      verticalVelocity: 0,
       isGrounded: true,
-      inSafeZone: true,
-      inWater: false,
-      animTime: 0,
-      isAttacking: false,
-      attackCooldown: 0
+      position: new THREE.Vector3(0, 1.2, 0),
+      rotationY: 0,
+      rotationX: 0,
+      cooldowns: { s1: 0, s2: 0, s3: 0 }
     };
 
-    // Colliders & Interactive Objects
-    const colliders = [];
-    const chests = []; // Interactive chests
-    const npcs = [];   // Animated safezone NPCs
-    const fireParticles = [];
-    let fireLight = null;
-    const houseDoorPosition = new THREE.Vector3(14, 0, 11.5);
-    let activeChestNear = null;
+    // Controls State
+    let keys = { w: false, a: false, s: false, d: false, shift: false, space: false };
+    let isPointerLocked = false;
 
-    // Projectiles & Dynamic Particle Effects
-    const projectiles = [];
-    const particleEffects = [];
-    const waterRipples = [];
+    // Environment Lists & Systems
+    let enemies = [];
+    let lightables = []; // { pointLight, fireMesh, glowMesh, isTorch, isHouseWindow }
+    let interactiveObjects = []; // { mesh, type, prompt, action }
+    let collisionObjects = []; // Static colliders (houses, walls, pyramid, water bounds)
+    let waterRippleMaterials = [];
+    let dayNightCycleTime = 12.0; // 0 to 24 scale
+    let dayNightSpeed = 0.05; // Time passage speed
+    let isNight = false;
+    let sunLight, ambientLight, skyMesh;
+    let oceanMesh;
 
-    // Inputs State
-    const keys = { w: false, a: false, s: false, d: false, shift: false, space: false };
+    // Minimap Canvas
+    let minimapCanvas, minimapCtx;
 
-    // Slime Enemies
-    const slimes = [];
-
-    /* =========================================================================
-       2. AUDIO SYNTHESIZER
-       ========================================================================= */
-    function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-    }
-
-    function playSound(type) {
-      if (!audioCtx) return;
-      try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        const now = audioCtx.currentTime;
-        if (type === 'swing') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(320, now);
-          osc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
-          gain.gain.setValueAtTime(0.25, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-          osc.start(now);
-          osc.stop(now + 0.12);
-        } else if (type === 'hit') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(160, now);
-          osc.frequency.exponentialRampToValueAtTime(45, now + 0.2);
-          gain.gain.setValueAtTime(0.35, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-          osc.start(now);
-          osc.stop(now + 0.2);
-        } else if (type === 'heal' || type === 'sleep' || type === 'chest') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(350, now);
-          osc.frequency.exponentialRampToValueAtTime(800, now + 0.45);
-          gain.gain.setValueAtTime(0.3, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
-          osc.start(now);
-          osc.stop(now + 0.45);
-        } else if (type === 'splash') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(180, now);
-          osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
-          gain.gain.setValueAtTime(0.15, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
-          osc.start(now);
-          osc.stop(now + 0.15);
-        }
-      } catch (e) {}
-    }
-
-    /* =========================================================================
-       3. CHARACTER SELECTION & GAME START
-       ========================================================================= */
-    function selectGender(g) {
-      playerState.gender = g;
-      document.getElementById('btn-gender-male').classList.toggle('active', g === 'male');
-      document.getElementById('btn-gender-female').classList.toggle('active', g === 'female');
-    }
-
-    function selectClass(c) {
-      playerState.classType = c;
-      const classes = ['Warrior', 'Archer', 'Assassin', 'Guardian', 'Mage', 'Lancer'];
-      classes.forEach(cls => {
-        const btn = document.getElementById(`btn-class-${cls.toLowerCase()}`);
-        if (btn) btn.classList.toggle('active', cls === c);
-      });
-    }
-
-    function startGame() {
-      initAudio();
-      document.getElementById('char-creation').classList.add('hidden');
-      document.getElementById('hud-hero-name').innerText = playerState.classType;
-      
-      if (!renderer) {
-        initEngine();
-        buildWorld();
-        setupInputListeners();
-        setupPointerLockControls();
-      }
-      
-      createHeroCharacter();
-      spawnSlimes();
-      updateHUD();
-      
-      requestPointerLock();
+    // --- INITIALIZATION ---
+    window.addEventListener('load', () => {
+      initClassOptionsUI();
+      initThreeJS();
+      initEventListeners();
       animate();
+    });
+
+    // Populate Class UI Buttons
+    function initClassOptionsUI() {
+      const container = document.getElementById('class-options-container');
+      container.innerHTML = '';
+      Object.keys(CLASSES).forEach(key => {
+        const cls = CLASSES[key];
+        const btn = document.createElement('button');
+        btn.id = `class-btn-${key}`;
+        btn.onclick = () => selectClass(key);
+        btn.className = `p-3 rounded-xl border flex flex-col items-center justify-center gap-1 transition ${
+          key === selectedClass 
+            ? 'border-amber-500 bg-amber-500/20 text-amber-300 shadow-md shadow-amber-500/10' 
+            : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700'
+        }`;
+        btn.innerHTML = `<i class="fa-solid ${cls.icon} text-lg"></i><span class="text-xs font-semibold">${cls.name.split(' ')[0]}</span>`;
+        container.appendChild(btn);
+      });
+      updateClassDetailsCard();
     }
 
-    /* =========================================================================
-       4. THREE.JS ENGINE SETUP & BRIGHT DAYLIGHTING
-       ========================================================================= */
-    function initEngine() {
-      const container = document.getElementById('canvas-container');
-      scene = new THREE.Scene();
-      
-      // Bright vibrant sky color default
-      scene.background = new THREE.Color(0x87CEEB);
-      scene.fog = new THREE.FogExp2(0x87CEEB, 0.002);
+    function setGender(g) {
+      selectedGender = g;
+      document.getElementById('btn-gender-male').className = g === 'male'
+        ? 'py-2.5 px-4 rounded-xl border border-amber-600/40 bg-amber-950/40 text-amber-200 font-semibold flex items-center justify-center gap-2 hover:bg-amber-800/50 transition'
+        : 'py-2.5 px-4 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-400 font-semibold flex items-center justify-center gap-2 hover:bg-amber-800/50 transition';
+      document.getElementById('btn-gender-female').className = g === 'female'
+        ? 'py-2.5 px-4 rounded-xl border border-amber-600/40 bg-amber-950/40 text-amber-200 font-semibold flex items-center justify-center gap-2 hover:bg-amber-800/50 transition'
+        : 'py-2.5 px-4 rounded-xl border border-slate-700 bg-slate-800/40 text-slate-400 font-semibold flex items-center justify-center gap-2 hover:bg-amber-800/50 transition';
+    }
 
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1200);
+    function selectClass(key) {
+      selectedClass = key;
+      Object.keys(CLASSES).forEach(k => {
+        const el = document.getElementById(`class-btn-${k}`);
+        if (el) {
+          el.className = k === selectedClass 
+            ? 'p-3 rounded-xl border border-amber-500 bg-amber-500/20 text-amber-300 shadow-md shadow-amber-500/10 flex flex-col items-center justify-center gap-1 transition'
+            : 'p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 flex flex-col items-center justify-center gap-1 transition';
+        }
+      });
+      updateClassDetailsCard();
+    }
+
+    function updateClassDetailsCard() {
+      const cls = CLASSES[selectedClass];
+      document.getElementById('class-title-display').innerText = cls.name;
+      document.getElementById('class-desc-display').innerText = cls.desc;
+      document.getElementById('class-stat-display').innerText = cls.stat;
+      document.getElementById('class-range-display').innerText = cls.range;
+      document.getElementById('class-s1-display').innerText = cls.s1.name;
+      document.getElementById('class-s2-display').innerText = cls.s2.name;
+      document.getElementById('class-s3-display').innerText = cls.s3.name;
+      document.getElementById('class-icon-display').innerHTML = `<i class="fa-solid ${cls.icon}"></i>`;
+    }
+
+    // --- THREE.JS SCENE SETUP ---
+    function initThreeJS() {
+      const container = document.getElementById('canvas-container');
       
-      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x87ceeb, 0.003);
+
+      camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      clock = new THREE.Clock();
-
-      // Hemisphere & Ambient lighting for cheerful daytime
-      hemisphereLight = new THREE.HemisphereLight(0xbae6fd, 0x334155, 0.85);
-      scene.add(hemisphereLight);
-
-      ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+      // Lighting Setup
+      ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
       scene.add(ambientLight);
 
-      sunLight = new THREE.DirectionalLight(0xfffbeb, 1.8);
-      sunLight.position.set(100, 150, 80);
+      sunLight = new THREE.DirectionalLight(0xfffaed, 1.2);
+      sunLight.position.set(100, 150, 50);
       sunLight.castShadow = true;
       sunLight.shadow.mapSize.width = 2048;
       sunLight.shadow.mapSize.height = 2048;
       sunLight.shadow.camera.near = 0.5;
-      sunLight.shadow.camera.far = 350;
+      sunLight.shadow.camera.far = 400;
       const d = 120;
       sunLight.shadow.camera.left = -d;
       sunLight.shadow.camera.right = d;
@@ -646,56 +444,887 @@
       sunLight.shadow.camera.bottom = -d;
       scene.add(sunLight);
 
-      // Procedural 3D Fluffy Sky Clouds
-      buildSkyClouds();
+      // Sky Dome
+      const skyGeo = new THREE.SphereGeometry(450, 32, 15);
+      const skyMat = new THREE.MeshBasicMaterial({ color: 0x87ceeb, side: THREE.BackSide });
+      skyMesh = new THREE.Mesh(skyGeo, skyMat);
+      scene.add(skyMesh);
 
-      window.addEventListener('resize', onWindowResize);
+      // Build World Environment
+      buildWorldTerrain();
+      buildSafeZoneTown();
+      buildDockingAreas();
+      buildOutsideStructures();
+      spawnEnemies();
+
+      // Minimap setup
+      minimapCanvas = document.getElementById('minimap-canvas');
+      minimapCtx = minimapCanvas.getContext('2d');
+      minimapCanvas.width = 150;
+      minimapCanvas.height = 150;
     }
 
-    function buildSkyClouds() {
-      cloudsGroup = new THREE.Group();
-      const cloudMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 1.0,
-        transparent: true,
-        opacity: 0.88,
-        flatShading: true
-      });
+    // --- WORLD TERRAIN & OCEAN BOUNDARY ---
+    function buildWorldTerrain() {
+      // 1. Terrain Canvas Texture with Dirt Pathways
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
 
-      const sphereGeo = new THREE.SphereGeometry(1, 8, 8);
+      // Base Grass
+      ctx.fillStyle = '#4a7c36';
+      ctx.fillRect(0, 0, 1024, 1024);
 
-      for (let i = 0; i < 35; i++) {
-        const cloud = new THREE.Group();
-        const numPuffs = 5 + Math.floor(Math.random() * 6);
-        for (let j = 0; j < numPuffs; j++) {
-          const puff = new THREE.Mesh(sphereGeo, cloudMat);
-          const r = 8 + Math.random() * 10;
-          puff.scale.set(r, r * 0.6, r);
-          puff.position.set(
-            (j - numPuffs / 2) * 8 + (Math.random() - 0.5) * 6,
-            (Math.random() - 0.5) * 4,
-            (Math.random() - 0.5) * 8
-          );
-          cloud.add(puff);
-        }
-
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 60 + Math.random() * 180;
-        cloud.position.set(Math.cos(angle) * dist, 70 + Math.random() * 35, Math.sin(angle) * dist);
-        cloudsGroup.add(cloud);
+      // Grass Texture Noise
+      for(let i=0; i<30000; i++) {
+        const x = Math.random() * 1024;
+        const y = Math.random() * 1024;
+        ctx.fillStyle = Math.random() > 0.5 ? '#3d692c' : '#578e40';
+        ctx.fillRect(x, y, 3, 3);
       }
 
-      scene.add(cloudsGroup);
+      // Dirt Pathways: Brown/Mud color
+      ctx.strokeStyle = '#8B5A2B';
+      ctx.lineWidth = 36;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // North Dock to Center Plaza (y in texture maps to z axis)
+      ctx.beginPath();
+      ctx.moveTo(512, 50);  // North Dock
+      ctx.lineTo(512, 180); // North Gate
+      ctx.lineTo(512, 512); // Central Plaza
+      ctx.stroke();
+
+      // South Dock to Center Plaza
+      ctx.beginPath();
+      ctx.moveTo(512, 974); // South Dock
+      ctx.lineTo(512, 844); // South Gate
+      ctx.lineTo(512, 512); // Central Plaza
+      ctx.stroke();
+
+      // Horizontal Town Loop connecting shop houses
+      ctx.beginPath();
+      ctx.ellipse(512, 512, 120, 80, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Path noise overlay for realistic worn dirt
+      ctx.strokeStyle = '#6b4421';
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.moveTo(512, 50); ctx.lineTo(512, 974);
+      ctx.stroke();
+
+      const terrainTex = new THREE.CanvasTexture(canvas);
+      terrainTex.wrapS = THREE.RepeatWrapping;
+      terrainTex.wrapT = THREE.RepeatWrapping;
+
+      // Island Mesh (350x350)
+      const groundGeo = new THREE.PlaneGeometry(350, 350, 64, 64);
+      groundGeo.rotateX(-Math.PI / 2);
+
+      const groundMat = new THREE.MeshStandardMaterial({
+        map: terrainTex,
+        roughness: 0.85,
+        metalness: 0.1
+      });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      // 2. Surrounding Ocean Water Mesh (Extends to Horizon)
+      const oceanGeo = new THREE.PlaneGeometry(1000, 1000);
+      const oceanMat = new THREE.MeshStandardMaterial({
+        color: 0x005588,
+        roughness: 0.1,
+        metalness: 0.8,
+        transparent: true,
+        opacity: 0.85
+      });
+      oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
+      oceanMesh.rotation.x = -Math.PI / 2;
+      oceanMesh.position.y = -0.5; // Slightly lower than ground
+      scene.add(oceanMesh);
+
+      // 3. Invisible Collision Boundaries around Island Edges (X/Z Limits: +-165)
+      const mapBound = 165;
+      const bThickness = 10;
+      const bGeo = new THREE.BoxGeometry(350, 50, bThickness);
+      
+      // North, South, East, West Invisible Boundary Walls
+      const boundsData = [
+        { x: 0, z: -mapBound, r: 0 },
+        { x: 0, z: mapBound, r: 0 },
+        { x: -mapBound, z: 0, r: Math.PI/2 },
+        { x: mapBound, z: 0, r: Math.PI/2 }
+      ];
+
+      boundsData.forEach(b => {
+        const wall = new THREE.Mesh(bGeo, new THREE.MeshBasicMaterial({ visible: false }));
+        wall.position.set(b.x, 25, b.z);
+        wall.rotation.y = b.r;
+        scene.add(wall);
+        collisionObjects.push(wall);
+      });
     }
 
-    function updateClouds(delta) {
-      if (!cloudsGroup) return;
-      cloudsGroup.children.forEach(c => {
-        c.position.x += delta * 2.2;
-        if (c.position.x > CONFIG.WORLD_SIZE / 2) {
-          c.position.x = -CONFIG.WORLD_SIZE / 2;
+    // --- TOWN & 5 NEW Specialized SHOPS (REMOVED CASTLE) ---
+    function buildSafeZoneTown() {
+      // Safe Zone Wooden Fence Perimeter (Radius ~65m, leaving North/South Openings for Stone Gates)
+      const fenceRadius = 65;
+      const totalPosts = 36;
+      for (let i = 0; i < totalPosts; i++) {
+        const angle = (i / totalPosts) * Math.PI * 2;
+        const x = Math.sin(angle) * fenceRadius;
+        const z = Math.cos(angle) * fenceRadius;
+
+        // Leave North Gate (z = -65) and South Gate (z = 65) gaps
+        if (Math.abs(x) < 14) continue;
+
+        const postGeo = new THREE.CylinderGeometry(0.3, 0.4, 3, 6);
+        const postMat = new THREE.MeshStandardMaterial({ color: 0x4a2e16, roughness: 0.9 });
+        const post = new THREE.Mesh(postGeo, postMat);
+        post.position.set(x, 1.5, z);
+        post.castShadow = true;
+        scene.add(post);
+        collisionObjects.push(post);
+      }
+
+      // Stone Arch Gates with Torches & Guards at North and South
+      buildStoneGate(0, -65, 0); // North Gate
+      buildStoneGate(0, 65, Math.PI); // South Gate
+
+      // Central Town Plaza Firewood / Bonfire (Extinguished by day,Lit at night)
+      buildCentralBonfire(0, 0);
+
+      // --- PLAYER'S HOME (With Interactive Bed & Loot Chest) ---
+      buildHouseWithBed(25, 0, Math.PI / 4, "Hero's Home");
+
+      // --- 5 SPECIALIZED SHOP HOUSES ---
+      // 1. Blacksmith Shop (Anvil, Forge, Smelter)
+      buildShopHouse(-25, -20, -Math.PI / 4, "Blacksmith", 0x7c2d12, (group) => {
+        // Anvil
+        const anvilMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.3 });
+        const base = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 0.8), anvilMat);
+        base.position.set(-3, 0.4, 2);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 0.6), anvilMat);
+        top.position.set(-3, 0.8, 2);
+        group.add(base, top);
+
+        // Forge Furnace
+        const forge = new THREE.Mesh(new THREE.BoxGeometry(2, 2.5, 2), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+        forge.position.set(-4, 1.25, -2);
+        group.add(forge);
+      });
+
+      // 2. Alchemist Lab (Glowing Potion Vials, Shelves)
+      buildShopHouse(-30, 15, Math.PI / 3, "Alchemist Lab", 0x065f46, (group) => {
+        const table = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1, 1), new THREE.MeshStandardMaterial({ color: 0x582f0e }));
+        table.position.set(3, 0.5, 0);
+        
+        // Bottles
+        const colors = [0xef4444, 0x3b82f6, 0x10b981, 0xa855f7];
+        colors.forEach((c, idx) => {
+          const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 0.4, 8), new THREE.MeshStandardMaterial({ color: c, transparent: true, opacity: 0.8 }));
+          bottle.position.set(2.4 + idx * 0.4, 1.2, 0);
+          group.add(bottle);
+        });
+        group.add(table);
+      });
+
+      // 3. Armory (Weapon Racks & Shield Display)
+      buildShopHouse(20, -25, -Math.PI / 3, "Armory", 0x1e3a8a, (group) => {
+        const rack = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2, 3), new THREE.MeshStandardMaterial({ color: 0x3d2612 }));
+        rack.position.set(-3, 1, -1);
+        group.add(rack);
+      });
+
+      // 4. Tavern & Inn (Barrels & Drinks)
+      buildShopHouse(28, 22, (3 * Math.PI) / 4, "Tavern & Inn", 0x78350f, (group) => {
+        for (let i = 0; i < 3; i++) {
+          const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 1.4, 10), new THREE.MeshStandardMaterial({ color: 0x543210 }));
+          barrel.position.set(3.5, 0.7, -2 + i * 1.5);
+          group.add(barrel);
         }
       });
+
+      // 5. Baker & General Store (Food Crates)
+      buildShopHouse(-10, -35, Math.PI / 6, "General Store", 0x92400e, (group) => {
+        const crate = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), new THREE.MeshStandardMaterial({ color: 0xa16207 }));
+        crate.position.set(-3, 0.6, 3);
+        group.add(crate);
+      });
+    }
+
+    // --- STONE ARCH GATES WITH DYNAMIC TORCHES & GUARDS ---
+    function buildStoneGate(x, z, rotation) {
+      const gateGroup = new THREE.Group();
+      gateGroup.position.set(x, 0, z);
+      gateGroup.rotation.y = rotation;
+
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8, metalness: 0.2 });
+
+      // Left Pillar
+      const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(3, 8, 3), stoneMat);
+      leftPillar.position.set(-6, 4, 0);
+      leftPillar.castShadow = true;
+      gateGroup.add(leftPillar);
+      collisionObjects.push(leftPillar);
+
+      // Right Pillar
+      const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(3, 8, 3), stoneMat);
+      rightPillar.position.set(6, 4, 0);
+      rightPillar.castShadow = true;
+      gateGroup.add(rightPillar);
+      collisionObjects.push(rightPillar);
+
+      // Top Arch Beam
+      const arch = new THREE.Mesh(new THREE.BoxGeometry(15, 2.5, 3.5), stoneMat);
+      arch.position.set(0, 8, 0);
+      arch.castShadow = true;
+      gateGroup.add(arch);
+
+      // 4 Wall Torches per Gate (2 Inside, 2 Outside)
+      const torchOffsets = [
+        { x: -7.6, y: 4, z: -1.8 }, // Outside Left
+        { x: 7.6, y: 4, z: -1.8 },  // Outside Right
+        { x: -7.6, y: 4, z: 1.8 },  // Inside Left
+        { x: 7.6, y: 4, z: 1.8 }    // Inside Right
+      ];
+
+      torchOffsets.forEach(offset => {
+        const torch = createTorchObject();
+        torch.position.set(offset.x, offset.y, offset.z);
+        gateGroup.add(torch.group);
+        lightables.push(torch);
+      });
+
+      // 2 Guard NPCs holding Spears/Shields
+      spawnGuardNPC(gateGroup, -4, 0, 1.5);
+      spawnGuardNPC(gateGroup, 4, 0, 1.5);
+
+      scene.add(gateGroup);
+    }
+
+    // Helper: Torch Mesh & Light Generator
+    function createTorchObject() {
+      const group = new THREE.Group();
+      // Bracket
+      const holder = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+      holder.rotation.z = Math.PI / 4;
+      group.add(holder);
+
+      // Torch Flame Cone Mesh
+      const flameGeo = new THREE.ConeGeometry(0.25, 0.6, 8);
+      const flameMat = new THREE.MeshBasicMaterial({ color: 0xffa500 });
+      const flame = new THREE.Mesh(flameGeo, flameMat);
+      flame.position.set(0.35, 0.5, 0);
+      group.add(flame);
+
+      // Dynamic Light (Turned off during daytime)
+      const light = new THREE.PointLight(0xff7700, 0, 15);
+      light.position.set(0.35, 0.6, 0);
+      group.add(light);
+
+      return { pointLight: light, fireMesh: flame, isTorch: true };
+    }
+
+    // Helper: Guard NPC Spawn
+    function spawnGuardNPC(parentGroup, x, y, z) {
+      const guard = new THREE.Group();
+      guard.position.set(x, y, z);
+
+      const armorMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8, roughness: 0.3 });
+      const clothMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a });
+
+      // Body
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.4, 8), armorMat);
+      body.position.y = 1.3;
+      guard.add(body);
+
+      // Head / Helmet
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), armorMat);
+      head.position.y = 2.2;
+      guard.add(head);
+
+      // Spear
+      const spear = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.2), new THREE.MeshStandardMaterial({ color: 0x78350f }));
+      spear.position.set(0.5, 1.6, 0.3);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.5, 6), armorMat);
+      tip.position.set(0.5, 3.3, 0.3);
+      guard.add(spear, tip);
+
+      // Shield
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.2, 0.7), clothMat);
+      shield.position.set(-0.5, 1.3, 0.3);
+      guard.add(shield);
+
+      parentGroup.add(guard);
+    }
+
+    // Central Bonfire
+    function buildCentralBonfire(x, z) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+
+      // Pit Stones
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2;
+        const stone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+        stone.position.set(Math.cos(a) * 1.5, 0.2, Math.sin(a) * 1.5);
+        group.add(stone);
+      }
+
+      // Fire Logs
+      const logMat = new THREE.MeshStandardMaterial({ color: 0x3d2612 });
+      for (let i = 0; i < 4; i++) {
+        const log = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 2), logMat);
+        log.rotation.x = Math.PI / 3;
+        log.rotation.y = (i * Math.PI) / 2;
+        log.position.y = 0.5;
+        group.add(log);
+      }
+
+      // Flame Mesh
+      const flameMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.9, 1.8, 8), flameMat);
+      flame.position.y = 1.2;
+      group.add(flame);
+
+      // Bonfire Light
+      const fireLight = new THREE.PointLight(0xff6600, 0, 35);
+      fireLight.position.y = 1.5;
+      group.add(fireLight);
+
+      scene.add(group);
+      lightables.push({ pointLight: fireLight, fireMesh: flame, isBonfire: true });
+    }
+
+    // House with Bed & Interactive Chest
+    function buildHouseWithBed(x, z, rotation, title) {
+      const houseGroup = new THREE.Group();
+      houseGroup.position.set(x, 0, z);
+      houseGroup.rotation.y = rotation;
+
+      // Walls
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(8, 5, 8), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
+      walls.position.y = 2.5;
+      walls.castShadow = true;
+      walls.receiveShadow = true;
+      houseGroup.add(walls);
+      collisionObjects.push(walls);
+
+      // Roof
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(6.5, 3.5, 4), new THREE.MeshStandardMaterial({ color: 0x7f1d1d }));
+      roof.position.y = 6.75;
+      roof.rotation.y = Math.PI / 4;
+      roof.castShadow = true;
+      houseGroup.add(roof);
+
+      // Door
+      const door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 3, 0.2), new THREE.MeshStandardMaterial({ color: 0x451a03 }));
+      door.position.set(0, 1.5, 4.05);
+      houseGroup.add(door);
+
+      // Glowing Window Glass Mesh
+      const winMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
+      const windowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), winMat);
+      windowMesh.position.set(2.5, 3, 4.06);
+      houseGroup.add(windowMesh);
+
+      // Outdoor Lamp Post
+      const lamp = createStreetLamp();
+      lamp.group.position.set(3, 0, 5);
+      houseGroup.add(lamp.group);
+      lightables.push(lamp);
+
+      // Interior: Interactive Bed ([F] Rest)
+      const bed = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 3.5), new THREE.MeshStandardMaterial({ color: 0x1e3a8a }));
+      bed.position.set(-2.5, 0.4, -2);
+      houseGroup.add(bed);
+
+      // Add Interaction area for Bed
+      interactiveObjects.push({
+        position: new THREE.Vector3().setFromMatrixPosition(bed.matrixWorld).add(new THREE.Vector3(x, 0, z)),
+        dist: 4.5,
+        prompt: "Press [F] to Rest in Bed (Pass Night / Heal)",
+        action: () => triggerBedRest()
+      });
+
+      // Interior: Interactive Loot Chest ([E])
+      const chest = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 0.9), new THREE.MeshStandardMaterial({ color: 0x78350f }));
+      chest.position.set(2.5, 0.45, -2.5);
+      houseGroup.add(chest);
+
+      interactiveObjects.push({
+        position: new THREE.Vector3(x + 2.5, 0.5, z - 2.5),
+        dist: 3.5,
+        prompt: "Press [E] to Open Loot Chest",
+        action: () => openInventory()
+      });
+
+      scene.add(houseGroup);
+      lightables.push({ windowMesh: windowMesh, isHouseWindow: true });
+    }
+
+    // Generic Shop House Builder
+    function buildShopHouse(x, z, rotation, shopTitle, roofColorHex, customDecorCallback) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+      group.rotation.y = rotation;
+
+      // Walls
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(7, 4.5, 7), new THREE.MeshStandardMaterial({ color: 0xd1d5db }));
+      walls.position.y = 2.25;
+      walls.castShadow = true;
+      group.add(walls);
+      collisionObjects.push(walls);
+
+      // Roof
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(5.8, 3, 4), new THREE.MeshStandardMaterial({ color: roofColorHex }));
+      roof.position.y = 6;
+      roof.rotation.y = Math.PI / 4;
+      group.add(roof);
+
+      // Signboard
+      const sign = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 0.2), new THREE.MeshStandardMaterial({ color: 0x451a03 }));
+      sign.position.set(0, 4, 3.6);
+      group.add(sign);
+
+      // Windows
+      const winMat = new THREE.MeshBasicMaterial({ color: 0x1e293b });
+      const win = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), winMat);
+      win.position.set(2, 2.5, 3.56);
+      group.add(win);
+      lightables.push({ windowMesh: win, isHouseWindow: true });
+
+      // Outdoor Lamp Post
+      const lamp = createStreetLamp();
+      lamp.group.position.set(-2.5, 0, 4.5);
+      group.add(lamp.group);
+      lightables.push(lamp);
+
+      if (customDecorCallback) customDecorCallback(group);
+
+      scene.add(group);
+    }
+
+    // Helper: Street Lamp Generator
+    function createStreetLamp() {
+      const group = new THREE.Group();
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 4), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+      pole.position.y = 2;
+      group.add(pole);
+
+      const lantern = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.5), new THREE.MeshBasicMaterial({ color: 0x334155 }));
+      lantern.position.y = 4;
+      group.add(lantern);
+
+      const light = new THREE.PointLight(0xfbbf24, 0, 18);
+      light.position.y = 4;
+      group.add(light);
+
+      return { group: group, pointLight: light, lanternMesh: lantern, isLampPost: true };
+    }
+
+    // --- TWO DOCKING AREAS (NORTH & SOUTH) & PIRATE BOATS & WAREHOUSE ---
+    function buildDockingAreas() {
+      // 1. NORTH DOCK (z = -140)
+      buildSingleDock(0, -140, 0);
+
+      // 2. SOUTH DOCK (z = 140)
+      buildSingleDock(0, 140, Math.PI);
+
+      // 3. VERY LONG VERTICAL WAREHOUSE (Located near North Dock)
+      buildLongWarehouse(-25, 0, -115);
+    }
+
+    function buildSingleDock(x, z, rotation) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+      group.rotation.y = rotation;
+
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x543210, roughness: 0.9 });
+
+      // Main Pier Platform extending out into water (12m x 35m)
+      const pier = new THREE.Mesh(new THREE.BoxGeometry(12, 0.8, 35), woodMat);
+      pier.position.set(0, 0.2, -15);
+      pier.receiveShadow = true;
+      group.add(pier);
+
+      // Support Stilts under water
+      for(let stiltZ = -30; stiltZ <= 0; stiltZ += 6) {
+        [-5, 5].forEach(stiltX => {
+          const stilt = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 6), woodMat);
+          stilt.position.set(stiltX, -2.5, stiltZ);
+          group.add(stilt);
+        });
+      }
+
+      // Dock Decor: Stacked Crates, Chests, Supply Carts
+      const crateMat = new THREE.MeshStandardMaterial({ color: 0x854d0e });
+      for (let i = 0; i < 8; i++) {
+        const crate = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.3, 1.3), crateMat);
+        crate.position.set((i % 2 === 0 ? 3.5 : -3.5), 1.25, -5 - i * 2.5);
+        group.add(crate);
+      }
+
+      // Dockworker / Sailor NPCs
+      spawnSailorNPC(group, -2, 0.6, -10);
+      spawnSailorNPC(group, 2, 0.6, -22);
+
+      // Small Wooden Rowboats Moored Nearby
+      spawnRowboat(group, -10, -0.2, -15, Math.PI / 6);
+      spawnRowboat(group, 10, -0.2, -25, -Math.PI / 4);
+
+      // Large Impressive Pirate Galleon Moored at End of Pier
+      spawnPirateGalleon(group, 0, 0, -48);
+
+      scene.add(group);
+    }
+
+    // Sailor NPC
+    function spawnSailorNPC(parentGroup, x, y, z) {
+      const sailor = new THREE.Group();
+      sailor.position.set(x, y, z);
+      const clothMat = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xfdba74 });
+
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 1.4), clothMat);
+      body.position.y = 0.7;
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.28), skinMat);
+      head.position.y = 1.6;
+
+      sailor.add(body, head);
+      parentGroup.add(sailor);
+    }
+
+    // Small Rowboat
+    function spawnRowboat(parentGroup, x, y, z, rot) {
+      const boat = new THREE.Group();
+      boat.position.set(x, y, z);
+      boat.rotation.y = rot;
+
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x451a03 });
+      const hull = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 5), woodMat);
+      hull.position.y = 0.4;
+      boat.add(hull);
+
+      const oar = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3), woodMat);
+      oar.rotation.z = Math.PI / 3;
+      oar.position.set(1.2, 0.8, 0);
+      boat.add(oar);
+
+      parentGroup.add(boat);
+    }
+
+    // Large Pirate Ship / Galleon
+    function spawnPirateGalleon(parentGroup, x, y, z) {
+      const ship = new THREE.Group();
+      ship.position.set(x, y, z);
+
+      const hullMat = new THREE.MeshStandardMaterial({ color: 0x271506, roughness: 0.8 });
+      const sailMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, side: THREE.DoubleSide });
+      const flagMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+
+      // Massive Ship Hull
+      const hull = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 26), hullMat);
+      hull.position.y = 2;
+      ship.add(hull);
+
+      // 3 Masts & White Sails
+      [-8, 0, 8].forEach((mZ, idx) => {
+        const height = 18 - idx * 2;
+        const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, height), hullMat);
+        mast.position.set(0, height / 2 + 3, mZ);
+        ship.add(mast);
+
+        // Canvas Sail
+        const sail = new THREE.Mesh(new THREE.PlaneGeometry(8 - idx, 8), sailMat);
+        sail.position.set(0, height / 2 + 4, mZ + 0.2);
+        ship.add(sail);
+      });
+
+      // Jolly Roger Pirate Flag on Main Mast
+      const flag = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1.5), flagMat);
+      flag.position.set(1.2, 20, 0);
+      ship.add(flag);
+
+      parentGroup.add(ship);
+    }
+
+    // VERY LONG VERTICAL STOREHOUSE / WAREHOUSE
+    function buildLongWarehouse(x, y, z) {
+      const warehouse = new THREE.Group();
+      warehouse.position.set(x, y, z);
+
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x3d2612, roughness: 0.9 });
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+
+      // Very Tall & Long Structure (12m Wide, 12m Tall, 45m Long)
+      const body = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 45), woodMat);
+      body.position.y = 5;
+      body.castShadow = true;
+      warehouse.add(body);
+      collisionObjects.push(body);
+
+      // Roof
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(10, 5, 4), roofMat);
+      roof.position.y = 12.5;
+      roof.scale.set(1, 1, 4.5);
+      roof.rotation.y = Math.PI / 4;
+      warehouse.add(roof);
+
+      // Inside Stacked Cargo Visual Details (Crates / Barrels near doorway)
+      const crateMat = new THREE.MeshStandardMaterial({ color: 0xa16207 });
+      for (let i = 0; i < 12; i++) {
+        const crate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), crateMat);
+        crate.position.set((i % 2 === 0 ? 4.5 : -4.5), 0.8 + Math.floor(i / 4) * 1.6, -18 + (i % 4) * 3);
+        warehouse.add(crate);
+      }
+
+      scene.add(warehouse);
+    }
+
+    // --- OUTSIDE ANCIENT RUINS & STRUCTURES ---
+    function buildOutsideStructures() {
+      // 1. Stone Pyramid Sanctuary (West side: x = -100, z = 0)
+      const pyramidGroup = new THREE.Group();
+      pyramidGroup.position.set(-100, 0, 0);
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
+      for (let step = 0; step < 6; step++) {
+        const size = 30 - step * 4.5;
+        const layer = new THREE.Mesh(new THREE.BoxGeometry(size, 2.5, size), stoneMat);
+        layer.position.y = 1.25 + step * 2.5;
+        layer.castShadow = true;
+        pyramidGroup.add(layer);
+      }
+      scene.add(pyramidGroup);
+      collisionObjects.push(pyramidGroup);
+
+      // 2. Ruined Watchtower (East side: x = 100, z = -40)
+      const towerGroup = new THREE.Group();
+      towerGroup.position.set(100, 0, -40);
+      const towerBody = new THREE.Mesh(new THREE.CylinderGeometry(4, 5, 20, 12), stoneMat);
+      towerBody.position.y = 10;
+      towerGroup.add(towerBody);
+      scene.add(towerGroup);
+      collisionObjects.push(towerBody);
+
+      // 3. Scenic Water Ripple Lakes (East side: x = 90, z = 50)
+      const lakeGeo = new THREE.CircleGeometry(18, 32);
+      lakeGeo.rotateX(-Math.PI / 2);
+      const lakeMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        roughness: 0.1,
+        metalness: 0.8,
+        transparent: true,
+        opacity: 0.85
+      });
+      const lake = new THREE.Mesh(lakeGeo, lakeMat);
+      lake.position.set(90, 0.05, 50);
+      scene.add(lake);
+      waterRippleMaterials.push(lakeMat);
+    }
+
+    // --- ENEMY SMILE SLIMES SPAWN ---
+    function spawnEnemies() {
+      const slimePositions = [
+        { x: -50, z: -40 }, { x: -70, z: -60 }, { x: -80, z: 40 },
+        { x: 50, z: -70 }, { x: 70, z: -20 }, { x: 60, z: 60 },
+        { x: -110, z: 30 }, { x: 110, z: -80 }
+      ];
+
+      slimePositions.forEach(pos => {
+        const slime = createSmileSlime(pos.x, pos.z);
+        enemies.push(slime);
+        scene.add(slime.mesh);
+      });
+    }
+
+    function createSmileSlime(x, z) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+
+      // Bouncy Gel Body Mesh
+      const bodyGeo = new THREE.SphereGeometry(1.4, 16, 12);
+      bodyGeo.scale(1, 0.8, 1);
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: 0x22c55e,
+        roughness: 0.2,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.9
+      });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.position.y = 1.1;
+      body.castShadow = true;
+      group.add(body);
+
+      // Eyes & Cute Smile Face Visuals
+      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+      const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.15), eyeMat);
+      leftEye.position.set(-0.4, 1.3, 1.1);
+      const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.15), eyeMat);
+      rightEye.position.set(0.4, 1.3, 1.1);
+      group.add(leftEye, rightEye);
+
+      return {
+        mesh: group,
+        bodyMesh: body,
+        hp: 50,
+        maxHp: 50,
+        speed: 4.5,
+        state: 'idle',
+        bounceTimer: Math.random() * Math.PI,
+        homePos: new THREE.Vector3(x, 0, z),
+        hitTimer: 0
+      };
+    }
+
+    // --- PLAYER AVATAR CREATION ---
+    function createPlayerAvatar() {
+      const group = new THREE.Group();
+
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xfde047 });
+      const armorMat = new THREE.MeshStandardMaterial({ color: CLASSES[selectedClass].color });
+
+      // Torso / Body
+      const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.35, 1.3, 8), armorMat);
+      torso.position.y = 1.15;
+      torso.castShadow = true;
+      group.add(torso);
+
+      // Head
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), skinMat);
+      head.position.y = 2.05;
+      head.castShadow = true;
+      group.add(head);
+
+      // Hair (Male Short / Female Long Hair option)
+      const hairMat = new THREE.MeshStandardMaterial({ color: selectedGender === 'female' ? 0x9a3412 : 0x451a03 });
+      if (selectedGender === 'female') {
+        const hair = new THREE.Mesh(new THREE.ConeGeometry(0.45, 1.2, 8), hairMat);
+        hair.position.set(0, 2.1, -0.2);
+        hair.rotation.x = -Math.PI / 6;
+        group.add(hair);
+      } else {
+        const hair = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), hairMat);
+        hair.position.set(0, 2.15, 0);
+        group.add(hair);
+      }
+
+      // Arms & Legs
+      const limbMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+      [-0.48, 0.48].forEach(armX => {
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1), limbMat);
+        arm.position.set(armX, 1.2, 0);
+        group.add(arm);
+      });
+
+      // Weapon Class Model Attachment
+      const weaponGroup = createWeaponMesh(selectedClass);
+      weaponGroup.position.set(0.55, 1.1, 0.4);
+      group.add(weaponGroup);
+      player.weaponMesh = weaponGroup;
+
+      player.mesh = group;
+      player.bodyGroup = group;
+      scene.add(group);
+    }
+
+    function createWeaponMesh(clsKey) {
+      const wGroup = new THREE.Group();
+      const metalMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.2 });
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
+
+      if (clsKey === 'sword') {
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.8, 0.3), metalMat);
+        blade.position.y = 0.9;
+        const hilt = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 0.2), woodMat);
+        wGroup.add(blade, hilt);
+      } else if (clsKey === 'bow') {
+        const bowCurve = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.05, 8, 16, Math.PI), woodMat);
+        wGroup.add(bowCurve);
+      } else if (clsKey === 'staff') {
+        const staff = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.2), woodMat);
+        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.25), new THREE.MeshBasicMaterial({ color: 0xec4899 }));
+        orb.position.y = 1.1;
+        wGroup.add(staff, orb);
+      } else { // Default Pole/Mace/Dagger
+        const main = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.8), metalMat);
+        wGroup.add(main);
+      }
+      return wGroup;
+    }
+
+    // --- CONTROLS & EVENT LISTENERS ---
+    function initEventListeners() {
+      // Key Down / Up
+      window.addEventListener('keydown', (e) => {
+        const k = e.key.toLowerCase();
+        if (k === 'w') keys.w = true;
+        if (k === 's') keys.s = true;
+        if (k === 'a') keys.a = true;
+        if (k === 'd') keys.d = true;
+        if (e.shiftKey) keys.shift = true;
+        if (e.code === 'Space') {
+          if (player.isGrounded) {
+            player.verticalVelocity = 9.0;
+            player.isGrounded = false;
+          }
+        }
+
+        // Skill hotkeys 1, 2, 3
+        if (k === '1') triggerSkill(1);
+        if (k === '2') triggerSkill(2);
+        if (k === '3') triggerSkill(3);
+
+        // Interaction Key [E] or [F]
+        if (k === 'e' || k === 'f') checkInteractions(true);
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        if (k === 'w') keys.w = false;
+        if (k === 's') keys.s = false;
+        if (k === 'a') keys.a = false;
+        if (k === 'd') keys.d = false;
+        if (!e.shiftKey) keys.shift = false;
+      });
+
+      // Pointer Lock Mouse Look
+      const container = document.getElementById('canvas-container');
+      container.addEventListener('click', () => {
+        if (isGameStarted && !isPointerLocked) {
+          document.body.requestPointerLock();
+        }
+      });
+
+      document.addEventListener('pointerlockchange', () => {
+        isPointerLocked = (document.pointerLockElement === document.body);
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isPointerLocked) return;
+        const sensitivity = 0.0025;
+        player.rotationY -= e.movementX * sensitivity;
+        player.rotationX -= e.movementY * sensitivity;
+
+        // Clamp vertical camera pitch angle
+        player.rotationX = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, player.rotationX));
+      });
+
+      // Left Click Attack
+      window.addEventListener('mousedown', (e) => {
+        if (isPointerLocked && e.button === 0) {
+          performPrimaryAttack();
+        }
+      });
+
+      // Window Resize
+      window.addEventListener('resize', onWindowResize);
     }
 
     function onWindowResize() {
@@ -704,1567 +1333,319 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    /* =========================================================================
-       5. POINTER LOCK CROSSHAIR CONTROLS
-       ========================================================================= */
-    function requestPointerLock() {
-      const dom = renderer ? renderer.domElement : document.body;
-      if (dom && dom.requestPointerLock) {
-        dom.requestPointerLock();
-      }
-    }
-
-    function setupPointerLockControls() {
-      const dom = renderer.domElement;
-
-      dom.addEventListener('click', () => {
-        if (!isPointerLocked && !isEscOpen && !isPaused && !isCinematic && !isChestOpen) {
-          requestPointerLock();
-        } else if (isPointerLocked) {
-          executePrimaryAttack();
-        }
-      });
-
-      document.addEventListener('pointerlockchange', () => {
-        isPointerLocked = (document.pointerLockElement === dom);
-        const hint = document.getElementById('pointer-lock-hint');
-        if (hint) hint.classList.toggle('hidden', isPointerLocked);
-      });
-
-      document.addEventListener('mousemove', (e) => {
-        if (!isPointerLocked || isPaused || isEscOpen || isCinematic || isChestOpen) return;
-
-        const sensitivity = 0.0025;
-        cameraOrbit.yaw -= e.movementX * sensitivity;
-        cameraOrbit.pitch += e.movementY * sensitivity;
-
-        cameraOrbit.pitch = Math.max(-0.15, Math.min(Math.PI / 2.3, cameraOrbit.pitch));
-      });
-
-      dom.addEventListener('wheel', (e) => {
-        if (!isPointerLocked) return;
-        cameraOrbit.distance += e.deltaY * 0.01;
-        cameraOrbit.distance = Math.max(5, Math.min(28, cameraOrbit.distance));
-      });
-    }
-
-    /* =========================================================================
-       6. UNIFORM GROUND & PROCEDURAL HEIGHT FORMULA
-       ========================================================================= */
-    function getLakeDistance(x, z) {
-      return Math.hypot(x - CONFIG.LAKE_CENTER_X, z - CONFIG.LAKE_CENTER_Z);
-    }
-
-    function getTerrainHeight(x, z) {
-      const lakeDist = getLakeDistance(x, z);
-      if (lakeDist < CONFIG.LAKE_RADIUS) {
-        const t = lakeDist / CONFIG.LAKE_RADIUS;
-        return -2.2 + Math.pow(t, 2) * 2.2 - 0.2;
-      }
-
-      // Continuous uniform terrain
-      const wave1 = Math.sin(x * 0.025) * Math.cos(z * 0.025) * 3.2;
-      const wave2 = Math.cos(x * 0.012 + 0.5) * Math.sin(z * 0.014) * 2.8;
-
-      return wave1 + wave2;
-    }
-
-    function buildWorld() {
-      // Single continuous ground terrain mesh
-      const geo = new THREE.PlaneGeometry(CONFIG.WORLD_SIZE, CONFIG.WORLD_SIZE, 220, 220);
-      geo.rotateX(-Math.PI / 2);
-
-      const pos = geo.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const z = pos.getZ(i);
-        pos.setY(i, getTerrainHeight(x, z));
-      }
-      geo.computeVertexNormals();
-
-      const mat = new THREE.MeshStandardMaterial({
-        color: 0x388e3c,
-        roughness: 0.85,
-        flatShading: true
-      });
-      terrainMesh = new THREE.Mesh(geo, mat);
-      terrainMesh.receiveShadow = true;
-      terrainMesh.castShadow = true;
-      scene.add(terrainMesh);
-
-      // Walkable Animated Lake Water Surface
-      buildAnimatedLakeWater();
-
-      // Palisade with NO GAPS and 2 ARCH GATES
-      buildGaplessPalisadeWithTwoGates();
-
-      // Safe Zone Structures & Expanded Village
-      buildAnimatedBonfire();
-      buildPlayerHouseCabin();
-      buildStoneCastleKeep();
-      buildFiveVariedHouses();
-      buildShopsAndStalls();
-      buildCartsCratesFruitsBarrels();
-      buildFlagsAndBanners();
-
-      // Interactive Chests in Safe Zone
-      spawnInteractiveChest(-12, 12, 'Safezone Market Chest');
-      spawnInteractiveChest(18, -12, 'Keep Storage Chest');
-      spawnInteractiveChest(-22, -8, 'Library Vault Chest');
-
-      // Structures Outside Safe Zone
-      buildRuinedCastleOutside();
-      buildRuinedWatchtowers();
-      buildStoneStackedMonument();
-      buildStonePyramid();
-
-      // Dense Pointy Grass Cover across ALL green terrain & Forest biomes
-      buildDenseGrassAndEnvironment();
-    }
-
-    function buildAnimatedLakeWater() {
-      const waterGeo = new THREE.CircleGeometry(CONFIG.LAKE_RADIUS, 48);
-      waterGeo.rotateX(-Math.PI / 2);
-
-      const waterMat = new THREE.MeshStandardMaterial({
-        color: 0x0284c7,
-        roughness: 0.1,
-        metalness: 0.85,
-        transparent: true,
-        opacity: 0.82
-      });
-
-      waterMesh = new THREE.Mesh(waterGeo, waterMat);
-      waterMesh.position.set(CONFIG.LAKE_CENTER_X, -0.4, CONFIG.LAKE_CENTER_Z);
-      scene.add(waterMesh);
-    }
-
-    function updateLakeWaterAnimation(time) {
-      if (!waterMesh) return;
-      const pos = waterMesh.geometry.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i);
-        const z = pos.getZ(i);
-        const waveY = Math.sin(time * 2.5 + x * 0.35 + z * 0.4) * 0.15 + Math.cos(time * 1.8 + z * 0.5) * 0.1;
-        pos.setY(i, waveY);
-      }
-      waterMesh.geometry.attributes.position.needsUpdate = true;
-      waterMesh.geometry.computeVertexNormals();
-    }
-
-    /* =========================================================================
-       7. GAPLESS PALISADE & 2 GATES (NORTH & SOUTH)
-       ========================================================================= */
-    function buildGaplessPalisadeWithTwoGates() {
-      const radius = CONFIG.PALISADE_RADIUS;
-      const count = CONFIG.PALISADE_LOG_COUNT;
-      const logGroup = new THREE.Group();
-      
-      const logMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.9 });
-      const tipMat = new THREE.MeshStandardMaterial({ color: 0x3d2514, roughness: 0.8 });
-      const archMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
-
-      const NORTH_GATE_ANGLE = Math.PI / 2;      // North entrance
-      const SOUTH_GATE_ANGLE = (3 * Math.PI) / 2; // South entrance
-      const GATE_WIDTH_ANGLE = 0.18;
-
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2;
-
-        const isNorthGate = Math.abs(angle - NORTH_GATE_ANGLE) < GATE_WIDTH_ANGLE;
-        const isSouthGate = Math.abs(angle - SOUTH_GATE_ANGLE) < GATE_WIDTH_ANGLE;
-
-        if (isNorthGate || isSouthGate) continue;
-
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        const y = getTerrainHeight(x, z);
-
-        const logHeight = 4.8 + (Math.random() * 0.2);
-        const logRadius = 0.55;
-        const logMesh = new THREE.Mesh(new THREE.CylinderGeometry(logRadius, logRadius, logHeight, 6), logMat);
-        logMesh.position.set(x, y + logHeight / 2, z);
-        logMesh.castShadow = true;
-
-        const coneMesh = new THREE.Mesh(new THREE.ConeGeometry(logRadius, 0.9, 6), tipMat);
-        coneMesh.position.set(0, logHeight / 2 + 0.45, 0);
-        logMesh.add(coneMesh);
-
-        logGroup.add(logMesh);
-        colliders.push({ type: 'cylinder', x: x, z: z, radius: logRadius + 0.2 });
-      }
-
-      // WOODEN ARCH GATES
-      [NORTH_GATE_ANGLE, SOUTH_GATE_ANGLE].forEach(gateAngle => {
-        const gx = Math.cos(gateAngle) * radius;
-        const gz = Math.sin(gateAngle) * radius;
-        const gy = getTerrainHeight(gx, gz);
-
-        const archPillar1 = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 6, 8), archMat);
-        archPillar1.position.set(gx - 2.8, gy + 3, gz);
-        scene.add(archPillar1);
-
-        const archPillar2 = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 6, 8), archMat);
-        archPillar2.position.set(gx + 2.8, gy + 3, gz);
-        scene.add(archPillar2);
-
-        const beam = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.8, 0.8), archMat);
-        beam.position.set(gx, gy + 5.8, gz);
-        scene.add(beam);
-      });
-
-      scene.add(logGroup);
-    }
-
-    /* =========================================================================
-       8. SAFE ZONE STRUCTURES & EXPANDED VILLAGE
-       ========================================================================= */
-    function buildAnimatedBonfire() {
-      const x = -6, z = -4;
-      const y = getTerrainHeight(x, z);
-
-      const ringMesh = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.28, 8, 16), new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 }));
-      ringMesh.rotation.x = Math.PI / 2;
-      ringMesh.position.set(x, y + 0.15, z);
-      scene.add(ringMesh);
-
-      const logMat = new THREE.MeshStandardMaterial({ color: 0x3f2314, roughness: 0.9 });
-      for (let i = 0; i < 6; i++) {
-        const log = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 2.2, 6), logMat);
-        const rot = (i / 6) * Math.PI * 2;
-        log.position.set(x + Math.cos(rot) * 0.5, y + 0.4, z + Math.sin(rot) * 0.5);
-        log.rotation.z = Math.PI / 3.2;
-        log.rotation.y = rot;
-        scene.add(log);
-      }
-
-      colliders.push({ type: 'cylinder', x: x, z: z, radius: 2.0 });
-
-      fireLight = new THREE.PointLight(0xf97316, 2.8, 22);
-      fireLight.position.set(x, y + 1.5, z);
-      scene.add(fireLight);
-
-      for (let i = 0; i < 16; i++) {
-        const pMesh = new THREE.Mesh(
-          new THREE.DodecahedronGeometry(0.2),
-          new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xef4444 : 0xf59e0b, transparent: true, opacity: 0.85 })
-        );
-        pMesh.position.set(x + (Math.random() - 0.5) * 0.9, y + 0.5 + Math.random() * 1.5, z + (Math.random() - 0.5) * 0.9);
-        scene.add(pMesh);
-        fireParticles.push({ mesh: pMesh, baseY: y + 0.5, speed: 1.2 + Math.random() * 1.5 });
-      }
-    }
-
-    function buildPlayerHouseCabin() {
-      const hx = 14, hz = 12;
-      const hy = getTerrainHeight(hx, hz);
-      const group = new THREE.Group();
-
-      const wallMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
-      const roofMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.7 });
-
-      const walls = new THREE.Mesh(new THREE.BoxGeometry(8, 4.5, 9), wallMat);
-      walls.position.y = 2.25;
-      walls.castShadow = true;
-      group.add(walls);
-
-      const roof = new THREE.Mesh(new THREE.ConeGeometry(7, 3.5, 4), roofMat);
-      roof.position.y = 6.0;
-      roof.rotation.y = Math.PI / 4;
-      roof.castShadow = true;
-      group.add(roof);
-
-      // FUNCTIONING HOUSE DOOR (PIVOTED FOR OPENING)
-      const doorPivot = new THREE.Group();
-      doorPivot.position.set(-1.0, 0, -4.55);
-
-      houseDoorMesh = new THREE.Mesh(new THREE.BoxGeometry(2.0, 3.2, 0.2), new THREE.MeshStandardMaterial({ color: 0x3f2314, roughness: 0.6 }));
-      houseDoorMesh.position.set(1.0, 1.6, 0);
-      doorPivot.add(houseDoorMesh);
-      group.add(doorPivot);
-
-      group.position.set(hx, hy, hz);
-      scene.add(group);
-
-      houseDoorPosition.set(hx, hy, hz - 4.6);
-      colliders.push({ type: 'box', x: hx, z: hz, width: 8.5, depth: 9.5 });
-    }
-
-    // STONE CASTLE / KEEP IN SAFEZONE
-    function buildStoneCastleKeep() {
-      const cx = 22, cz = -18;
-      const cy = getTerrainHeight(cx, cz);
-      const keep = new THREE.Group();
-
-      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
-      const darkStoneMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
-
-      // Main Keep Building
-      const main = new THREE.Mesh(new THREE.BoxGeometry(14, 10, 14), stoneMat);
-      main.position.y = 5;
-      main.castShadow = true;
-      keep.add(main);
-
-      // Four Corner Towers
-      const towerGeo = new THREE.CylinderGeometry(2.5, 2.5, 14, 12);
-      const towerRoofGeo = new THREE.ConeGeometry(3.2, 4, 12);
-      const roofMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.6 });
-
-      [[-7, -7], [7, -7], [-7, 7], [7, 7]].forEach(([tx, tz]) => {
-        const tower = new THREE.Mesh(towerGeo, darkStoneMat);
-        tower.position.set(tx, 7, tz);
-        tower.castShadow = true;
-        keep.add(tower);
-
-        const roof = new THREE.Mesh(towerRoofGeo, roofMat);
-        roof.position.set(tx, 16, tz);
-        roof.castShadow = true;
-        keep.add(roof);
-      });
-
-      // Archway Entrance
-      const archFrame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 5.5, 1.2), darkStoneMat);
-      archFrame.position.set(0, 2.75, 7.1);
-      keep.add(archFrame);
-
-      const archCut = new THREE.Mesh(new THREE.BoxGeometry(3.0, 4.2, 1.5), new THREE.MeshBasicMaterial({ color: 0x0f172a }));
-      archCut.position.set(0, 2.1, 7.1);
-      keep.add(archCut);
-
-      keep.position.set(cx, cy, cz);
-      scene.add(keep);
-
-      colliders.push({ type: 'box', x: cx, z: cz, width: 16, depth: 16 });
-      spawnNPC(cx, cy, cz + 8.2, 0x1e40af, "Guard Captain");
-    }
-
-    // 5 VARIED HOUSES IN SAFEZONE
-    function buildFiveVariedHouses() {
-      const houseConfigs = [
-        { x: -22, z: 18, w: 7, h: 4, d: 7, wallColor: 0x9a3412, roofColor: 0xb91c1c, roofType: 'cone', npcName: 'Baker Hans' },
-        { x: 18, z: -2, w: 6, h: 5, d: 8, wallColor: 0x1e293b, roofColor: 0x1d4ed8, roofType: 'gable', npcName: 'Tailor Lyra' },
-        { x: -16, z: -22, w: 8, h: 4.5, d: 7, wallColor: 0x78350f, roofColor: 0x854d0e, roofType: 'cone', npcName: 'Herbalist Nora' },
-        { x: 4, z: 24, w: 7, h: 5.5, d: 6, wallColor: 0x3f6212, roofColor: 0x3f2314, roofType: 'gable', npcName: 'Farmer Bob' },
-        { x: -26, z: -4, w: 9, h: 6, d: 8, wallColor: 0x475569, roofColor: 0x431407, roofType: 'gable', npcName: 'Scholar Donald' }
-      ];
-
-      houseConfigs.forEach(cfg => {
-        const hy = getTerrainHeight(cfg.x, cfg.z);
-        const group = new THREE.Group();
-
-        const wallMat = new THREE.MeshStandardMaterial({ color: cfg.wallColor, roughness: 0.8 });
-        const roofMat = new THREE.MeshStandardMaterial({ color: cfg.roofColor, roughness: 0.7 });
-
-        const walls = new THREE.Mesh(new THREE.BoxGeometry(cfg.w, cfg.h, cfg.d), wallMat);
-        walls.position.y = cfg.h / 2;
-        walls.castShadow = true;
-        group.add(walls);
-
-        if (cfg.roofType === 'cone') {
-          const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(cfg.w, cfg.d) * 0.75, 3.5, 4), roofMat);
-          roof.position.y = cfg.h + 1.75;
-          roof.rotation.y = Math.PI / 4;
-          roof.castShadow = true;
-          group.add(roof);
-        } else {
-          const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(cfg.w, cfg.d) * 0.7, 3.2, 4), roofMat);
-          roof.position.y = cfg.h + 1.6;
-          roof.rotation.y = Math.PI / 4;
-          roof.castShadow = true;
-          group.add(roof);
-        }
-
-        const door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.8, 0.2), new THREE.MeshStandardMaterial({ color: 0x27170a }));
-        door.position.set(0, 1.4, cfg.d / 2 + 0.05);
-        group.add(door);
-
-        group.position.set(cfg.x, hy, cfg.z);
-        scene.add(group);
-
-        colliders.push({ type: 'box', x: cfg.x, z: cfg.z, width: cfg.w + 0.5, depth: cfg.d + 0.5 });
-        spawnNPC(cfg.x, hy, cfg.z + cfg.d / 2 + 2.0, cfg.roofColor, cfg.npcName);
-      });
-    }
-
-    // SHOPS AND STALLS
-    function buildShopsAndStalls() {
-      const sx = -12, sz = 2;
-      const sy = getTerrainHeight(sx, sz);
-
-      const stallMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
-      const clothMat = new THREE.MeshStandardMaterial({ color: 0xd97706 });
-
-      const counter = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.2, 1.8), stallMat);
-      counter.position.set(sx, sy + 0.6, sz);
-      scene.add(counter);
-
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.3, 2.5), clothMat);
-      roof.position.set(sx, sy + 3.0, sz);
-      scene.add(roof);
-
-      colliders.push({ type: 'box', x: sx, z: sz, width: 4.8, depth: 2.0 });
-      spawnNPC(sx, sy, sz - 1.2, 0xd97706, "Merchant Joe");
-    }
-
-    // CARTS, CRATES WITH FRUITS & BARRELS
-    function buildCartsCratesFruitsBarrels() {
-      const locations = [
-        { x: -8, z: 14 },
-        { x: 12, z: -10 },
-        { x: -18, z: 8 }
-      ];
-
-      locations.forEach(loc => {
-        const y = getTerrainHeight(loc.x, loc.z);
-
-        // Wagon
-        const cartMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21 });
-        const cart = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.8, 3.8), cartMat);
-        cart.position.set(loc.x, y + 0.8, loc.z);
-        scene.add(cart);
-
-        // Crates with fruits
-        const crateMat = new THREE.MeshStandardMaterial({ color: 0x854d0e });
-        const crate = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), crateMat);
-        crate.position.set(loc.x + 1.8, y + 0.5, loc.z);
-        scene.add(crate);
-
-        // Apples/Oranges inside crate
-        const fruitMat = new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0xef4444 : 0xf97316 });
-        for (let i = 0; i < 5; i++) {
-          const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.18, 6, 6), fruitMat);
-          fruit.position.set(loc.x + 1.8 + (Math.random() - 0.5) * 0.6, y + 1.1, loc.z + (Math.random() - 0.5) * 0.6);
-          scene.add(fruit);
-        }
-
-        // Barrel
-        const barrelMat = new THREE.MeshStandardMaterial({ color: 0x451a03 });
-        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.3, 10), barrelMat);
-        barrel.position.set(loc.x - 1.8, y + 0.65, loc.z + 0.8);
-        scene.add(barrel);
-
-        colliders.push({ type: 'cylinder', x: loc.x, z: loc.z, radius: 2.2 });
-      });
-    }
-
-    // FLAGS AND BANNERS
-    function buildFlagsAndBanners() {
-      const flagPositions = [
-        { x: 0, z: 35 },
-        { x: 0, z: -35 },
-        { x: 20, z: -10 }
-      ];
-
-      flagPositions.forEach(p => {
-        const y = getTerrainHeight(p.x, p.z);
-
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 7, 8), new THREE.MeshStandardMaterial({ color: 0x475569 }));
-        pole.position.set(p.x, y + 3.5, p.z);
-        scene.add(pole);
-
-        const banner = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.8, 0.05), new THREE.MeshStandardMaterial({ color: 0xd97706 }));
-        banner.position.set(p.x + 0.9, y + 5.0, p.z);
-        scene.add(banner);
-      });
-    }
-
-    // FRIENDLY ANIMATED NPCS
-    function spawnNPC(x, y, z, colorHex, name) {
-      const group = new THREE.Group();
-      const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.6 });
-      const skinMat = new THREE.MeshStandardMaterial({ color: 0xfed7aa });
-
-      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 1.3, 10), bodyMat);
-      body.position.y = 1.3;
-      group.add(body);
-
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 12), skinMat);
-      head.position.y = 2.15;
-      group.add(head);
-
-      group.position.set(x, y, z);
-      scene.add(group);
-
-      npcs.push({ group: group, baseY: y, animTime: Math.random() * 10 });
-    }
-
-    function updateNPCs(delta) {
-      npcs.forEach(npc => {
-        npc.animTime += delta * 2;
-        npc.group.position.y = npc.baseY + Math.sin(npc.animTime) * 0.08;
-        npc.group.rotation.y = Math.sin(npc.animTime * 0.5) * 0.25;
-      });
-    }
-
-    /* =========================================================================
-       9. INTERACTIVE CHESTS SYSTEM
-       ========================================================================= */
-    function spawnInteractiveChest(x, z, title = 'Treasure Chest') {
-      const y = getTerrainHeight(x, z);
-      const group = new THREE.Group();
-
-      const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 });
-      const ironMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.3 });
-
-      // Base Box
-      const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 1.1), woodMat);
-      base.position.y = 0.45;
-      base.castShadow = true;
-      group.add(base);
-
-      // Lid
-      const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 1.6, 12, 1, false, 0, Math.PI), woodMat);
-      lid.rotation.z = Math.PI / 2;
-      lid.position.y = 0.9;
-      lid.castShadow = true;
-      group.add(lid);
-
-      // Lock
-      const lock = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.25, 0.1), ironMat);
-      lock.position.set(0, 0.7, 0.58);
-      group.add(lock);
-
-      group.position.set(x, y, z);
-      scene.add(group);
-
-      const chestData = { x: x, y: y, z: z, group: group, title: title };
-      chests.push(chestData);
-      colliders.push({ type: 'cylinder', x: x, z: z, radius: 1.0 });
-
-      return chestData;
-    }
-
-    /* =========================================================================
-       10. STRUCTURES OUTSIDE THE SAFEZONE
-       ========================================================================= */
-    // 1. RUINED CASTLE WITH COURTYARD CHEST
-    function buildRuinedCastleOutside() {
-      const cx = -90, cz = -85;
-      const cy = getTerrainHeight(cx, cz);
-      const ruinedCastle = new THREE.Group();
-
-      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9, flatShading: true });
-      const mossMat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.8 });
-
-      // Broken Courtyard Perimeter Walls
-      for (let i = 0; i < 14; i++) {
-        const angle = (i / 14) * Math.PI * 2;
-        if (i === 3 || i === 4) continue; // Broken Entrance Gap
-
-        const wx = Math.cos(angle) * 18;
-        const wz = Math.sin(angle) * 18;
-        const wallH = 3 + Math.random() * 5;
-
-        const wall = new THREE.Mesh(new THREE.BoxGeometry(4.5, wallH, 1.8), stoneMat);
-        wall.position.set(wx, wallH / 2, wz);
-        wall.rotation.y = -angle;
-        wall.castShadow = true;
-        ruinedCastle.add(wall);
-      }
-
-      // Fallen Columns
-      for (let i = 0; i < 6; i++) {
-        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.9, 6, 8), stoneMat);
-        col.position.set((Math.random() - 0.5) * 20, 0.4, (Math.random() - 0.5) * 20);
-        col.rotation.z = Math.PI / 2 + (Math.random() - 0.5) * 0.4;
-        col.rotation.y = Math.random() * Math.PI;
-        ruinedCastle.add(col);
-      }
-
-      // Arched Entrance Pillar Arch
-      const archP1 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 8, 2.5), stoneMat);
-      archP1.position.set(-6, 4, 18);
-      ruinedCastle.add(archP1);
-
-      const archP2 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 8, 2.5), stoneMat);
-      archP2.position.set(6, 4, 18);
-      ruinedCastle.add(archP2);
-
-      const archBeam = new THREE.Mesh(new THREE.BoxGeometry(14.5, 2.0, 2.5), stoneMat);
-      archBeam.position.set(0, 8.5, 18);
-      ruinedCastle.add(archBeam);
-
-      ruinedCastle.position.set(cx, cy, cz);
-      scene.add(ruinedCastle);
-
-      colliders.push({ type: 'cylinder', x: cx, z: cz, radius: 20 });
-
-      // Interactive Treasure Chest in Courtyard Center
-      spawnInteractiveChest(cx, cz, 'Ruined Castle Ancient Chest');
-    }
-
-    // 2. RUINED WATCHTOWERS
-    function buildRuinedWatchtowers() {
-      const towerPositions = [
-        { x: 85, z: 80 },
-        { x: -110, z: 65 },
-        { x: 100, z: -95 }
-      ];
-
-      towerPositions.forEach(p => {
-        const y = getTerrainHeight(p.x, p.z);
-        const group = new THREE.Group();
-        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
-
-        // Cylindrical Tower Body
-        const height = 12 + Math.random() * 6;
-        const tower = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.8, height, 12), stoneMat);
-        tower.position.y = height / 2;
-        tower.castShadow = true;
-        group.add(tower);
-
-        // Broken Top Crest Rubble
-        for (let i = 0; i < 5; i++) {
-          const rubble = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2), stoneMat);
-          rubble.position.set((Math.random() - 0.5) * 3, height + 0.5, (Math.random() - 0.5) * 3);
-          group.add(rubble);
-        }
-
-        group.position.set(p.x, y, p.z);
-        scene.add(group);
-
-        colliders.push({ type: 'cylinder', x: p.x, z: p.z, radius: 4.2 });
-      });
-    }
-
-    // 3. MASSIVE STONE STACKED MONUMENT (STONEHENGE MEGALITH)
-    function buildStoneStackedMonument() {
-      const mx = 105, mz = 35;
-      const my = getTerrainHeight(mx, mz);
-      const monument = new THREE.Group();
-
-      const megalithMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95, flatShading: true });
-      const count = 8;
-      const radius = 12;
-
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2;
-        const sx = Math.cos(angle) * radius;
-        const sz = Math.sin(angle) * radius;
-
-        // Standing Stone Pillar
-        const pillar = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7.5, 1.8), megalithMat);
-        pillar.position.set(sx, 3.75, sz);
-        pillar.rotation.y = -angle;
-        pillar.castShadow = true;
-        monument.add(pillar);
-
-        // Lintels bridging pairs
-        if (i % 2 === 0) {
-          const lintel = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.8, 2.2), megalithMat);
-          lintel.position.set(sx * 0.9, 8.2, sz * 0.9);
-          lintel.rotation.y = -angle + Math.PI / 4;
-          lintel.castShadow = true;
-          monument.add(lintel);
-        }
-      }
-
-      // Center Altar Stone
-      const altar = new THREE.Mesh(new THREE.BoxGeometry(4.0, 1.5, 2.5), megalithMat);
-      altar.position.set(0, 0.75, 0);
-      monument.add(altar);
-
-      monument.position.set(mx, my, mz);
-      scene.add(monument);
-
-      colliders.push({ type: 'cylinder', x: mx, z: mz, radius: 14 });
-    }
-
-    // 4. ANCIENT STONE PYRAMID
-    function buildStonePyramid() {
-      const px = -65, pz = 110;
-      const py = getTerrainHeight(px, pz);
-      const pyramid = new THREE.Group();
-
-      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.9, flatShading: true });
-
-      // Stepped Pyramid Layers
-      const layers = 6;
-      for (let i = 0; i < layers; i++) {
-        const size = (layers - i) * 6;
-        const h = 2.5;
-        const step = new THREE.Mesh(new THREE.BoxGeometry(size, h, size), stoneMat);
-        step.position.y = i * h + h / 2;
-        step.castShadow = true;
-        pyramid.add(step);
-      }
-
-      // Entrance Pedestal
-      const entrance = new THREE.Mesh(new THREE.BoxGeometry(4.0, 3.5, 3.0), stoneMat);
-      entrance.position.set(0, 1.75, (layers * 6) / 2 - 0.5);
-      pyramid.add(entrance);
-
-      pyramid.position.set(px, py, pz);
-      scene.add(pyramid);
-
-      colliders.push({ type: 'box', x: px, z: pz, width: 38, depth: 38 });
-    }
-
-    /* =========================================================================
-       11. EXTREMELY DENSE POINTY GRASS COVERAGE & ENVIRONMENT
-       ========================================================================= */
-    function buildDenseGrassAndEnvironment() {
-      const grassMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.7, side: THREE.DoubleSide });
-      const rockMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9, flatShading: true });
-      const treeMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8, flatShading: true });
-      const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
-
-      // INSTANCED DENSE POINTY GRASS COVERAGE (45% DENSE = 2,800 CLUSTERS)
-      const bladeGeo = new THREE.ConeGeometry(0.22, 1.1, 3);
-      const totalClusters = 2800;
-
-      for (let i = 0; i < totalClusters; i++) {
-        const x = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 20);
-        const z = (Math.random() - 0.5) * (CONFIG.WORLD_SIZE - 20);
-
-        if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS - 1.0) continue;
-
-        const y = getTerrainHeight(x, z);
-        const cluster = new THREE.Group();
-
-        for (let j = 0; j < 5; j++) {
-          const blade = new THREE.Mesh(bladeGeo, grassMat);
-          const offsetX = (Math.random() - 0.5) * 0.8;
-          const offsetZ = (Math.random() - 0.5) * 0.8;
-          blade.position.set(offsetX, 0.55, offsetZ);
-          blade.rotation.y = Math.random() * Math.PI;
-          blade.rotation.z = (Math.random() - 0.5) * 0.35;
-          cluster.add(blade);
-        }
-
-        cluster.position.set(x, y, z);
-        scene.add(cluster);
-      }
-
-      // 320 FOREST TREES
-      for (let i = 0; i < 320; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const dist = CONFIG.SAFE_ZONE_RADIUS + 4 + Math.random() * 130;
-        const x = Math.cos(angle) * dist;
-        const z = Math.sin(angle) * dist;
-
-        if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS + 2) continue;
-
-        const y = getTerrainHeight(x, z);
-
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.65, 4.2, 8), trunkMat);
-        trunk.position.set(x, y + 2.1, z);
-        trunk.castShadow = true;
-
-        const leaves = new THREE.Mesh(new THREE.ConeGeometry(3.5, 7.5, 8), treeMat);
-        leaves.position.set(x, y + 6.8, z);
-        leaves.castShadow = true;
-
-        scene.add(trunk);
-        scene.add(leaves);
-
-        colliders.push({ type: 'cylinder', x: x, z: z, radius: 0.8 });
-      }
-
-      // 140 BOULDERS & ROCKS
-      for (let i = 0; i < 140; i++) {
-        const x = (Math.random() - 0.5) * 360;
-        const z = (Math.random() - 0.5) * 360;
-        if (Math.hypot(x, z) < CONFIG.SAFE_ZONE_RADIUS || getLakeDistance(x, z) < CONFIG.LAKE_RADIUS) continue;
-
-        const y = getTerrainHeight(x, z);
-        const scale = 0.6 + Math.random() * 2.4;
-        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(scale, 1), rockMat);
-        rock.position.set(x, y + scale * 0.5, z);
-        rock.rotation.set(Math.random(), Math.random(), Math.random());
-        rock.castShadow = true;
-        scene.add(rock);
-
-        if (scale > 1.3) {
-          colliders.push({ type: 'cylinder', x: x, z: z, radius: scale * 0.85 });
-        }
-      }
-    }
-
-    /* =========================================================================
-       12. HERO CHARACTER CREATION
-       ========================================================================= */
-    function createHeroCharacter() {
-      if (playerBody) scene.remove(playerBody);
-
-      playerBody = new THREE.Group();
-      const isMale = playerState.gender === 'male';
-      const skinMat = new THREE.MeshStandardMaterial({ color: 0xfed7aa, roughness: 0.5 });
-      const clothMat = new THREE.MeshStandardMaterial({
-        color: isMale ? 0x2563eb : 0xec4899,
-        roughness: 0.6
-      });
-      const hairMat = new THREE.MeshStandardMaterial({ color: isMale ? 0x451a03 : 0xf59e0b });
-
-      const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.35, 1.3, 12), clothMat);
-      torso.position.y = 1.35;
-      torso.castShadow = true;
-      playerBody.add(torso);
-
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), skinMat);
-      head.position.y = 2.2;
-      head.castShadow = true;
-      playerBody.add(head);
-
-      if (isMale) {
-        const cap = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.3, 12), clothMat);
-        cap.position.set(0, 2.45, 0);
-        playerBody.add(cap);
-      } else {
-        const hair = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.45, 1.2, 12), hairMat);
-        hair.position.set(0, 2.0, -0.15);
-        playerBody.add(hair);
-
-        const dress = new THREE.Mesh(new THREE.ConeGeometry(0.7, 0.8, 12), clothMat);
-        dress.position.set(0, 0.85, 0);
-        playerBody.add(dress);
-      }
-
-      const limbGeo = new THREE.CylinderGeometry(0.11, 0.1, 0.85, 10);
-
-      playerBody.leftArm = new THREE.Mesh(limbGeo, clothMat);
-      playerBody.leftArm.position.set(-0.52, 1.4, 0);
-      playerBody.add(playerBody.leftArm);
-
-      playerBody.rightArm = new THREE.Mesh(limbGeo, clothMat);
-      playerBody.rightArm.position.set(0.52, 1.4, 0);
-      playerBody.add(playerBody.rightArm);
-
-      playerBody.leftLeg = new THREE.Mesh(limbGeo, clothMat);
-      playerBody.leftLeg.position.set(-0.22, 0.45, 0);
-      playerBody.add(playerBody.leftLeg);
-
-      playerBody.rightLeg = new THREE.Mesh(limbGeo, clothMat);
-      playerBody.rightLeg.position.set(0.22, 0.45, 0);
-      playerBody.add(playerBody.rightLeg);
-
-      equipWeaponMesh();
-
-      // Safe Spawn Point inside Safe Zone
-      playerState.posX = 0;
-      playerState.posZ = 6;
-      playerState.posY = getTerrainHeight(0, 6);
-      playerBody.position.set(playerState.posX, playerState.posY, playerState.posZ);
-      scene.add(playerBody);
-    }
-
-    function equipWeaponMesh() {
-      if (weaponMesh && playerBody.rightArm) playerBody.rightArm.remove(weaponMesh);
-
-      const metalMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8, roughness: 0.2 });
-      const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
-
-      const cls = playerState.classType;
-      if (cls === 'Warrior') {
-        weaponMesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.5, 0.25), metalMat);
-      } else if (cls === 'Archer') {
-        weaponMesh = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.04, 6, 12, Math.PI), woodMat);
-      } else if (cls === 'Mage') {
-        weaponMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.8, 8), woodMat);
-      } else if (cls === 'Guardian') {
-        const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.3, 8), woodMat);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), metalMat);
-        head.position.y = 0.65;
-        handle.add(head);
-        weaponMesh = handle;
-      } else {
-        weaponMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.7, 8), metalMat);
-      }
-      weaponMesh.position.set(0, -0.3, 0.3);
-      playerBody.rightArm.add(weaponMesh);
-    }
-
-    /* =========================================================================
-       13. CUTE BOUNCING SLIME ENEMIES
-       ========================================================================= */
-    function spawnSlimes() {
-      slimes.forEach(s => scene.remove(s.mesh));
-      slimes.length = 0;
-
-      for (let i = 0; i < 25; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const dist = CONFIG.SAFE_ZONE_RADIUS + 12 + Math.random() * 70;
-        const x = Math.cos(angle) * dist;
-        const z = Math.sin(angle) * dist;
-
-        if (getLakeDistance(x, z) < CONFIG.LAKE_RADIUS) continue;
-
-        const slimeMesh = createCuteSlimeMesh();
-        const y = getTerrainHeight(x, z);
-        slimeMesh.position.set(x, y, z);
-        scene.add(slimeMesh);
-
-        slimes.push({
-          mesh: slimeMesh,
-          x: x,
-          z: z,
-          hp: 60,
-          maxHp: 60,
-          bounceTime: Math.random() * 10,
-          isAttacking: false,
-          attackCooldown: 0,
-          hitFlashTimer: 0
-        });
-      }
-    }
-
-    function createCuteSlimeMesh() {
-      const group = new THREE.Group();
-
-      const bodyMat = new THREE.MeshStandardMaterial({
-        color: 0x10b981,
-        roughness: 0.1,
-        metalness: 0.1,
-        transparent: true,
-        opacity: 0.88
-      });
-      const body = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 16), bodyMat);
-      body.position.y = 0.9;
-      body.scale.set(1.1, 0.9, 1.1);
-      body.castShadow = true;
-      group.add(body);
-      group.bodyMesh = body;
-      group.bodyMat = bodyMat;
-
-      const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
-      const eyeGeo = new THREE.SphereGeometry(0.12, 8, 8);
-
-      const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-      leftEye.position.set(-0.35, 1.05, 0.85);
-      group.add(leftEye);
-
-      const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-      rightEye.position.set(0.35, 1.05, 0.85);
-      group.add(rightEye);
-
-      const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.03, 6, 10, Math.PI), eyeMat);
-      mouth.position.set(0, 0.82, 0.88);
-      mouth.rotation.x = Math.PI;
-      group.add(mouth);
-
-      return group;
-    }
-
-    function updateSlimes(delta) {
-      slimes.forEach(s => {
-        if (s.hp <= 0) return;
-
-        s.bounceTime += delta * 4;
-        s.attackCooldown = Math.max(0, s.attackCooldown - delta);
-
-        if (s.hitFlashTimer > 0) {
-          s.hitFlashTimer -= delta;
-          s.mesh.bodyMat.color.setHex(0xef4444);
-        } else {
-          s.mesh.bodyMat.color.setHex(0x10b981);
-        }
-
-        const distToPlayer = Math.hypot(playerState.posX - s.x, playerState.posZ - s.z);
-
-        if (!playerState.inSafeZone && distToPlayer < 22) {
-          const angle = Math.atan2(playerState.posZ - s.z, playerState.posX - s.x);
-          s.mesh.rotation.y = angle - Math.PI / 2;
-
-          s.x += Math.cos(angle) * 3.8 * delta;
-          s.z += Math.sin(angle) * 3.8 * delta;
-
-          const bounceY = Math.abs(Math.sin(s.bounceTime)) * 0.8;
-          const squish = 1 + Math.sin(s.bounceTime) * 0.2;
-          s.mesh.bodyMesh.scale.set(1 / squish, squish, 1 / squish);
-
-          const terrainY = getTerrainHeight(s.x, s.z);
-          s.mesh.position.set(s.x, terrainY + bounceY, s.z);
-
-          if (distToPlayer < 2.2 && s.attackCooldown <= 0) {
-            s.attackCooldown = 1.6;
-            playerState.hp = Math.max(0, playerState.hp - 12);
-            playSound('hit');
-            showDamageText(playerState.posX, playerState.posZ, '-12 HP', '#f87171');
-            updateHUD();
-          }
-        } else {
-          const terrainY = getTerrainHeight(s.x, s.z);
-          const breath = 1 + Math.sin(s.bounceTime * 0.5) * 0.05;
-          s.mesh.bodyMesh.scale.set(breath, 1 / breath, breath);
-          s.mesh.position.set(s.x, terrainY, s.z);
-        }
-      });
-    }
-
-    /* =========================================================================
-       14. ATTACKS, PROJECTILES & PARTICLES
-       ========================================================================= */
-    function executePrimaryAttack() {
-      if (isPaused || isEscOpen || isCinematic || isChestOpen || playerState.attackCooldown > 0) return;
-
-      playerState.isAttacking = true;
-      playerState.attackCooldown = 0.35;
-      playSound('swing');
-
-      const cls = playerState.classType;
-
-      if (playerBody && playerBody.rightArm) {
-        playerBody.rightArm.rotation.x = -1.5;
-        setTimeout(() => {
-          if (playerBody && playerBody.rightArm) playerBody.rightArm.rotation.x = 0;
-          playerState.isAttacking = false;
-        }, 220);
-      }
-
-      if (cls === 'Archer' || cls === 'Mage') {
-        spawnProjectile(cls);
-      } else {
-        slimes.forEach(s => {
-          if (s.hp <= 0) return;
-          const dist = Math.hypot(s.x - playerState.posX, s.z - playerState.posZ);
-          if (dist < 4.2) {
-            damageSlime(s, 28);
-          }
-        });
-      }
-    }
-
-    function spawnProjectile(cls) {
-      const isMage = cls === 'Mage';
-      const pGeo = isMage ? new THREE.SphereGeometry(0.3, 8, 8) : new THREE.CylinderGeometry(0.04, 0.04, 1.2, 6);
-      const proj = new THREE.Mesh(pGeo, new THREE.MeshBasicMaterial({ color: isMage ? 0x38bdf8 : 0xf59e0b }));
-
-      if (!isMage) proj.rotation.x = Math.PI / 2;
-
-      const dirX = -Math.sin(cameraOrbit.yaw);
-      const dirZ = -Math.cos(cameraOrbit.yaw);
-
-      proj.position.set(playerState.posX + dirX * 1.2, playerState.posY + 1.4, playerState.posZ + dirZ * 1.2);
-      scene.add(proj);
-
-      projectiles.push({ mesh: proj, dirX: dirX, dirZ: dirZ, speed: 28, life: 1.5, isMage: isMage });
-    }
-
-    function updateProjectiles(delta) {
-      for (let i = projectiles.length - 1; i >= 0; i--) {
-        const p = projectiles[i];
-        p.life -= delta;
-
-        p.mesh.position.x += p.dirX * p.speed * delta;
-        p.mesh.position.z += p.dirZ * p.speed * delta;
-
-        let hit = false;
-        slimes.forEach(s => {
-          if (s.hp <= 0 || hit) return;
-          const dist = Math.hypot(s.x - p.mesh.position.x, s.z - p.mesh.position.z);
-          if (dist < 1.8) {
-            damageSlime(s, p.isMage ? 35 : 26);
-            spawnBurstParticles(p.mesh.position.x, p.mesh.position.y, p.mesh.position.z, p.isMage ? 0x38bdf8 : 0xf59e0b);
-            hit = true;
-          }
-        });
-
-        if (hit || p.life <= 0) {
-          scene.remove(p.mesh);
-          projectiles.splice(i, 1);
-        }
-      }
-    }
-
-    function damageSlime(s, damage) {
-      s.hp -= damage;
-      s.hitFlashTimer = 0.25;
-      playSound('hit');
-      showDamageText(s.x, s.z, `-${damage}`);
-      spawnBurstParticles(s.x, getTerrainHeight(s.x, s.z) + 0.8, s.z, 0x10b981);
-
-      if (s.hp <= 0) {
-        s.mesh.visible = false;
-        playerState.exp += 35;
-        if (playerState.exp >= playerState.maxExp) {
-          playerState.level++;
-          playerState.exp -= playerState.maxExp;
-          playerState.maxExp += 50;
-          playerState.maxHp += 20;
-          playerState.hp = playerState.maxHp;
-          showDamageText(playerState.posX, playerState.posZ, 'LEVEL UP!', '#f59e0b');
-        }
-      }
-    }
-
-    function spawnBurstParticles(x, y, z, colorHex) {
-      const mat = new THREE.MeshBasicMaterial({ color: colorHex });
-      const geo = new THREE.DodecahedronGeometry(0.18);
-
-      for (let i = 0; i < 8; i++) {
-        const p = new THREE.Mesh(geo, mat);
-        p.position.set(x, y, z);
-        scene.add(p);
-        particleEffects.push({
-          mesh: p,
-          vx: (Math.random() - 0.5) * 6,
-          vy: Math.random() * 5 + 2,
-          vz: (Math.random() - 0.5) * 6,
-          life: 0.4
-        });
-      }
-    }
-
-    function createWaterSplashRipple(x, z) {
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
-      const ringMesh = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.4, 16), ringMat);
-      ringMesh.rotation.x = Math.PI / 2;
-      ringMesh.position.set(x, -0.35, z);
-      scene.add(ringMesh);
-
-      waterRipples.push({ mesh: ringMesh, scale: 1.0, opacity: 0.85 });
-
-      const splashMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.9 });
-      for (let i = 0; i < 4; i++) {
-        const p = new THREE.Mesh(new THREE.DodecahedronGeometry(0.1), splashMat);
-        p.position.set(x, -0.3, z);
-        scene.add(p);
-        particleEffects.push({
-          mesh: p,
-          vx: (Math.random() - 0.5) * 3,
-          vy: Math.random() * 2.5 + 1.2,
-          vz: (Math.random() - 0.5) * 3,
-          life: 0.35
-        });
-      }
-    }
-
-    function updateWaterRipples(delta) {
-      for (let i = waterRipples.length - 1; i >= 0; i--) {
-        const r = waterRipples[i];
-        r.scale += delta * 3.5;
-        r.opacity -= delta * 1.6;
-
-        r.mesh.scale.set(r.scale, r.scale, r.scale);
-        r.mesh.material.opacity = Math.max(0, r.opacity);
-
-        if (r.opacity <= 0) {
-          scene.remove(r.mesh);
-          waterRipples.splice(i, 1);
-        }
-      }
-    }
-
-    function updateParticles(delta) {
-      for (let i = particleEffects.length - 1; i >= 0; i--) {
-        const p = particleEffects[i];
-        p.life -= delta;
-        p.vy -= 14 * delta;
-
-        p.mesh.position.x += p.vx * delta;
-        p.mesh.position.y += p.vy * delta;
-        p.mesh.position.z += p.vz * delta;
-
-        if (p.life <= 0) {
-          scene.remove(p.mesh);
-          particleEffects.splice(i, 1);
-        }
-      }
-    }
-
-    /* =========================================================================
-       15. CHEST & HOUSE SLEEP INTERACTIONS & INPUTS
-       ========================================================================= */
-    function setupInputListeners() {
-      window.addEventListener('keydown', (e) => {
-        const key = e.key.toLowerCase();
-        if (key === 'w' || key === 'arrowup') keys.w = true;
-        if (key === 'a' || key === 'arrowleft') keys.a = true;
-        if (key === 's' || key === 'arrowdown') keys.s = true;
-        if (key === 'd' || key === 'arrowright') keys.d = true;
-        if (e.shiftKey) keys.shift = true;
-        if (e.code === 'Space') keys.space = true;
-        
-        if (key === 'f') triggerHouseSleepCinematic();
-        if (key === 'e') triggerChestOpen();
-
-        if (key === '1') useSkill(1);
-        if (key === '2') useSkill(2);
-        if (key === '3') useSkill(3);
-
-        if (key === 'p') togglePause();
-        if (e.key === 'Escape') {
-          if (isChestOpen) toggleChestInventory(false);
-          else toggleEscMenu();
-        }
-      });
-
-      window.addEventListener('keyup', (e) => {
-        const key = e.key.toLowerCase();
-        if (key === 'w' || key === 'arrowup') keys.w = false;
-        if (key === 'a' || key === 'arrowleft') keys.a = false;
-        if (key === 's' || key === 'arrowdown') keys.s = false;
-        if (key === 'd' || key === 'arrowright') keys.d = false;
-        if (!e.shiftKey) keys.shift = false;
-        if (e.code === 'Space') keys.space = false;
-      });
-    }
-
-    function triggerChestOpen() {
-      if (activeChestNear && !isChestOpen) {
-        playSound('chest');
-        toggleChestInventory(true);
-      }
-    }
-
-    function toggleChestInventory(forceState) {
-      isChestOpen = forceState !== undefined ? forceState : !isChestOpen;
-      document.getElementById('chest-inventory-modal').classList.toggle('hidden', !isChestOpen);
-      if (isChestOpen && document.exitPointerLock) {
-        document.exitPointerLock();
-      }
-    }
-
-    function triggerHouseSleepCinematic() {
-      const distToDoor = Math.hypot(playerState.posX - houseDoorPosition.x, playerState.posZ - houseDoorPosition.z);
-      
-      if (distToDoor < 3.8 && !isCinematic) {
-        isCinematic = true;
-        playSound('sleep');
-
-        const overlay = document.getElementById('cinematic-overlay');
-        overlay.classList.remove('opacity-0', 'pointer-events-none');
-        overlay.classList.add('opacity-100');
-
-        if (houseDoorMesh && houseDoorMesh.parent) {
-          houseDoorMesh.parent.rotation.y = -Math.PI / 2;
-        }
-
-        setTimeout(() => {
-          gameTimeSeconds = 200; // Bright Morning 8:00 AM
-          playerState.hp = playerState.maxHp;
-          playerState.mp = playerState.maxMp;
-          updateHUD();
-
-          if (houseDoorMesh && houseDoorMesh.parent) {
-            houseDoorMesh.parent.rotation.y = 0;
-          }
-
-          setTimeout(() => {
-            overlay.classList.remove('opacity-100');
-            overlay.classList.add('opacity-0', 'pointer-events-none');
-            isCinematic = false;
-          }, 800);
-        }, 1400);
-      }
-    }
-
-    /* =========================================================================
-       16. SKILLS & HUD UTILITIES
-       ========================================================================= */
-    function useSkill(slot) {
-      if (isPaused || isEscOpen || isCinematic || isChestOpen) return;
-
-      if (slot === 1) {
-        executePrimaryAttack();
-      } else if (slot === 2) {
-        if (playerState.mp >= 15) {
-          playerState.mp -= 15;
-          playSound('swing');
-          showDamageText(playerState.posX, playerState.posZ, 'SPECIAL ARC!', '#38bdf8');
-          spawnBurstParticles(playerState.posX, playerState.posY + 1, playerState.posZ, 0x38bdf8);
-        }
-      } else if (slot === 3) {
-        if (playerState.mp >= 20) {
-          playerState.mp -= 20;
-          playerState.hp = Math.min(playerState.maxHp, playerState.hp + 40);
-          playSound('heal');
-          showDamageText(playerState.posX, playerState.posZ, '+40 HP', '#4ade80');
-          spawnBurstParticles(playerState.posX, playerState.posY + 1, playerState.posZ, 0x4ade80);
-        }
-      }
+    // --- GAME START ---
+    function startGame() {
+      document.getElementById('char-select-screen').classList.add('hidden');
+      document.getElementById('hud-overlay').classList.remove('hidden');
+      document.getElementById('crosshair').classList.remove('hidden');
+
+      createPlayerAvatar();
       updateHUD();
+      isGameStarted = true;
+
+      document.body.requestPointerLock();
     }
 
-    function togglePause() {
-      if (isEscOpen || isCinematic || isChestOpen) return;
-      isPaused = !isPaused;
-      document.getElementById('pause-overlay').classList.toggle('hidden', !isPaused);
-    }
+    // --- DYNAMIC NIGHT LIGHTING SYSTEM ---
+    function updateDayNightCycle(delta) {
+      dayNightCycleTime += delta * dayNightSpeed;
+      if (dayNightCycleTime >= 24) dayNightCycleTime = 0;
 
-    function toggleEscMenu(forceState) {
-      if (isCinematic) return;
-      isEscOpen = forceState !== undefined ? forceState : !isEscOpen;
-      document.getElementById('esc-menu').classList.toggle('hidden', !isEscOpen);
-      if (isEscOpen) updateEscStats();
-    }
+      isNight = (dayNightCycleTime >= 19 || dayNightCycleTime < 5);
 
-    function updateEscStats() {
-      document.getElementById('esc-stat-gender').innerText = playerState.gender;
-      document.getElementById('esc-stat-class').innerText = playerState.classType;
-      document.getElementById('esc-stat-level').innerText = `Level ${playerState.level}`;
-      document.getElementById('esc-stat-location').innerText = playerState.inSafeZone ? 'Safe Zone' : 'Wilderness';
+      // Sky & Sunlight Lerp
+      const sunAngle = ((dayNightCycleTime - 6) / 12) * Math.PI;
+      sunLight.position.x = Math.cos(sunAngle) * 180;
+      sunLight.position.y = Math.sin(sunAngle) * 180;
 
-      document.getElementById('esc-hp-val').innerText = `${Math.ceil(playerState.hp)} / ${playerState.maxHp}`;
-      document.getElementById('esc-hp-bar').style.width = `${(playerState.hp / playerState.maxHp) * 100}%`;
+      if (isNight) {
+        skyMesh.material.color.setHex(0x050b14);
+        ambientLight.intensity = 0.15;
+        sunLight.intensity = 0.1;
+        document.getElementById('time-icon').className = "fa-solid fa-moon text-indigo-400";
+        document.getElementById('time-text').innerText = `Night (${Math.floor(dayNightCycleTime)}:00)`;
+      } else {
+        skyMesh.material.color.setHex(0x87ceeb);
+        ambientLight.intensity = 0.65;
+        sunLight.intensity = 1.2;
+        document.getElementById('time-icon').className = "fa-solid fa-sun text-amber-400";
+        document.getElementById('time-text').innerText = `Day (${Math.floor(dayNightCycleTime)}:00)`;
+      }
 
-      document.getElementById('esc-mp-val').innerText = `${Math.ceil(playerState.mp)} / ${playerState.maxMp}`;
-      document.getElementById('esc-mp-bar').style.width = `${(playerState.mp / playerState.maxMp) * 100}%`;
-    }
-
-    function restartToCharacterSelection() {
-      toggleEscMenu(false);
-      isPaused = false;
-      document.getElementById('pause-overlay').classList.add('hidden');
-      document.getElementById('char-creation').classList.remove('hidden');
-    }
-
-    function showDamageText(x, z, text, color = '#f87171') {
-      const el = document.createElement('div');
-      el.className = 'damage-text';
-      el.innerText = text;
-      el.style.color = color;
-      
-      const vec = new THREE.Vector3(x, getTerrainHeight(x, z) + 2.2, z);
-      vec.project(camera);
-      const sx = (vec.x * .5 + .5) * window.innerWidth;
-      const sy = (-(vec.y * .5) + .5) * window.innerHeight;
-
-      el.style.left = `${sx}px`;
-      el.style.top = `${sy}px`;
-      document.body.appendChild(el);
-
-      setTimeout(() => el.remove(), 1000);
-    }
-
-    /* =========================================================================
-       17. SMOOTH MOVEMENT & COLLISION
-       ========================================================================= */
-    function checkCollisions(nextX, nextZ) {
-      for (let i = 0; i < colliders.length; i++) {
-        const c = colliders[i];
-        if (c.type === 'cylinder') {
-          if (Math.hypot(nextX - c.x, nextZ - c.z) < c.radius) return true;
-        } else if (c.type === 'box') {
-          if (Math.abs(nextX - c.x) < c.width / 2 && Math.abs(nextZ - c.z) < c.depth / 2) return true;
+      // Torches, Lamp Posts, House Windows, & Bonfire IGNITE ONLY AT NIGHT
+      lightables.forEach(item => {
+        if (item.pointLight) {
+          item.pointLight.intensity = isNight ? (item.isBonfire ? 3.5 : 2.0) : 0;
         }
+        if (item.fireMesh) {
+          item.fireMesh.visible = isNight;
+        }
+        if (item.windowMesh) {
+          item.windowMesh.material.color.setHex(isNight ? 0xfde047 : 0x334155);
+        }
+      });
+    }
+
+    // --- PLAYER MOVEMENT & INVISIBLE BOUNDARY COLLISION ---
+    function updatePlayerMovement(delta) {
+      if (!player.mesh) return;
+
+      // Gravity & Jump Physics
+      player.verticalVelocity -= 22 * delta;
+      player.position.y += player.verticalVelocity * delta;
+
+      if (player.position.y <= 0) {
+        player.position.y = 0;
+        player.verticalVelocity = 0;
+        player.isGrounded = true;
+      }
+
+      // Movement Direction
+      const moveDir = new THREE.Vector3();
+      if (keys.w) moveDir.z -= 1;
+      if (keys.s) moveDir.z += 1;
+      if (keys.a) moveDir.x -= 1;
+      if (keys.d) moveDir.x += 1;
+      moveDir.normalize();
+
+      const currentSpeed = keys.shift ? player.speed * player.sprintMult : player.speed;
+
+      if (moveDir.lengthSq() > 0) {
+        // Rotate vector according to camera yaw
+        moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY);
+
+        const nextPos = player.position.clone().addScaledVector(moveDir, currentSpeed * delta);
+
+        // Invisible Boundary Check (Don't let player pass water edges or collisions)
+        if (!checkCollisions(nextPos)) {
+          player.position.copy(nextPos);
+        }
+      }
+
+      // Sync Avatar Mesh
+      player.mesh.position.copy(player.position);
+      player.mesh.rotation.y = player.rotationY;
+
+      // Third-person Follow Camera Setup
+      const camOffset = new THREE.Vector3(0, 2.2, 5.5);
+      camOffset.applyAxisAngle(new THREE.Vector3(1, 0, 0), player.rotationX);
+      camOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), player.rotationY);
+
+      camera.position.copy(player.position).add(camOffset);
+      camera.lookAt(player.position.clone().add(new THREE.Vector3(0, 1.8, 0)));
+    }
+
+    // Collision Detection against static buildings & boundary limits
+    function checkCollisions(pos) {
+      // Island Map Boundary Collision (Water edge limits: +-160m)
+      if (Math.abs(pos.x) > 160 || Math.abs(pos.z) > 160) {
+        return true; // Stop movement at ocean boundary
+      }
+
+      // Static Objects collision boxes
+      for (let obj of collisionObjects) {
+        const box = new THREE.Box3().setFromObject(obj);
+        if (box.containsPoint(pos)) return true;
       }
       return false;
     }
 
-    function updatePlayerMovement(delta) {
-      if (!playerBody || isPaused || isEscOpen || isCinematic || isChestOpen) return;
-
-      if (playerState.attackCooldown > 0) {
-        playerState.attackCooldown -= delta;
+    // --- COMBAT & SKILLS ---
+    function performPrimaryAttack() {
+      // Swing Weapon Visual Animation
+      if (player.weaponMesh) {
+        player.weaponMesh.rotation.z = -Math.PI / 3;
+        setTimeout(() => player.weaponMesh.rotation.z = 0, 180);
       }
 
-      const baseSpeed = keys.shift ? 11.5 : 6.5;
-      const inLake = getLakeDistance(playerState.posX, playerState.posZ) < CONFIG.LAKE_RADIUS - 1.0;
-      const speed = inLake ? baseSpeed * 0.72 : baseSpeed;
-
-      let moveX = 0, moveZ = 0;
-
-      if (keys.w) moveZ -= 1;
-      if (keys.s) moveZ += 1;
-      if (keys.a) moveX -= 1;
-      if (keys.d) moveX += 1;
-
-      playerState.rotY = THREE.MathUtils.lerp(playerState.rotY, cameraOrbit.yaw, delta * 18);
-      playerBody.rotation.y = playerState.rotY;
-
-      if (moveX !== 0 || moveZ !== 0) {
-        const len = Math.hypot(moveX, moveZ);
-        moveX /= len;
-        moveZ /= len;
-
-        const camYaw = cameraOrbit.yaw;
-        const forwardX = -Math.sin(camYaw);
-        const forwardZ = -Math.cos(camYaw);
-        const rightX = Math.cos(camYaw);
-        const rightZ = -Math.sin(camYaw);
-
-        const dirX = forwardX * (-moveZ) + rightX * moveX;
-        const dirZ = forwardZ * (-moveZ) + rightZ * moveX;
-
-        const nextX = playerState.posX + dirX * speed * delta;
-        const nextZ = playerState.posZ + dirZ * speed * delta;
-
-        if (!checkCollisions(nextX, playerState.posZ)) playerState.posX = nextX;
-        if (!checkCollisions(playerState.posX, nextZ)) playerState.posZ = nextZ;
-
-        playerState.animTime += delta * speed * 1.8;
-        playerBody.leftArm.rotation.x = Math.sin(playerState.animTime) * 0.55;
-        if (!playerState.isAttacking) playerBody.rightArm.rotation.x = -Math.sin(playerState.animTime) * 0.55;
-        playerBody.leftLeg.rotation.x = -Math.sin(playerState.animTime) * 0.55;
-        playerBody.rightLeg.rotation.x = Math.sin(playerState.animTime) * 0.55;
-
-        if (inLake && Math.random() < 0.35) {
-          createWaterSplashRipple(playerState.posX, playerState.posZ);
-          if (Math.random() < 0.15) playSound('splash');
-        }
-      } else {
-        playerBody.leftArm.rotation.x = THREE.MathUtils.lerp(playerBody.leftArm.rotation.x, 0, delta * 10);
-        if (!playerState.isAttacking) playerBody.rightArm.rotation.x = THREE.MathUtils.lerp(playerBody.rightArm.rotation.x, 0, delta * 10);
-        playerBody.leftLeg.rotation.x = THREE.MathUtils.lerp(playerBody.leftLeg.rotation.x, 0, delta * 10);
-        playerBody.rightLeg.rotation.x = THREE.MathUtils.lerp(playerBody.rightLeg.rotation.x, 0, delta * 10);
-      }
-
-      if (keys.space && playerState.isGrounded) {
-        playerState.velocity.y = 7.5;
-        playerState.isGrounded = false;
-      }
-
-      const groundY = getTerrainHeight(playerState.posX, playerState.posZ);
-      playerState.velocity.y -= 22 * delta;
-      playerState.posY += playerState.velocity.y * delta;
-
-      if (playerState.posY <= groundY) {
-        playerState.posY = groundY;
-        playerState.velocity.y = 0;
-        playerState.isGrounded = true;
-      }
-
-      playerBody.position.set(playerState.posX, playerState.posY, playerState.posZ);
-
-      // House Sleep Prompt Check
-      const distToDoor = Math.hypot(playerState.posX - houseDoorPosition.x, playerState.posZ - houseDoorPosition.z);
-      document.getElementById('interact-prompt').classList.toggle('hidden', distToDoor >= 3.8);
-
-      // Chest Proximity Prompt Check
-      activeChestNear = null;
-      chests.forEach(c => {
-        const distToChest = Math.hypot(playerState.posX - c.x, playerState.posZ - c.z);
-        if (distToChest < 3.5) {
-          activeChestNear = c;
+      // Hit Check Enemies
+      const attackRange = 4.5;
+      enemies.forEach(enemy => {
+        const dist = player.position.distanceTo(enemy.mesh.position);
+        if (dist <= attackRange) {
+          damageEnemy(enemy, 18 + Math.floor(Math.random() * 10));
         }
       });
-      document.getElementById('chest-prompt').classList.toggle('hidden', !activeChestNear);
-
-      playerState.inSafeZone = Math.hypot(playerState.posX, playerState.posZ) <= CONFIG.SAFE_ZONE_RADIUS;
-      document.getElementById('hud-zone').innerText = playerState.inSafeZone ? 'Safe Zone' : 'Wilderness';
-      document.getElementById('hud-zone').className = playerState.inSafeZone ? 'text-[10px] font-semibold text-emerald-400' : 'text-[10px] font-semibold text-rose-400';
-
-      // Crosshair Third-Person Orbit Camera Positioning
-      const camX = playerState.posX + cameraOrbit.distance * Math.sin(cameraOrbit.yaw) * Math.cos(cameraOrbit.pitch);
-      const camY = playerState.posY + cameraOrbit.distance * Math.sin(cameraOrbit.pitch) + 1.6;
-      const camZ = playerState.posZ + cameraOrbit.distance * Math.cos(cameraOrbit.yaw) * Math.cos(cameraOrbit.pitch);
-
-      camera.position.set(camX, camY, camZ);
-      camera.lookAt(playerState.posX, playerState.posY + 1.4, playerState.posZ);
     }
 
-    /* =========================================================================
-       18. BRIGHT DAY & DYNAMIC DAY/NIGHT CYCLE
-       ========================================================================= */
-    function updateDayNightCycle(delta) {
-      gameTimeSeconds = (gameTimeSeconds + delta) % 600;
-
-      const timeRatio = gameTimeSeconds / 600;
-      const sunAngle = timeRatio * Math.PI * 2;
-
-      const sunX = Math.sin(sunAngle) * 140;
-      const sunY = Math.cos(sunAngle) * 140;
-      sunLight.position.set(sunX, Math.max(10, sunY), 80);
-
-      const isDay = sunY > 0;
-
-      if (isDay) {
-        // Bright Vibrant Light Sky Blue
-        scene.background.setHSL(0.57, 0.75, 0.65);
-        scene.fog.color.setHSL(0.57, 0.75, 0.65);
-        ambientLight.intensity = 0.95;
-        hemisphereLight.intensity = 0.95;
-        document.getElementById('time-icon').innerText = '☀️';
-      } else {
-        // Night Time
-        scene.background.setHSL(0.65, 0.8, 0.05);
-        scene.fog.color.setHSL(0.65, 0.8, 0.05);
-        ambientLight.intensity = 0.2;
-        hemisphereLight.intensity = 0.2;
-        document.getElementById('time-icon').innerText = '🌙';
+    function triggerSkill(num) {
+      if (num === 1) {
+        spawnFloatingDamage(player.position, "Whirlwind Slash!", "#38bdf8");
+      } else if (num === 2) {
+        spawnFloatingDamage(player.position, "Area Slam!", "#fbbf24");
+      } else if (num === 3) {
+        player.hp = Math.min(player.maxHp, player.hp + 25);
+        updateHUD();
+        spawnFloatingDamage(player.position, "+25 HP Healed", "#4ade80");
       }
-
-      const hours = Math.floor((gameTimeSeconds / 600) * 24);
-      const mins = Math.floor(((gameTimeSeconds / 600) * 24 % 1) * 60);
-      const displayHour = hours % 12 === 0 ? 12 : hours % 12;
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      document.getElementById('time-text').innerText = `${displayHour}:${mins < 10 ? '0' : ''}${mins} ${ampm}`;
     }
 
-    /* =========================================================================
-       19. HUD & MINIMAP RENDERER
-       ========================================================================= */
+    function damageEnemy(enemy, amount) {
+      enemy.hp -= amount;
+      enemy.hitTimer = 0.2; // Flash red
+      spawnFloatingDamage(enemy.mesh.position, `-${amount}`, '#ef4444');
+
+      if (enemy.hp <= 0) {
+        // Respawn Enemy
+        enemy.hp = enemy.maxHp;
+        enemy.mesh.position.set(
+          (Math.random() - 0.5) * 160,
+          0,
+          (Math.random() - 0.5) * 160
+        );
+      }
+    }
+
+    // Floating Combat Text Overlay
+    function spawnFloatingDamage(worldPos, text, colorHex) {
+      const screenPos = worldPos.clone().project(camera);
+      const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+
+      const el = document.createElement('div');
+      el.className = 'damage-text';
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      el.style.color = colorHex;
+      el.innerText = text;
+
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    }
+
+    // --- ENEMY AI ---
+    function updateEnemies(delta) {
+      enemies.forEach(enemy => {
+        // Slime Bouncing Animation
+        enemy.bounceTimer += delta * 6;
+        enemy.bodyMesh.position.y = 1.1 + Math.abs(Math.sin(enemy.bounceTimer)) * 0.6;
+
+        // Hit Flash
+        if (enemy.hitTimer > 0) {
+          enemy.hitTimer -= delta;
+          enemy.bodyMesh.material.color.setHex(0xef4444);
+        } else {
+          enemy.bodyMesh.material.color.setHex(0x22c55e);
+        }
+
+        // Simple Chase AI
+        const distToPlayer = enemy.mesh.position.distanceTo(player.position);
+        if (distToPlayer < 20 && distToPlayer > 1.8) {
+          const dir = player.position.clone().sub(enemy.mesh.position).normalize();
+          enemy.mesh.position.addScaledVector(dir, enemy.speed * delta);
+        }
+      });
+    }
+
+    // --- INTERACTION CHECKS & BED REST ---
+    function checkInteractions(execute = false) {
+      let promptText = null;
+      let targetAction = null;
+
+      interactiveObjects.forEach(obj => {
+        const dist = player.position.distanceTo(obj.position);
+        if (dist <= obj.dist) {
+          promptText = obj.prompt;
+          targetAction = obj.action;
+        }
+      });
+
+      const promptEl = document.getElementById('interaction-prompt');
+      if (promptText) {
+        promptEl.innerText = promptText;
+        promptEl.classList.remove('hidden');
+        if (execute && targetAction) targetAction();
+      } else {
+        promptEl.classList.add('hidden');
+      }
+    }
+
+    function triggerBedRest() {
+      // Night to Day transition + Full Restore
+      dayNightCycleTime = 8.0; // Set to Morning
+      player.hp = player.maxHp;
+      player.mp = player.maxMp;
+      updateHUD();
+      spawnFloatingDamage(player.position, "Rested & Fully Healed!", "#fef08a");
+    }
+
+    function openInventory() {
+      document.exitPointerLock();
+      const grid = document.getElementById('chest-grid');
+      grid.innerHTML = '';
+      const items = [
+        { name: "Iron Sword", icon: "fa-shield-halved" },
+        { name: "Health Potion", icon: "fa-flask" },
+        { name: "Gold Coins", icon: "fa-coins" },
+        { name: "Ancient Key", icon: "fa-key" }
+      ];
+
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "p-3 bg-slate-950 border border-slate-700 rounded-xl flex flex-col items-center justify-center gap-1 text-amber-300";
+        div.innerHTML = `<i class="fa-solid ${item.icon} text-2xl"></i><span class="text-[10px] font-bold text-center">${item.name}</span>`;
+        grid.appendChild(div);
+      });
+
+      document.getElementById('inventory-modal').classList.remove('hidden');
+    }
+
+    function closeInventory() {
+      document.getElementById('inventory-modal').classList.add('hidden');
+      document.body.requestPointerLock();
+    }
+
+    // --- HUD & MINIMAP DRAWING ---
     function updateHUD() {
-      document.getElementById('hud-level').innerText = `Lv. ${playerState.level}`;
-      document.getElementById('hp-text').innerText = `${Math.ceil(playerState.hp)} / ${playerState.maxHp}`;
-      document.getElementById('hp-bar').style.width = `${(playerState.hp / playerState.maxHp) * 100}%`;
-
-      document.getElementById('mp-text').innerText = `${Math.ceil(playerState.mp)} / ${playerState.maxMp}`;
-      document.getElementById('mp-bar').style.width = `${(playerState.mp / playerState.maxMp) * 100}%`;
-
-      document.getElementById('exp-text').innerText = `${playerState.exp} / ${playerState.maxExp}`;
-      document.getElementById('exp-bar').style.width = `${(playerState.exp / playerState.maxExp) * 100}%`;
+      document.getElementById('hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
+      document.getElementById('mp-bar').style.width = `${(player.mp / player.maxMp) * 100}%`;
+      document.getElementById('hp-text').innerText = `HP: ${player.hp} / ${player.maxHp}`;
+      document.getElementById('mp-text').innerText = `MP: ${player.mp} / ${player.maxMp}`;
     }
 
     function renderMinimap() {
-      const cvs = document.getElementById('minimap');
-      if (!cvs) return;
-      const ctx = cvs.getContext('2d');
-      const w = cvs.width, h = cvs.height;
-      const scale = w / CONFIG.WORLD_SIZE;
+      if (!minimapCtx) return;
+      minimapCtx.clearRect(0, 0, 150, 150);
 
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, w, h);
+      // Background Terrain
+      minimapCtx.fillStyle = '#3d692c';
+      minimapCtx.fillRect(0, 0, 150, 150);
 
-      // Safe Zone Perimeter
-      ctx.beginPath();
-      ctx.arc(w / 2, h / 2, CONFIG.SAFE_ZONE_RADIUS * scale, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
-      ctx.fill();
+      const centerX = 75;
+      const centerY = 75;
+      const scale = 0.45; // Map scale factor
 
-      // Lake Water Body
-      ctx.beginPath();
-      ctx.arc(w / 2 + CONFIG.LAKE_CENTER_X * scale, h / 2 + CONFIG.LAKE_CENTER_Z * scale, CONFIG.LAKE_RADIUS * scale, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(2, 132, 199, 0.55)';
-      ctx.fill();
-
-      // Slime Enemies
-      slimes.forEach(s => {
-        if (s.hp > 0) {
-          ctx.fillStyle = '#10b981';
-          ctx.beginPath();
-          ctx.arc(w / 2 + s.x * scale, h / 2 + s.z * scale, 2.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
+      // Render Enemies on Minimap (Red Dots)
+      minimapCtx.fillStyle = '#ef4444';
+      enemies.forEach(e => {
+        const relX = (e.mesh.position.x - player.position.x) * scale;
+        const relZ = (e.mesh.position.z - player.position.z) * scale;
+        minimapCtx.beginPath();
+        minimapCtx.arc(centerX + relX, centerY + relZ, 3, 0, Math.PI * 2);
+        minimapCtx.fill();
       });
 
-      // Player Position Marker
-      ctx.fillStyle = '#f59e0b';
-      ctx.beginPath();
-      ctx.arc(w / 2 + playerState.posX * scale, h / 2 + playerState.posZ * scale, 3.5, 0, Math.PI * 2);
-      ctx.fill();
+      // Player Indicator Arrow
+      minimapCtx.fillStyle = '#fbbf24';
+      minimapCtx.beginPath();
+      minimapCtx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+      minimapCtx.fill();
     }
 
-    /* =========================================================================
-       20. MAIN ANIMATION LOOP
-       ========================================================================= */
+    // --- MAIN ANIMATION LOOP ---
     function animate() {
       requestAnimationFrame(animate);
 
       const delta = Math.min(clock.getDelta(), 0.1);
-      const time = clock.getElapsedTime();
 
-      if (!isPaused && !isEscOpen) {
-        updatePlayerMovement(delta);
-        updateSlimes(delta);
-        updateProjectiles(delta);
-        updateParticles(delta);
-        updateWaterRipples(delta);
-        updateLakeWaterAnimation(time);
+      if (isGameStarted) {
         updateDayNightCycle(delta);
-        updateClouds(delta);
-        updateNPCs(delta);
-
-        if (fireLight) fireLight.intensity = 2.2 + Math.sin(time * 12) * 0.6;
-        fireParticles.forEach(p => {
-          p.mesh.position.y += p.speed * delta;
-          if (p.mesh.position.y > p.baseY + 2.2) p.mesh.position.y = p.baseY;
-        });
+        updatePlayerMovement(delta);
+        updateEnemies(delta);
+        checkInteractions(false);
+        renderMinimap();
       }
 
-      renderMinimap();
       renderer.render(scene, camera);
     }
   </script>
