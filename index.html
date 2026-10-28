@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Alegreya+Sans:wght@400;500;700&display=swap">
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Alegreya+Sans:wght@400;500;700&family=Roboto:wght@500&display=swap">
 <style>
 /* Layout: full-screen stage, one screen visible at a time; a dark fantasy single-look design on ink, parchment text and forged gold */
 :root{
@@ -315,6 +315,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .lorecliff{border-color:#8a5ad0!important;background:rgba(138,90,208,.1)!important;box-shadow:0 0 26px rgba(138,90,208,.28)}
 .lorecliff b{color:#c9a6ff!important}
 .authIn{width:100%;padding:12px;margin:6px 0;background:rgba(10,6,16,.7);border:1px solid var(--gold2);color:var(--text);font:500 16px var(--body);border-radius:3px}.authTabs{display:flex;gap:6px;flex-wrap:wrap}.authIn[hidden],#sHub .big.onlineOnly{display:none}body.online #sHub .big.onlineOnly{display:block}body.online #sHub .big.offlineOnly{display:none}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:40px;padding:0 12px;background:#fff;border:1px solid #747775;border-radius:4px;color:#1f1f1f;font:500 14px/20px Roboto,Arial,sans-serif;letter-spacing:.25px;cursor:pointer;text-transform:none}.gbtn:hover{background:#f0f0f1}.gbtn:active{background:#e6e6e7}.gbtn svg{width:18px;height:18px;flex:none}.authOr{text-align:center;color:var(--mute);font:500 13px var(--body);margin:2px 0}.gbtn[hidden],.authOr[hidden],.authTabs[hidden]{display:none}
 </style>
 <div id="app">
 
@@ -352,6 +353,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
   <div class="modeBox" id="modeBox"><button class="btn" id="modeOff">Offline</button><button class="btn" id="modeOn">Online</button></div>
   <div class="modal pad" id="onlineModal"><div class="sheet" style="max-width:420px"><div class="sheethead"><h2 id="authTitle">Online Mode</h2><button class="btn ghost" id="onlineOk">Back</button></div>
 <div class="rows"><div class="authTabs"><button class="btn small" data-auth="login">Login</button><button class="btn small ghost" data-auth="register">Create Account</button><button class="btn small ghost" data-auth="reset">Forgot</button></div>
+<button type="button" class="gbtn" id="auGoogle"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Continue with Google</span></button><div class="authOr">or use email</div>
 <input class="authIn" id="auEmail" type="email" autocomplete="email" placeholder="Email">
 <input class="authIn" id="auUser" type="text" maxlength="16" autocomplete="username" placeholder="Username (3-16: a-z, 0-9, _)" hidden>
 <input class="authIn" id="auPass" type="password" autocomplete="current-password" placeholder="Password (8+ characters)">
@@ -1305,24 +1307,29 @@ const FIREBASE_CONFIG={apiKey:"AIzaSyCaAnwhtweucLd_pGOVsf_sZk-jiOuZOlg",authDoma
 const FB_VERSION="10.14.1";
 /* ========================================================================================== */
 const q=s=>document.querySelector(s);
-let mode='login';
+let mode='login',pendingUser=null;
 const msg=(t,bad)=>{const m=q('#auMsg');m.textContent=t;m.style.color=bad?'#e2553b':''};
-const setMode=m=>{mode=m;document.querySelectorAll('[data-auth]').forEach(b=>b.classList.toggle('ghost',b.dataset.auth!==m));q('#auUser').hidden=m!=='register';q('#auPass').hidden=m==='reset';q('#auGo').textContent={login:'Login',register:'Create Account',reset:'Send Reset Email'}[m];msg('')};
+const setMode=m=>{mode=m;const claim=m==='claim';
+ document.querySelectorAll('[data-auth]').forEach(b=>b.classList.toggle('ghost',b.dataset.auth!==m));
+ q('.authTabs').hidden=claim;q('#auEmail').hidden=claim;q('#auUser').hidden=!(m==='register'||claim);q('#auPass').hidden=(m==='reset'||claim);
+ q('.authOr').hidden=q('#auGoogle').hidden=(m==='reset'||claim);
+ q('#auGo').textContent={login:'Login',register:'Create Account',reset:'Send Reset Email',claim:'Create Account'}[m];msg('')};
 document.querySelectorAll('[data-auth]').forEach(b=>b.onclick=()=>setMode(b.dataset.auth));
 setMode('login');
 if(!FIREBASE_CONFIG.projectId){
-  q('#auGo').onclick=()=>msg('Firebase is not configured. Fill FIREBASE_CONFIG in index.html (see SETUP.md).',true);
+  const nc=()=>msg('Firebase is not configured. Fill FIREBASE_CONFIG in index.html (see SETUP.md).',true);
+  q('#auGo').onclick=nc;q('#auGoogle').onclick=nc;
 }else{
 const B="https://www.gstatic.com/firebasejs/"+FB_VERSION+"/";
 const [{initializeApp},A,F]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-auth.js"),import(B+"firebase-firestore.js")]);
 const app=initializeApp(FIREBASE_CONFIG),auth=A.getAuth(app),db=F.getFirestore(app);
-const errs={'auth/invalid-credential':'Wrong email or password.','auth/invalid-email':'That email is not valid.','auth/email-already-in-use':'That email is already registered.','auth/weak-password':'Password is too weak.','auth/too-many-requests':'Too many attempts. Try again later.','auth/network-request-failed':'Network problem. Check your connection.','permission-denied':'That username is taken or invalid.'};
+const errs={'auth/invalid-credential':'Wrong email or password.','auth/invalid-email':'That email is not valid.','auth/email-already-in-use':'That email is already registered.','auth/weak-password':'Password is too weak.','auth/too-many-requests':'Too many attempts. Try again later.','auth/network-request-failed':'Network problem. Check your connection.','permission-denied':'That username is taken or invalid.','auth/popup-closed-by-user':'Google sign-in was cancelled.','auth/cancelled-popup-request':'Google sign-in was cancelled.','auth/popup-blocked':'Your browser blocked the Google popup. Allow popups and try again.','auth/unauthorized-domain':'This website is not in Firebase > Authentication > Settings > Authorized domains.','auth/operation-not-allowed':'This sign-in method is not enabled in Firebase yet.'};
 const nice=e=>errs[e.code]||e.message||'Something went wrong.';
 let busy=false,unsub=null,registering=false,wantEnter=false;
 
 async function loadAccount(u,enter){
  const pr=F.doc(db,'users',u.uid),snap=await F.getDoc(pr);
- if(!snap.exists())throw new Error('Account profile is missing.');
+ if(!snap.exists()){const e=new Error('Account profile is missing.');e.code='no-profile';throw e}
  const p=snap.data();
  await F.updateDoc(pr,{lastLoginAt:F.serverTimestamp()});
  const c=(await F.getDoc(F.doc(db,'users',u.uid,'characters',p.selectedCharacterId))).data();
@@ -1331,40 +1338,58 @@ async function loadAccount(u,enter){
  unsub=F.onSnapshot(pr,s=>{if(s.exists()){ONLINE.profile=s.data();if(MODE==='online')refreshGold()}});
  if(enter){q('#onlineModal').classList.remove('on');window.__onlineGo=true;MODE='online';q('#modeOff').onclick()}
 }
+async function createProfile(user,username,h){
+ const uid=user.uid,ts=F.serverTimestamp(),b=F.writeBatch(db),u=F.doc(db,'users',uid);
+ b.set(F.doc(db,'usernames',username),{uid});
+ b.set(u,{uid,username,displayName:h.name,accountRole:'player',createdAt:ts,lastLoginAt:ts,selectedCharacterId:'c1',guildId:null,homeId:null,gold:0,gems:0});
+ b.set(F.doc(u,'characters','c1'),{name:h.name,classId:h.cls,gender:h.gender,level:1,xp:0,stats:{},equipment:{weapon:'starter_weapon',head:null,chest:'starter_armor',legs:null,feet:null,necklace:null,ring:null,bracelet:null},questProgress:{},createdAt:ts});
+ b.set(F.doc(u,'inventory','starter_weapon'),{catalogItemId:'w_'+h.cls+'_0',category:'weapons',quantity:1,metadata:{},createdAt:ts});
+ b.set(F.doc(u,'inventory','starter_armor'),{catalogItemId:'a_0',category:'armors',quantity:1,metadata:{},createdAt:ts});
+ await b.commit();
+}
+
+q('#auGoogle').onclick=async()=>{if(busy)return;busy=true;wantEnter=true;msg('Opening Google…');
+ try{await A.signInWithPopup(auth,new A.GoogleAuthProvider())}
+ catch(e){wantEnter=false;msg(nice(e),true)}finally{busy=false}};
 
 q('#auGo').onclick=async()=>{if(busy)return;
  const email=q('#auEmail').value.trim(),pass=q('#auPass').value,user=q('#auUser').value.trim().toLowerCase();
- if(!/^\S+@\S+\.\S+$/.test(email))return msg('Enter a valid email.',true);
- if(mode!=='reset'&&pass.length<8)return msg('Password needs at least 8 characters.',true);
- if(mode==='register'&&!/^[a-z0-9_]{3,16}$/.test(user))return msg('Username: 3-16 letters, digits or _.',true);
+ if(mode!=='claim'&&!/^\S+@\S+\.\S+$/.test(email))return msg('Enter a valid email.',true);
+ if((mode==='login'||mode==='register')&&pass.length<8)return msg('Password needs at least 8 characters.',true);
+ if((mode==='register'||mode==='claim')&&!/^[a-z0-9_]{3,16}$/.test(user))return msg('Username: 3-16 letters, digits or _.',true);
  busy=true;q('#auGo').disabled=true;msg('Working…');let cred=null;
  try{
   if(mode==='reset'){await A.sendPasswordResetEmail(auth,email);msg('If that account exists, a reset email was sent.')}
   else if(mode==='login'){wantEnter=true;await A.signInWithEmailAndPassword(auth,email,pass)}
-  else{
+  else if(mode==='claim'){
+   const h=S.hero;if(!h)throw new Error('Choose a hero first.');
+   const u=pendingUser;if(!u)throw new Error('Please sign in with Google again.');
+   await createProfile(u,user,h);pendingUser=null;await loadAccount(u,true);
+  }else{
    const h=S.hero;if(!h)throw new Error('Choose a hero first.');
    registering=true;
    cred=await A.createUserWithEmailAndPassword(auth,email,pass);
-   const uid=cred.user.uid,ts=F.serverTimestamp(),b=F.writeBatch(db),u=F.doc(db,'users',uid);
-   b.set(F.doc(db,'usernames',user),{uid});
-   b.set(u,{uid,username:user,displayName:h.name,accountRole:'player',createdAt:ts,lastLoginAt:ts,selectedCharacterId:'c1',guildId:null,homeId:null,gold:0,gems:0});
-   b.set(F.doc(u,'characters','c1'),{name:h.name,classId:h.cls,gender:h.gender,level:1,xp:0,stats:{},equipment:{weapon:'starter_weapon',head:null,chest:'starter_armor',legs:null,feet:null,necklace:null,ring:null,bracelet:null},questProgress:{},createdAt:ts});
-   b.set(F.doc(u,'inventory','starter_weapon'),{catalogItemId:'w_'+h.cls+'_0',category:'weapons',quantity:1,metadata:{},createdAt:ts});
-   b.set(F.doc(u,'inventory','starter_armor'),{catalogItemId:'a_0',category:'armors',quantity:1,metadata:{},createdAt:ts});
-   await b.commit();
+   await createProfile(cred.user,user,h);
    registering=false;
    await loadAccount(cred.user,true);
   }
  }catch(e){
-  if(cred&&!ONLINE.user){try{await A.deleteUser(cred.user)}catch(_){}} /* do not leave an Auth user without a profile */
+  if(cred&&!ONLINE.user){try{await A.deleteUser(cred.user)}catch(_){}} /* never leave an Auth user without a profile */
   wantEnter=false;msg(nice(e),true)
  }finally{registering=false;busy=false;q('#auGo').disabled=false}};
+
+q('#onlineOk').addEventListener('click',()=>{if(pendingUser){pendingUser=null;A.signOut(auth);setMode('login')}});
 
 A.onAuthStateChanged(auth,async u=>{
  if(registering)return;
  if(!u){if(unsub){unsub();unsub=null}ONLINE.user=ONLINE.profile=ONLINE.hero=null;return}
  const enter=wantEnter;wantEnter=false;
- try{await loadAccount(u,enter)}catch(e){msg(nice(e),true);A.signOut(auth)}});
+ try{await loadAccount(u,enter)}
+ catch(e){
+  if(e.code==='no-profile'&&enter&&u.providerData.some(p=>p.providerId==='google.com')){
+   pendingUser=u;setMode('claim');msg('Welcome'+(u.displayName?', '+u.displayName:'')+'! Choose a username to finish your account.');
+  }else{if(enter)msg(nice(e),true);A.signOut(auth)}
+ }});
 window.Online={async logout(){if(unsub){unsub();unsub=null}await A.signOut(auth);location.reload()}};
 }
 </script>
