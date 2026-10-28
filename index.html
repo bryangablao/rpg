@@ -1301,8 +1301,14 @@ requestAnimationFrame(pvLoop);requestAnimationFrame(hubFx);requestAnimationFrame
 })();
 </script>
 <script type="module">
-/* ===== FIREBASE CONFIG: paste values from Firebase console > Project settings > Your apps (Web). Web config is public by design; security comes from Rules + Functions. ===== */
-const FIREBASE_CONFIG={apiKey:"",authDomain:"",projectId:"",appId:""};
+const firebaseConfig = {
+  apiKey: "AIzaSyCaAnwhtweucLd_pGOVsf_sZk-jiOuZOlg",
+  authDomain: "rpgseven.firebaseapp.com",
+  projectId: "rpgseven",
+  storageBucket: "rpgseven.firebasestorage.app",
+  messagingSenderId: "85347363628",
+  appId: "1:85347363628:web:313de3a501d743d40b5a89"
+};
 const FB_VERSION="10.14.1";
 /* ============================================================== */
 const q=s=>document.querySelector(s);
