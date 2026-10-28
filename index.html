@@ -314,9 +314,10 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 
 /* ===== mode modal (offline / online login book) ===== */
 #modeModal{z-index:60}
-.mm-sheet{position:relative;width:min(440px,100%);max-height:calc(100% - 24px);overflow-x:hidden;overflow-y:auto;background:linear-gradient(var(--panel2),var(--panel));border:1px solid var(--gold2);border-radius:6px;box-shadow:0 20px 70px rgba(0,0,0,.7);perspective:1500px;zoom:var(--ui)}
-.mm-pages{position:relative;height:300px;transition:height .7s ease}
-.mm-pg{position:absolute;top:0;left:0;right:0;padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;visibility:hidden;background:linear-gradient(var(--panel2),var(--panel));transform-origin:left center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.mm-sheet{position:relative;width:min(440px,100%);overflow:hidden;background:linear-gradient(var(--panel2),var(--panel));border:1px solid var(--gold2);border-radius:6px;box-shadow:0 20px 70px rgba(0,0,0,.7);perspective:1500px;zoom:var(--ui)}
+.mm-pages{position:relative;height:min(var(--mmh,420px),calc((100vh - 24px)/var(--ui)))}
+.mm-pg{position:absolute;top:0;bottom:0;left:0;right:0;overflow-x:hidden;overflow-y:auto;padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px;visibility:hidden;background:linear-gradient(var(--panel2),var(--panel));transform-origin:left center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.mm-pg>:first-child{margin-top:auto}.mm-pg>:last-child{margin-bottom:auto}
 .mm-pg.cur{visibility:visible;z-index:1}
 .mm-pg h2{margin:0;font-size:26px;color:var(--gold);text-align:center;letter-spacing:.06em}
 .mm-pg .sub{margin:0 auto;font-size:15px}
@@ -343,11 +344,29 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .mm-link:hover{filter:brightness(1.3)}
 .mm-link.center{align-self:center}
 .mm-err{min-height:20px;margin:0;text-align:center;font:700 14px var(--body);color:#ff9aa2}
+
+/* mode page spacing */
+#mmMode{gap:26px;padding:28px 30px}
+#mmMode h2{font-size:32px;letter-spacing:.08em}
+#mmMode .sub{font-size:17px;line-height:1.5;max-width:30ch}
+#mmMode .mm-btn{padding:20px 24px;font-size:20px;letter-spacing:.12em}
+.mm-orn{display:flex;align-items:center;gap:12px;color:var(--gold2)}
+.mm-orn::before,.mm-orn::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold2))}
+.mm-orn::after{background:linear-gradient(90deg,var(--gold2),transparent)}
+.mm-orn i{width:9px;height:9px;transform:rotate(45deg);background:var(--gold2)}
+/* opening splash */
+#splash{position:absolute;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;background:radial-gradient(ellipse at 50% 45%,#241a33 0%,var(--ink) 70%);cursor:pointer;transition:opacity .9s ease}
+#splash.off{opacity:0;pointer-events:none}
+#splash h1{margin:0;font:900 clamp(38px,9vw,88px)/1.05 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);text-shadow:0 3px 0 #4a2f0c,0 0 44px rgba(227,181,80,.35);opacity:0;animation:spIn 1.4s ease .2s forwards}
+#splash p{margin:0;font:600 clamp(16px,3.2vw,24px) var(--display);letter-spacing:.3em;text-transform:uppercase;color:var(--mute);opacity:0;animation:spIn 1.2s ease 1.2s forwards}
+@keyframes spIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 </style>
 <div id="app">
+<div id="splash"><h1>Seven Realms</h1><p>Seven lands. One legend.</p></div>
 <div class="modal pad on" id="modeModal"><div class="mm-sheet" id="mmSheet"><div class="mm-pages" id="mmPages">
  <div class="mm-pg cur" id="mmMode" data-pg="mode">
   <h2>Choose Your Mode</h2>
+  <div class="mm-orn"><i></i></div>
   <p class="sub">Play on this device, or sign in to play online.</p>
   <button class="btn mm-btn gold" id="mmOff" type="button">Offline Mode</button>
   <button class="btn mm-btn" id="mmOn" type="button">Online Mode</button>
@@ -384,6 +403,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 </div></div></div>
 
 <section class="screen pad on" id="sClass"><div class="wrap">
+  <button class="btn ghost small" id="modeBtn" type="button">Choose Mode: Offline / Online</button>
   <p class="eyebrow">Step 1 of 3</p>
   <h1 class="title">Choose Your Calling</h1>
   <p class="sub">Six paths, six weapons. Your weapon strikes on its own, so keep moving and stay alive.</p>
@@ -1352,15 +1372,13 @@ window.addEventListener('keydown',e=>{
 (function(){
  const pages=$('#mmPages'),ids={mode:'#mmMode',login:'#mmLogin',forgot:'#mmForgot',reg:'#mmReg'};
  let curPg='mode',busy=false;const SOON='This feature will be added soon.';
- function fit(pg){pages.style.height=pg.offsetHeight+'px'}
+ function fit(){let h=0;$$('.mm-pg').forEach(p=>{const b=p.style.bottom;p.style.bottom='auto';h=Math.max(h,p.offsetHeight);p.style.bottom=b});if(h)pages.style.setProperty('--mmh',h+'px')}
  function flip(to,back){if(busy||to===curPg)return;busy=true;const from=$(ids[curPg]),next=$(ids[to]);
   $$('.mm-err').forEach(e=>e.textContent='');
-  fit(next);
   if(back){next.classList.add('in');from.classList.add('under');from.classList.remove('cur')}
   else{next.classList.add('under');from.classList.remove('cur');from.classList.add('out')}
   setTimeout(()=>{[from,next].forEach(p=>p.classList.remove('in','out','under','cur'));next.classList.add('cur');curPg=to;busy=false},1100)}
- function init(){fit($('#mmMode'))}
- init();
+ fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);window.addEventListener('load',fit);
  $('#mmOff').onclick=()=>{ac();sfx('click');$('#modeModal').classList.remove('on')};
  $('#mmOn').onclick=()=>{ac();sfx('click');flip('login')};
  $('#mmLoginBack').onclick=()=>{sfx('click');flip('mode',true)};
@@ -1373,8 +1391,15 @@ window.addEventListener('keydown',e=>{
  $('#mmGoogle').onclick=soon('#mmErrLogin');
  $('#mmForgotBtn').onclick=soon('#mmErrForgot');
  $('#mmRegBtn').onclick=soon('#mmErrReg');
- window.addEventListener('resize',()=>{if(!busy)fit($(ids[curPg]))});
+ window.addEventListener('resize',()=>{if(!busy)fit()});
+ $('#modeBtn').onclick=()=>{ac();sfx('click');$$('.mm-err').forEach(e=>e.textContent='');if(curPg!=='mode'){$$('.mm-pg').forEach(p=>p.classList.remove('cur','in','out','under'));$('#mmMode').classList.add('cur');curPg='mode'}$('#modeModal').classList.add('on')};
 })();
+
+
+/* opening splash */
+(function(){const sp=$('#splash');let done=false;
+ function end(){if(done)return;done=true;sp.classList.add('off');setTimeout(()=>sp.remove(),1000)}
+ sp.addEventListener('click',end);window.addEventListener('keydown',end,{once:true});setTimeout(end,3800)})();
 
 /* boot */
 setUI();window.addEventListener('resize',setUI);
