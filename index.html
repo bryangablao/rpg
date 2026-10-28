@@ -314,6 +314,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .lorep{margin:0;font-size:18px;line-height:1.5;color:#e9dfc8}
 .lorecliff{border-color:#8a5ad0!important;background:rgba(138,90,208,.1)!important;box-shadow:0 0 26px rgba(138,90,208,.28)}
 .lorecliff b{color:#c9a6ff!important}
+.authIn{width:100%;padding:12px;margin:6px 0;background:rgba(10,6,16,.7);border:1px solid var(--gold2);color:var(--text);font:500 16px var(--body);border-radius:3px}.authTabs{display:flex;gap:6px;flex-wrap:wrap}.authIn[hidden],#sHub .big.onlineOnly{display:none}body.online #sHub .big.onlineOnly{display:block}body.online #sHub .big.offlineOnly{display:none}
 </style>
 <div id="app">
 
@@ -349,8 +350,13 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
   <div class="rays"></div><div class="torch tl"><i></i></div><div class="torch tr"><i></i></div>
   <div class="gate" id="gate"><div class="glow"></div><svg class="ring" viewBox="-100 -100 200 200"></svg><div class="door doorL"><svg viewBox="0 0 100 240" preserveAspectRatio="xMaxYMid slice"></svg></div><div class="door doorR"><svg viewBox="0 0 100 240" preserveAspectRatio="xMinYMid slice"></svg></div><svg class="crest" viewBox="0 0 64 64"><path d="M32 4 8 12v18c0 15 10 26 24 30 14-4 24-15 24-30V12z" fill="#e3b550" stroke="#6a4a10" stroke-width="3"/><path d="M32 14 L36 28 L50 28 L39 36 L43 50 L32 42 L21 50 L25 36 L14 28 L28 28Z" fill="#7a1f2a"/></svg></div>
   <div class="modeBox" id="modeBox"><button class="btn" id="modeOff">Offline</button><button class="btn" id="modeOn">Online</button></div>
-  <div class="modal pad" id="onlineModal"><div class="sheet" style="max-width:420px;text-align:center"><div class="sheethead"><h2>Online Mode</h2></div><p class="sub" style="margin:0 auto">Currently in building. This feature is coming soon…</p><button class="btn" id="onlineOk">Back</button></div></div>
-  <div class="doormsg" id="doorMsg"></div>
+  <div class="modal pad" id="onlineModal"><div class="sheet" style="max-width:420px"><div class="sheethead"><h2 id="authTitle">Online Mode</h2><button class="btn ghost" id="onlineOk">Back</button></div>
+<div class="rows"><div class="authTabs"><button class="btn small" data-auth="login">Login</button><button class="btn small ghost" data-auth="register">Create Account</button><button class="btn small ghost" data-auth="reset">Forgot</button></div>
+<input class="authIn" id="auEmail" type="email" autocomplete="email" placeholder="Email">
+<input class="authIn" id="auUser" type="text" maxlength="16" autocomplete="username" placeholder="Username (3-16: a-z, 0-9, _)" hidden>
+<input class="authIn" id="auPass" type="password" autocomplete="current-password" placeholder="Password (8+ characters)">
+<div class="hintline" id="auMsg"></div><button class="btn" id="auGo">Login</button></div></div></div>
+<div class="doormsg" id="doorMsg"></div>
 </section>
 
 <section class="screen" id="sHub">
@@ -362,7 +368,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
       <h1 class="title logo"><img class="logoIcon" src="image/shield.png" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cpath%20d=%22M32%204%208%2012v18c0%2015%2010%2026%2024%2030%2014-4%2024-15%2024-30V12z%22%20fill=%22%23e3b550%22%20stroke=%22%23a97c26%22%20stroke-width=%223%22/%3E%3Cpath%20d=%22M32%2012%2016%2018v12c0%2010%206%2018%2016%2022z%22%20fill=%22%23fff3b0%22%20opacity=%22.5%22/%3E%3C/svg%3E'">Seven Realms</h1>
       <button class="big" data-act="play">Play<small>Choose a continent and deploy</small></button>
       <button class="big" data-act="inv">Inventory<small>Gear, potions and materials</small></button>
-      <button class="big" data-act="shop">Shop<small>Upgrade gear, buy and sell</small></button>
+      <button class="big onlineOnly" data-act="guild">Guild<small>Your clan and its halls</small></button><button class="big" data-act="shop">Shop<small>Upgrade gear, buy and sell</small></button><button class="big onlineOnly" data-act="lb">Leaderboard<small>The mightiest of Mythara</small></button>
       <button class="big" data-act="set">Settings<small>Sound, effects and your save</small></button>
     </nav>
   </div>
@@ -655,19 +661,24 @@ buildGate();
 function playDoors(){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom','ajar');$('#modeBox').classList.remove('on');$('#onlineModal').classList.remove('on');$('#doorMsg').textContent='The gates of Seven Realms stir…';
  void gate.offsetWidth;setTimeout(()=>{sfx('door');gate.classList.add('ajar')},500);
  setTimeout(()=>{$('#doorMsg').textContent='Welcome, '+S.hero.name+'. Choose your path.';$('#modeBox').classList.add('on')},3600)}
-$('#modeOff').onclick=()=>{ac();sfx('click');$('#modeBox').classList.remove('on');const gate=$('#gate');gate.classList.remove('ajar');gate.classList.add('open');sfx('door');$('#doorMsg').textContent='';setTimeout(()=>gate.classList.add('zoom'),2200);setTimeout(()=>enterHub(),3700)};
-$('#modeOn').onclick=()=>{sfx('click');$('#onlineModal').classList.add('on')};
+$('#modeOff').onclick=()=>{if(!window.__onlineGo)MODE='offline';window.__onlineGo=false;ac();sfx('click');$('#modeBox').classList.remove('on');const gate=$('#gate');gate.classList.remove('ajar');gate.classList.add('open');sfx('door');$('#doorMsg').textContent='';setTimeout(()=>gate.classList.add('zoom'),2200);setTimeout(()=>enterHub(),3700)};
+$('#modeOn').onclick=()=>{sfx('click');if(ONLINE.user&&ONLINE.profile){window.__onlineGo=true;MODE='online';$('#modeOff').onclick()}else $('#onlineModal').classList.add('on')};
 $('#onlineOk').onclick=()=>{sfx('click');$('#onlineModal').classList.remove('on')};
 
 /* hub */
+/* online hub routing: offline inventory/shop/save are never touched in online mode */
+let MODE='offline';const ONLINE={user:null,profile:null,hero:null};
+const ONLINE_PHASE={play:'Phase 7',inv:'Phase 3',shop:'Phase 4',guild:'Phase 5',lb:'Phase 6'};
+function onlineNav(a){if(a==='set'&&window.Online){openSheet(head('Account')+`<div class="rows"><p class="sub">Signed in as <b>${ONLINE.profile.username}</b><br>${ONLINE.user.email}</p><button class="btn danger" id="olOut">Logout</button></div>`);bindClose();$('#olOut').onclick=()=>{closeSheet();window.Online.logout()};return}
+ openSheet(head('Not built yet')+`<p class="sub">This online feature is scheduled for ${ONLINE_PHASE[a]||'a later phase'} and is not implemented yet. Nothing here changes your account.</p>`);bindClose()}
 let hubStars=[];
-function enterHub(){const h=S.hero;if(!h){enterClass();return}
+function enterHub(){document.body.classList.toggle('online',MODE==='online');const h=MODE==='online'?ONLINE.hero:S.hero;if(!h){enterClass();return}
  const cv=$('#hubHero');cv.dataset.cls=h.cls;cv.dataset.gen=h.gender;$('#hubName').textContent=h.name;$('#hubCls').textContent=CLASSES[h.cls].name+' · '+CLASSES[h.cls].weapon;
  refreshGold();show('sHub');music(55);}
-function refreshGold(){const t=String(S.gold);$('#hubGold').textContent=t;$('#hGold').textContent=t}
+function refreshGold(){const t=String(MODE==='online'?(ONLINE.profile&&ONLINE.profile.gold)||0:S.gold);$('#hubGold').textContent=t;$('#hGold').textContent=t}
 function hubFx(t){requestAnimationFrame(hubFx);if(cur!=='sHub')return;const c=$('#hubFx'),w=c.clientWidth,h=c.clientHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h;hubStars=Array.from({length:70},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.8+.4,s:Math.random()*30+8,p:Math.random()*TAU}))}
  const g=c.getContext('2d');g.clearRect(0,0,w,h);for(const s of hubStars){s.y-=s.s*.016;if(s.y<-5){s.y=h+5;s.x=Math.random()*w}const a=.35+.35*Math.sin(t/700+s.p);g.fillStyle=`rgba(255,214,130,${a})`;g.beginPath();g.arc(s.x+Math.sin(t/1800+s.p)*10,s.y,s.r,0,TAU);g.fill()}}
-$$('#sHub .big').forEach(b=>b.onclick=()=>{sfx('click');ac();const a=b.dataset.act;if(a==='play')enterMap();else if(a==='inv')openInv();else if(a==='shop')openShop('items',true);else openSettings()});
+$$('#sHub .big').forEach(b=>b.onclick=()=>{sfx('click');ac();const a=b.dataset.act;if(MODE==='online'){onlineNav(a);return}if(a==='play')enterMap();else if(a==='inv')openInv();else if(a==='shop')openShop('items',true);else openSettings()});
 
 /* sheets */
 function openSheet(html){$('#sheet').innerHTML=html;$('#sheetModal').classList.add('on')}
@@ -1288,6 +1299,52 @@ setUI();window.addEventListener('resize',setUI);
 enterClass();
 requestAnimationFrame(pvLoop);requestAnimationFrame(hubFx);requestAnimationFrame(frame);
 })();
+</script>
+<script type="module">
+/* ===== FIREBASE CONFIG: paste values from Firebase console > Project settings > Your apps (Web). Web config is public by design; security comes from Rules + Functions. ===== */
+const FIREBASE_CONFIG={apiKey:"",authDomain:"",projectId:"",appId:""};
+const FB_VERSION="10.14.1";
+/* ============================================================== */
+const q=s=>document.querySelector(s);
+let mode='login';
+const msg=(t,bad)=>{const m=q('#auMsg');m.textContent=t;m.style.color=bad?'#e2553b':''};
+const setMode=m=>{mode=m;document.querySelectorAll('[data-auth]').forEach(b=>b.classList.toggle('ghost',b.dataset.auth!==m));q('#auUser').hidden=m!=='register';q('#auPass').hidden=m==='reset';q('#auGo').textContent={login:'Login',register:'Create Account',reset:'Send Reset Email'}[m];msg('')};
+document.querySelectorAll('[data-auth]').forEach(b=>b.onclick=()=>setMode(b.dataset.auth));
+setMode('login');
+if(!FIREBASE_CONFIG.projectId){
+  q('#auGo').onclick=()=>msg('Firebase is not configured. Fill FIREBASE_CONFIG in index.html (see SETUP.md).',true);
+}else{
+const B="https://www.gstatic.com/firebasejs/"+FB_VERSION+"/";
+const [{initializeApp},A,F,FN]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-auth.js"),import(B+"firebase-firestore.js"),import(B+"firebase-functions.js")]);
+const app=initializeApp(FIREBASE_CONFIG),auth=A.getAuth(app),db=F.getFirestore(app),fn=FN.getFunctions(app);
+const call=n=>FN.httpsCallable(fn,n);
+const errs={'auth/invalid-credential':'Wrong email or password.','auth/invalid-email':'That email is not valid.','auth/too-many-requests':'Too many attempts. Try again later.','auth/network-request-failed':'Network problem. Check your connection.'};
+const nice=e=>errs[e.code]||(e.message||'Something went wrong.');
+let busy=false,unsub=null,registering=false;
+q('#auGo').onclick=async()=>{if(busy)return;const email=q('#auEmail').value.trim(),pass=q('#auPass').value,user=q('#auUser').value.trim().toLowerCase();
+ if(!/^\S+@\S+\.\S+$/.test(email))return msg('Enter a valid email.',true);
+ if(mode!=='reset'&&pass.length<8)return msg('Password needs at least 8 characters.',true);
+ if(mode==='register'&&!/^[a-z0-9_]{3,16}$/.test(user))return msg('Username: 3-16 letters, digits or _.',true);
+ busy=true;q('#auGo').disabled=true;msg('Working…');
+ try{
+  if(mode==='reset'){await A.sendPasswordResetEmail(auth,email);msg('If that account exists, a reset email was sent.')}
+  else{
+   if(mode==='register'){const h=S.hero;if(!h)throw new Error('Choose a hero first.');await call('registerAccount')({email,password:pass,username:user,characterName:h.name,classId:h.cls,gender:h.gender})}
+   await A.signInWithEmailAndPassword(auth,email,pass);
+  }
+ }catch(e){msg(nice(e),true)}finally{busy=false;q('#auGo').disabled=false}};
+A.onAuthStateChanged(auth,async u=>{
+ if(unsub){unsub();unsub=null}
+ if(!u){ONLINE.user=ONLINE.profile=ONLINE.hero=null;return}
+ try{
+  await call('touchLogin')();
+  const p=(await F.getDoc(F.doc(db,'users',u.uid))).data(),c=(await F.getDoc(F.doc(db,'users',u.uid,'characters',p.selectedCharacterId))).data();
+  ONLINE.user={uid:u.uid,email:u.email};ONLINE.profile=p;ONLINE.hero={name:c.name,cls:c.classId,gender:c.gender};
+  unsub=F.onSnapshot(F.doc(db,'users',u.uid),s=>{if(s.exists()){ONLINE.profile=s.data();if(MODE==='online')refreshGold()}});
+  q('#onlineModal').classList.remove('on');window.__onlineGo=true;MODE='online';q('#modeOff').onclick();
+ }catch(e){msg(nice(e),true);A.signOut(auth)}});
+window.Online={async logout(){if(unsub){unsub();unsub=null}await A.signOut(auth);location.reload()}};
+}
 </script>
 
 </body></html>
