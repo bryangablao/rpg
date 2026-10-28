@@ -1301,16 +1301,10 @@ requestAnimationFrame(pvLoop);requestAnimationFrame(hubFx);requestAnimationFrame
 })();
 </script>
 <script type="module">
-const firebaseConfig = {
-  apiKey: "AIzaSyCaAnwhtweucLd_pGOVsf_sZk-jiOuZOlg",
-  authDomain: "rpgseven.firebaseapp.com",
-  projectId: "rpgseven",
-  storageBucket: "rpgseven.firebasestorage.app",
-  messagingSenderId: "85347363628",
-  appId: "1:85347363628:web:313de3a501d743d40b5a89"
-};
+/* ===== FIREBASE CONFIG: paste values from Firebase console > Project settings > Your apps (Web). ===== */
+const FIREBASE_CONFIG={apiKey:"",authDomain:"",projectId:"",appId:""};
 const FB_VERSION="10.14.1";
-/* ============================================================== */
+/* ========================================================================================== */
 const q=s=>document.querySelector(s);
 let mode='login';
 const msg=(t,bad)=>{const m=q('#auMsg');m.textContent=t;m.style.color=bad?'#e2553b':''};
@@ -1321,34 +1315,57 @@ if(!FIREBASE_CONFIG.projectId){
   q('#auGo').onclick=()=>msg('Firebase is not configured. Fill FIREBASE_CONFIG in index.html (see SETUP.md).',true);
 }else{
 const B="https://www.gstatic.com/firebasejs/"+FB_VERSION+"/";
-const [{initializeApp},A,F,FN]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-auth.js"),import(B+"firebase-firestore.js"),import(B+"firebase-functions.js")]);
-const app=initializeApp(FIREBASE_CONFIG),auth=A.getAuth(app),db=F.getFirestore(app),fn=FN.getFunctions(app);
-const call=n=>FN.httpsCallable(fn,n);
-const errs={'auth/invalid-credential':'Wrong email or password.','auth/invalid-email':'That email is not valid.','auth/too-many-requests':'Too many attempts. Try again later.','auth/network-request-failed':'Network problem. Check your connection.'};
-const nice=e=>errs[e.code]||(e.message||'Something went wrong.');
-let busy=false,unsub=null,registering=false;
-q('#auGo').onclick=async()=>{if(busy)return;const email=q('#auEmail').value.trim(),pass=q('#auPass').value,user=q('#auUser').value.trim().toLowerCase();
+const [{initializeApp},A,F]=await Promise.all([import(B+"firebase-app.js"),import(B+"firebase-auth.js"),import(B+"firebase-firestore.js")]);
+const app=initializeApp(FIREBASE_CONFIG),auth=A.getAuth(app),db=F.getFirestore(app);
+const errs={'auth/invalid-credential':'Wrong email or password.','auth/invalid-email':'That email is not valid.','auth/email-already-in-use':'That email is already registered.','auth/weak-password':'Password is too weak.','auth/too-many-requests':'Too many attempts. Try again later.','auth/network-request-failed':'Network problem. Check your connection.','permission-denied':'That username is taken or invalid.'};
+const nice=e=>errs[e.code]||e.message||'Something went wrong.';
+let busy=false,unsub=null,registering=false,wantEnter=false;
+
+async function loadAccount(u,enter){
+ const pr=F.doc(db,'users',u.uid),snap=await F.getDoc(pr);
+ if(!snap.exists())throw new Error('Account profile is missing.');
+ const p=snap.data();
+ await F.updateDoc(pr,{lastLoginAt:F.serverTimestamp()});
+ const c=(await F.getDoc(F.doc(db,'users',u.uid,'characters',p.selectedCharacterId))).data();
+ ONLINE.user={uid:u.uid,email:u.email};ONLINE.profile=p;ONLINE.hero={name:c.name,cls:c.classId,gender:c.gender};
+ if(unsub)unsub();
+ unsub=F.onSnapshot(pr,s=>{if(s.exists()){ONLINE.profile=s.data();if(MODE==='online')refreshGold()}});
+ if(enter){q('#onlineModal').classList.remove('on');window.__onlineGo=true;MODE='online';q('#modeOff').onclick()}
+}
+
+q('#auGo').onclick=async()=>{if(busy)return;
+ const email=q('#auEmail').value.trim(),pass=q('#auPass').value,user=q('#auUser').value.trim().toLowerCase();
  if(!/^\S+@\S+\.\S+$/.test(email))return msg('Enter a valid email.',true);
  if(mode!=='reset'&&pass.length<8)return msg('Password needs at least 8 characters.',true);
  if(mode==='register'&&!/^[a-z0-9_]{3,16}$/.test(user))return msg('Username: 3-16 letters, digits or _.',true);
- busy=true;q('#auGo').disabled=true;msg('Working…');
+ busy=true;q('#auGo').disabled=true;msg('Working…');let cred=null;
  try{
   if(mode==='reset'){await A.sendPasswordResetEmail(auth,email);msg('If that account exists, a reset email was sent.')}
+  else if(mode==='login'){wantEnter=true;await A.signInWithEmailAndPassword(auth,email,pass)}
   else{
-   if(mode==='register'){const h=S.hero;if(!h)throw new Error('Choose a hero first.');await call('registerAccount')({email,password:pass,username:user,characterName:h.name,classId:h.cls,gender:h.gender})}
-   await A.signInWithEmailAndPassword(auth,email,pass);
+   const h=S.hero;if(!h)throw new Error('Choose a hero first.');
+   registering=true;
+   cred=await A.createUserWithEmailAndPassword(auth,email,pass);
+   const uid=cred.user.uid,ts=F.serverTimestamp(),b=F.writeBatch(db),u=F.doc(db,'users',uid);
+   b.set(F.doc(db,'usernames',user),{uid});
+   b.set(u,{uid,username:user,displayName:h.name,accountRole:'player',createdAt:ts,lastLoginAt:ts,selectedCharacterId:'c1',guildId:null,homeId:null,gold:0,gems:0});
+   b.set(F.doc(u,'characters','c1'),{name:h.name,classId:h.cls,gender:h.gender,level:1,xp:0,stats:{},equipment:{weapon:'starter_weapon',head:null,chest:'starter_armor',legs:null,feet:null,necklace:null,ring:null,bracelet:null},questProgress:{},createdAt:ts});
+   b.set(F.doc(u,'inventory','starter_weapon'),{catalogItemId:'w_'+h.cls+'_0',category:'weapons',quantity:1,metadata:{},createdAt:ts});
+   b.set(F.doc(u,'inventory','starter_armor'),{catalogItemId:'a_0',category:'armors',quantity:1,metadata:{},createdAt:ts});
+   await b.commit();
+   registering=false;
+   await loadAccount(cred.user,true);
   }
- }catch(e){msg(nice(e),true)}finally{busy=false;q('#auGo').disabled=false}};
+ }catch(e){
+  if(cred&&!ONLINE.user){try{await A.deleteUser(cred.user)}catch(_){}} /* do not leave an Auth user without a profile */
+  wantEnter=false;msg(nice(e),true)
+ }finally{registering=false;busy=false;q('#auGo').disabled=false}};
+
 A.onAuthStateChanged(auth,async u=>{
- if(unsub){unsub();unsub=null}
- if(!u){ONLINE.user=ONLINE.profile=ONLINE.hero=null;return}
- try{
-  await call('touchLogin')();
-  const p=(await F.getDoc(F.doc(db,'users',u.uid))).data(),c=(await F.getDoc(F.doc(db,'users',u.uid,'characters',p.selectedCharacterId))).data();
-  ONLINE.user={uid:u.uid,email:u.email};ONLINE.profile=p;ONLINE.hero={name:c.name,cls:c.classId,gender:c.gender};
-  unsub=F.onSnapshot(F.doc(db,'users',u.uid),s=>{if(s.exists()){ONLINE.profile=s.data();if(MODE==='online')refreshGold()}});
-  q('#onlineModal').classList.remove('on');window.__onlineGo=true;MODE='online';q('#modeOff').onclick();
- }catch(e){msg(nice(e),true);A.signOut(auth)}});
+ if(registering)return;
+ if(!u){if(unsub){unsub();unsub=null}ONLINE.user=ONLINE.profile=ONLINE.hero=null;return}
+ const enter=wantEnter;wantEnter=false;
+ try{await loadAccount(u,enter)}catch(e){msg(nice(e),true);A.signOut(auth)}});
 window.Online={async logout(){if(unsub){unsub();unsub=null}await A.signOut(auth);location.reload()}};
 }
 </script>
