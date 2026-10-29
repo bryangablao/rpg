@@ -354,27 +354,6 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .mm-orn::before,.mm-orn::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold2))}
 .mm-orn::after{background:linear-gradient(90deg,var(--gold2),transparent)}
 .mm-orn i{width:9px;height:9px;transform:rotate(45deg);background:var(--gold2)}
-/* online mode */
-#sOnHub{overflow-y:auto;overflow-x:hidden;background:radial-gradient(ellipse at 30% 40%,#2b1d44,#0f0b17 65%)}
-#sOnHub .hubTop{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;left:12px}
-#sOnHub .big[disabled]{opacity:.45;cursor:not-allowed;transform:none}
-.mm-err.ok{color:#9be59b}
-.mm-busy{pointer-events:none}.mm-busy .mm-btn{opacity:.65}
-#sConts .cards{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
-.cprev{width:100%;height:64px;border-radius:4px;border:1px solid var(--line)}
-.card.lock{opacity:.5;cursor:not-allowed}.card.lock:hover{transform:none;border-color:var(--line)}
-.cmeta{font:700 13px var(--body);color:var(--gold)}
-#sWorld{overflow:hidden;background:#0b0810;user-select:none;-webkit-user-select:none}
-#wc{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
-.wTop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 8px);left:8px;right:8px;display:flex;justify-content:space-between;gap:8px;pointer-events:none;align-items:flex-start}
-.wBox{pointer-events:auto;min-width:150px;max-width:46vw;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:rgba(13,10,18,.78);display:flex;flex-direction:column;gap:4px;font:700 14px var(--body);color:var(--text)}
-.wBox b{color:var(--gold);font-size:16px}.wBox.r{align-items:flex-end;text-align:right}.wBox span{color:var(--mute);font-size:13px}
-.wbar{height:9px;background:#1a1322;border:1px solid #000;border-radius:5px;overflow:hidden}.wbar i{display:block;height:100%;width:100%;background:linear-gradient(#e0555f,#9a2530)}
-.wbar.xp{height:6px}.wbar.xp i{background:linear-gradient(#7fd0ee,#3a7fa8);width:0}
-#wTalk{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);transform:translateX(-50%)}
-#wMsg{position:absolute;left:50%;top:22%;transform:translateX(-50%);max-width:88vw;text-align:center;font:700 16px var(--display);color:var(--gold);text-shadow:0 2px 8px #000;opacity:0;transition:opacity .3s;pointer-events:none}#wMsg.on{opacity:1}
-#wHelp{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);text-align:center;font:600 13px var(--body);color:var(--mute);pointer-events:none;text-shadow:0 1px 4px #000}
-.perk{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--line);border-radius:6px;margin:8px 0}
 /* opening splash */
 #splash{position:absolute;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;background:radial-gradient(ellipse at 50% 45%,#241a33 0%,var(--ink) 70%);cursor:pointer;transition:opacity .9s ease}
 #splash.off{opacity:0;pointer-events:none}
@@ -414,9 +393,9 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
  <div class="mm-pg" id="mmReg" data-pg="reg">
   <h2>Register</h2>
   <div class="mm-row2"><div class="mm-fld"><label for="mmFn">First Name</label><input id="mmFn" type="text" autocomplete="given-name"></div><div class="mm-fld"><label for="mmLn">Last Name</label><input id="mmLn" type="text" autocomplete="family-name"></div></div>
-  <div class="mm-fld"><label for="mmREmail">Email</label><input id="mmREmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
-  <div class="mm-row2"><div class="mm-fld"><label for="mmRPass">Password</label><input id="mmRPass" type="password" autocomplete="new-password"></div><div class="mm-fld"><label for="mmRPass2">Confirm</label><input id="mmRPass2" type="password" autocomplete="new-password"></div></div>
-  <div class="mm-fld"><label for="mmBd">Birth Date</label><input id="mmBd" type="date"></div>
+  <div class="mm-fld"><label for="mmIgn">In-Game Name</label><input id="mmIgn" type="text" autocomplete="nickname"></div>
+  <div class="mm-fld"><label for="mmRPass">Password</label><input id="mmRPass" type="password" autocomplete="new-password"></div>
+  <div class="mm-row2"><div class="mm-fld"><label for="mmBd">Birth Date</label><input id="mmBd" type="date"></div><div class="mm-fld"><label for="mmGen">Gender</label><select id="mmGen"><option value="">Select</option><option>Male</option><option>Female</option><option>Prefer not to say</option></select></div></div>
   <button class="btn mm-btn gold" id="mmRegBtn" type="button">Register</button>
   <p class="mm-err" id="mmErrReg"></p>
   <button class="mm-link center" id="mmRegBack" type="button">&larr; Back to Login</button>
@@ -471,44 +450,6 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
       <button class="big" data-act="set">Settings<small>Sound, effects and your save</small></button>
     </nav>
   </div>
-</section>
-
-<section class="screen" id="sOnHub">
-  <div class="hubTop"><span class="chip" id="onLevel">Level 1</span> <span class="chip" id="onGold">0</span> <span class="chip k" id="onGems">0</span></div>
-  <div class="hubBody pad">
-    <div class="heropane"><canvas class="pv" id="onHero" width="240" height="280"></canvas><div class="hname" id="onName"></div><div class="hcls" id="onCls"></div><div class="hcls" id="onWpn"></div><div class="hcls" id="onCont"></div></div>
-    <nav class="menu">
-      <h1 class="title logo">Seven Realms<small style="display:block;font-size:.4em;letter-spacing:.3em;color:var(--mute)">Online</small></h1>
-      <button class="big" data-on="play">Play<small>Choose a continent and deploy</small></button>
-      <button class="big" data-on="daily" disabled>Daily Quest<small>Five-minute survival &middot; Phase 5</small></button>
-      <button class="big" data-on="inv" disabled>Inventory<small>Equipment and storage &middot; Phase 4</small></button>
-      <button class="big" data-on="shop" disabled>Shop<small>Phase 4</small></button>
-      <button class="big" data-on="guild" disabled>Guild<small>Phase 6</small></button>
-      <button class="big" data-on="tour" disabled>Tournament<small>Phase 6</small></button>
-      <button class="big" data-on="dun" disabled>Dungeon<small>100 floors &middot; Phase 5</small></button>
-      <button class="big" data-on="lb" disabled>Leaderboard<small>Phase 7</small></button>
-      <button class="big" data-on="set">Settings<small>Account and log out</small></button>
-    </nav>
-  </div>
-</section>
-
-<section class="screen pad" id="sConts"><div class="wrap">
-  <button class="btn ghost small" id="contBackBtn" type="button">&larr; Lobby</button>
-  <p class="eyebrow">Online</p>
-  <h1 class="title">Choose a Continent</h1>
-  <p class="sub" id="contSub">Each continent has its own walled town and its own wilds. Players here are live.</p>
-  <div class="cards" id="contCards"></div>
-</div></section>
-
-<section class="screen" id="sWorld">
-  <canvas id="wc"></canvas>
-  <div class="wTop">
-    <div class="wBox"><b id="wName"></b><span id="wLv"></span><div class="wbar"><i id="wHp"></i></div><div class="wbar xp"><i id="wXp"></i></div></div>
-    <div class="wBox r"><b id="wCont"></b><span id="wOn"></span><span id="wZone"></span><button class="btn small" id="wLeave" type="button">Leave</button></div>
-  </div>
-  <button class="btn" id="wTalk" type="button" hidden>Talk</button>
-  <div id="wMsg"></div>
-  <div id="wHelp">Move: WASD / arrows or drag. Your weapon strikes the nearest foe on its own.</div>
 </section>
 
 <section class="screen pad" id="sMap">
@@ -754,7 +695,7 @@ function stopMusic(){if(!musicNodes)return;const m=musicNodes;musicNodes=null;tr
 function setMusicVol(){if(musicNodes&&AC){musicNodes.g.gain.value=S.set.music*.07}}
 
 /* ============ UI FLOW ============ */
-let cur='sClass',sel={cls:null,gender:null},onlineFlow=false,ONL=null;
+let cur='sClass',sel={cls:null,gender:null};
 function show(id){cur=id;$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
 function pvLoop(t){requestAnimationFrame(pvLoop);$$('canvas.pv').forEach(c=>{if(c.offsetParent===null)return;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);if(c.dataset.cls)drawPortrait(g,c.width,c.height,c.dataset.cls,c.dataset.gen||'m',t/1000)})}
 const GENDER_LABEL={m:'Male',f:'Female'};
@@ -767,10 +708,10 @@ function enterClass(){buildClassCards();sel={cls:null,gender:null};$('#classNext
 function buildGender(){const box=$('#genderCards');box.innerHTML='';$('#genderSub').textContent='Your '+CLASSES[sel.cls].name+' can take either form. It changes how your hero looks, not how they fight.';
  ['m','f'].forEach(g=>{const el=document.createElement('button');el.type='button';el.className='card';el.innerHTML=`<canvas class="pv" width="150" height="170" data-cls="${sel.cls}" data-gen="${g}"></canvas><b>${GENDER_LABEL[g]}</b>`;
   el.onclick=()=>{sel.gender=g;sfx('click');$$('#genderCards .card').forEach(x=>x.classList.toggle('sel',x===el));$('#genderNext').disabled=false};box.appendChild(el)});$('#genderNext').disabled=true}
-function validName(v){return onlineFlow?/^[A-Za-z0-9]{5,13}$/.test(v):/^[A-Za-z]{3,8}$/.test(v)}
-function nameInput(){const on=onlineFlow,i=$('#nameInput'),mx=on?13:8,mn=on?5:3,unit=on?' characters':' letters';i.maxLength=mx;i.value=i.value.replace(on?/[^A-Za-z0-9]/g:/[^A-Za-z]/g,'').slice(0,mx);const v=i.value,h=$('#nameHint');
- $('#nameShow').textContent=v?(on?v:v.charAt(0).toUpperCase()+v.slice(1).toLowerCase()):'Hero';
- if(!v){h.textContent=on?'5 to 13 letters or digits':'3 to 8 letters';h.className='hintline'}else if(v.length<mn){h.textContent=v.length+'/'+mx+' · at least '+mn+unit;h.className='hintline bad'}else{h.textContent=v.length+'/'+mx+unit;h.className='hintline'}
+function validName(v){return /^[A-Za-z]{3,8}$/.test(v)}
+function nameInput(){const i=$('#nameInput');i.value=i.value.replace(/[^A-Za-z]/g,'').slice(0,8);const v=i.value,h=$('#nameHint');
+ $('#nameShow').textContent=v?v.charAt(0).toUpperCase()+v.slice(1).toLowerCase():'Hero';
+ if(!v){h.textContent='3 to 8 letters';h.className='hintline'}else if(v.length<3){h.textContent=v.length+'/8 · at least 3 letters';h.className='hintline bad'}else{h.textContent=v.length+'/8 letters';h.className='hintline'}
  $('#nameNext').disabled=!validName(v)}
 $('#classNext').onclick=()=>{sfx('click');buildGender();show('sGender')};
 $('#genderBack').onclick=()=>{sfx('click');show('sClass')};
@@ -778,31 +719,9 @@ $('#genderNext').onclick=()=>{sfx('click');const cv=$('#nameCv');cv.dataset.cls=
 $('#nameBack').onclick=()=>{sfx('click');show('sGender')};
 $('#nameInput').addEventListener('input',nameInput);
 $('#nameInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('#nameNext').disabled)$('#nameNext').click()});
-$('#nameNext').onclick=()=>{const raw=$('#nameInput').value;if(!validName(raw))return;if(onlineFlow){onlineCreate(raw);return}const nm=raw.charAt(0).toUpperCase()+raw.slice(1).toLowerCase();
+$('#nameNext').onclick=()=>{const raw=$('#nameInput').value;if(!validName(raw))return;const nm=raw.charAt(0).toUpperCase()+raw.slice(1).toLowerCase();
  S.hero={name:nm,cls:sel.cls,gender:sel.gender};S.equip.w=null;save();playDoors()};
 $('#contBtn').onclick=()=>{sfx('click');ac();enterHub()};
-
-/* ===== online mode (separate from the offline save S) ===== */
-const escH=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function onlineCreate(ign){const h=$('#nameHint'),b=$('#nameNext');if(b.dataset.busy)return;b.dataset.busy='1';b.disabled=true;h.textContent='Reserving your name…';h.className='hintline';
- try{const O=window.SR_ONLINE;if(!O||!O.ready)throw new Error('Online services are unavailable. Check your connection.');
-  const c=await O.createCharacter({cls:sel.cls,gender:sel.gender,ign});ONL=initONL(c);playDoors(ONL.ign,enterOnlineHub)}
- catch(e){h.textContent=(e&&e.message)||'Could not save your hero. Try again.';h.className='hintline bad';b.disabled=!validName($('#nameInput').value)}
- finally{delete b.dataset.busy}}
-function startOnlineCreation(){onlineFlow=true;ONL=null;enterClass();$('#contBox').classList.remove('on')}
-function enterOnlineHub(){const o=ONL;if(!o){startOnlineCreation();return}
- const cv=$('#onHero');cv.dataset.cls=o.cls;cv.dataset.gen=o.gender;$('#onName').textContent=o.ign;
- $('#onCls').textContent=CLASSES[o.cls].name+' · '+GENDER_LABEL[o.gender];
- const w=WEAPON_BY['w_'+o.cls+'_0'];$('#onWpn').textContent='Weapon: '+(w?w.n:CLASSES[o.cls].weapon);
- $('#onCont').textContent=o.continent&&REALM_BY_ID[o.continent]?('Continent: '+REALM_BY_ID[o.continent].name):'Continent: none yet';
- $('#onLevel').textContent='Level '+o.level;$('#onGold').textContent=o.gold;$('#onGems').textContent=o.gems+' gems';
- show('sOnHub');music(55)}
-function openOnSettings(){const o=ONL||{};
- openSheet(head('Online Settings')+`<div class="row"><div class="tx"><b>${escH(o.ign)}</b><span>${escH(o.email||'')}</span></div></div><div class="row"><div class="tx"><b>Account</b><span>Edit Profile arrives in Phase 7.</span></div><div class="act"><button class="btn small" id="onLogout">Log out</button></div></div>`);bindClose();
- $('#onLogout').onclick=async()=>{sfx('click');const b=$('#onLogout');b.disabled=true;try{if(window.SR_ONLINE&&window.SR_ONLINE.logout)await window.SR_ONLINE.logout()}catch(e){}
-  ONL=null;onlineFlow=false;closeSheet();stopMusic();enterClass();$('#modeBtn').click()}}
-$$('#sOnHub .big').forEach(b=>b.onclick=()=>{sfx('click');ac();if(b.dataset.on==='set')openOnSettings();else if(b.dataset.on==='play')enterConts()});
-
 
 function buildGate(){const g='#e3b550',d='#a97c26',P=Math.PI;
  const star=(cx,cy,ro,ri,n,fill)=>{let pts='';for(let i=0;i<n*2;i++){const a=i*P/n-P/2,r=i%2?ri:ro;pts+=(cx+Math.cos(a)*r).toFixed(1)+','+(cy+Math.sin(a)*r).toFixed(1)+' '}return `<polygon points="${pts}" fill="${fill}" stroke="#2a1a05" stroke-width=".8"/>`};
@@ -817,12 +736,12 @@ function buildGate(){const g='#e3b550',d='#a97c26',P=Math.PI;
  a+=`<g class="cr"><circle cx="100" cy="120" r="34" fill="#1a1018" stroke="${g}" stroke-width="2.5"/><circle cx="100" cy="120" r="27" fill="none" stroke="${d}" stroke-width="1"/>${star(100,120,24,10,8,g)}<circle cx="100" cy="120" r="5" fill="#ff7a3a"/></g>`;
  $('#gate .doorL svg').innerHTML=a;$('#gate .doorR svg').innerHTML=`<g transform="translate(100 0) scale(-1 1)">${a}</g>`}
 buildGate();
-function playDoors(dn,after){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom','ajar');$('#doorMsg').textContent='The gates of Seven Realms stir…';
+function playDoors(){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom','ajar');$('#doorMsg').textContent='The gates of Seven Realms stir…';
  void gate.offsetWidth;setTimeout(()=>{sfx('door');gate.classList.add('ajar')},500);
- setTimeout(()=>{$('#doorMsg').textContent='Welcome, '+(dn||S.hero.name)+'.'},2200);
+ setTimeout(()=>{$('#doorMsg').textContent='Welcome, '+S.hero.name+'.'},2200);
  setTimeout(()=>{gate.classList.remove('ajar');gate.classList.add('open');sfx('door');$('#doorMsg').textContent=''},3600);
  setTimeout(()=>gate.classList.add('zoom'),5800);
- setTimeout(()=>(after||enterHub)(),7300)}
+ setTimeout(()=>enterHub(),7300)}
 
 /* hub */
 let hubStars=[];
@@ -1449,181 +1368,6 @@ window.addEventListener('keydown',e=>{
  if((e.key==='/'||e.key==='\\')&&!/INPUT|TEXTAREA/.test((e.target.tagName||''))){const nw=performance.now();if(e.key==='/')kSl=nw;else kBs=nw;if(!chOpen&&kSl&&kBs&&Math.abs(kSl-kBs)<800){e.preventDefault();kSl=kBs=0;chOpenFn()}}},true);
 
 
-/* ===== online world (Phase 3): continents, towns, gates, mobs, presence ===== */
-const WLD={W:3200,H:3200,CX:1600,CY:1600,HM:420,GAP:70,WALL:28};
-const REQ={aetherion:1,frostheim:3,drakthar:6,sylvaris:9,dunemara:12,thalassara:15,umbraxis:18};
-const lvFor=xp=>1+Math.floor(Math.sqrt(xp/25));
-const PERKS=[{k:'Dmg',n:'Sharpened Edge',d:'+10% damage'},{k:'Hp',n:'Stout Heart',d:'+10% maximum health'},{k:'Spd',n:'Fleet Foot',d:'+4% movement speed'}];
-const SAVE_MS=12000,MAX_MOBS=26;
-let W=null,wCounts={},wUnCounts=null,wLast=0;const wKeys={};
-function initONL(c){const o=Object.assign({perkDmg:0,perkHp:0,perkSpd:0,xp:0,gold:0,gems:0},c);o.level=lvFor(o.xp);
- o.saved={xp:o.xp,gold:o.gold,perkDmg:o.perkDmg,perkHp:o.perkHp,perkSpd:o.perkSpd,continent:o.continent||null};return o}
-const perkSum=o=>(o.perkDmg|0)+(o.perkHp|0)+(o.perkSpd|0);
-const inTown=(x,y,m)=>Math.abs(x-WLD.CX)<WLD.HM+(m||0)&&Math.abs(y-WLD.CY)<WLD.HM+(m||0);
-function wSay(m,ms){const e=$('#wMsg');e.textContent=m;e.classList.add('on');clearTimeout(wSay.t);wSay.t=setTimeout(()=>e.classList.remove('on'),ms||3000)}
-
-/* continent picker */
-function buildConts(){const box=$('#contCards');box.innerHTML='';
- REALMS.forEach(r=>{const need=REQ[r.id],lock=ONL.level<need,el=document.createElement('button');el.type='button';el.className='card'+(lock?' lock':'');
-  el.innerHTML=`<div class="cprev" style="background:linear-gradient(135deg,${r.ground[0]},${r.ground[1]} 45%,${r.ground[2]})"></div><b>${r.name}</b><em>${r.sub}</em><span>${r.desc}</span><div class="cmeta" data-cnt="${r.id}">0 players online</div><div class="cmeta">${lock?'Locked: reach level '+need:'Level '+need+'+ · Available'}</div>`;
-  el.onclick=()=>{if(lock){sfx('hurt');$('#contSub').textContent=r.name+' unlocks at level '+need+'. You are level '+ONL.level+'.';return}sfx('click');enterWorld(r.id)};box.appendChild(el)});paintCounts()}
-function paintCounts(){$$('#contCards [data-cnt]').forEach(e=>{const n=wCounts[e.dataset.cnt]||0;e.textContent=n+(n===1?' player':' players')+' online'})}
-function stopCounts(){if(wUnCounts){try{wUnCounts()}catch(e){}wUnCounts=null}}
-function enterConts(){buildConts();show('sConts');stopCounts();const O=window.SR_ONLINE;
- if(O&&O.world)wUnCounts=O.world.watchCounts(c=>{wCounts=c;paintCounts()});else{wCounts={};paintCounts();$('#contSub').textContent='Realtime Database is not configured, so player counts and other players are unavailable.'}}
-$('#contBackBtn').onclick=()=>{sfx('click');stopCounts();enterOnlineHub()};
-
-/* world construction */
-function buildWorld(r){const {CX,CY,HM,GAP,WALL}=WLD,solids=[],bld=[];
- const wall=(x,y,w,h)=>solids.push({x,y,w,h,wall:1});
- wall(CX-HM,CY-HM-WALL/2,HM-GAP,WALL);wall(CX+GAP,CY-HM-WALL/2,HM-GAP,WALL);
- wall(CX-HM,CY+HM-WALL/2,HM-GAP,WALL);wall(CX+GAP,CY+HM-WALL/2,HM-GAP,WALL);
- wall(CX-HM-WALL/2,CY-HM,WALL,HM-GAP);wall(CX-HM-WALL/2,CY+GAP,WALL,HM-GAP);
- wall(CX+HM-WALL/2,CY-HM,WALL,HM-GAP);wall(CX+HM-WALL/2,CY+GAP,WALL,HM-GAP);
- const B=(n,dx,dy,w,h,col)=>{const b={n,x:CX+dx,y:CY+dy,w,h,col};bld.push(b);solids.push(b)};
- B('Town Hall',-385,-385,290,140,'#8a5a3a');B('House',-385,-225,120,90,'#7a6a58');B('House',-250,-225,120,90,'#6a5a68');
- B('Library',95,-385,290,140,'#4a5a8a');B('House',95,-225,120,90,'#7a6a58');B('General Store',230,-225,150,90,'#8a7a3a');
- B('Blacksmith',-385,95,150,110,'#5a4a4a');B('Equipment Store',-225,95,135,110,'#4a6a5a');B('House',-385,235,120,90,'#6a5a68');
- B('Inn',95,95,150,110,'#8a4a3a');B('House',255,95,125,110,'#7a6a58');
- solids.push({x:CX-30,y:CY-30,w:60,h:60,fountain:1});
- const off=[[-80,-80],[80,-80],[-80,80],[80,80]];
- const npcs=r.npcs.slice(0,4).map((n,i)=>({name:n[0],role:n[1],text:n[2],col:n[3],x:CX+off[i][0],y:CY+off[i][1],cls:['warrior','mage','archer','lancer'][i%4],gen:i%2?'f':'m'}));
- const rg=rng(r.seed),props=[];for(let i=0;i<260;i++){const x=rg()*WLD.W,y=rg()*WLD.H;if(inTown(x,y,170))continue;props.push({x,y,t:Math.floor(rg()*3),s:.7+rg()*.8})}
- const lvl=ONL.level,c=CLASSES[ONL.cls];
- W={r,tier:REALMS.indexOf(r),solids,bld,npcs,props,enemies:[],others:new Map(),fx:[],txt:[],t:0,sendT:0,lastSend:'',lastSendAt:0,saveT:0,perkT:0,saveFail:0,net:null,
-  me:{x:CX,y:CY+120,face:1,moving:0,hp:1,cd:0,dead:0,rt:0,stepT:0},cam:{x:0,y:0},zoom:1,stick:null,near:null};
- W.me.hp=maxHp();
- for(let i=0;i<MAX_MOBS;i++){const e=spawnEnemy();W.enemies.push(e||{dead:1,rt:Math.random()*4})}}
-const maxHp=()=>Math.round(CLASSES[ONL.cls].hp*(1+.1*ONL.perkHp)*(1+.04*(ONL.level-1)));
-const mySpd=()=>CLASSES[ONL.cls].spd*(1+.04*ONL.perkSpd);
-
-/* collision */
-function hitSolid(x,y,r){for(const s of W.solids){const cx=clamp(x,s.x,s.x+s.w),cy=clamp(y,s.y,s.y+s.h);if((x-cx)*(x-cx)+(y-cy)*(y-cy)<r*r)return true}return false}
-function moveEnt(o,dx,dy,r,noTown){let nx=clamp(o.x+dx,r,WLD.W-r);if(!hitSolid(nx,o.y,r)&&!(noTown&&inTown(nx,o.y,0)))o.x=nx;let ny=clamp(o.y+dy,r,WLD.H-r);if(!hitSolid(o.x,ny,r)&&!(noTown&&inTown(o.x,ny,0)))o.y=ny}
-
-/* mobs: spawn only outside the walls, away from the player */
-function spawnEnemy(){const r=W.r;for(let i=0;i<30;i++){const a=Math.random()*TAU,d=rand(650,1500),x=WLD.CX+Math.cos(a)*d,y=WLD.CY+Math.sin(a)*d;
-  if(x<80||y<80||x>WLD.W-80||y>WLD.H-80||inTown(x,y,170)||Math.hypot(x-W.me.x,y-W.me.y)<380||hitSolid(x,y,20))continue;
-  const reg=Math.abs(x-WLD.CX)>Math.abs(y-WLD.CY)?(x>WLD.CX?1:3):(y>WLD.CY?2:0),def=r.en[reg%r.en.length],k=def[1],Bs=ENEMY_BASE[k],ts=1+W.tier*.55,hp=Math.round(Bs.hp*ts);
-  return{x,y,k,c:def[2],name:def[0],r:Bs.r,mhp:hp,hp,spd:Bs.spd,dmg:Math.round(Bs.dmg*(1+W.tier*.4)),xp:Math.max(1,Math.round(Bs.xp*3*(1+W.tier*.5))),ph:Math.random()*TAU,flash:0,face:1,cd:0,wt:0,wx:x,wy:y,dead:0,rt:0}}return null}
-function updEnemy(e,dt){const m=W.me;
- if(e.dead){e.rt-=dt;if(e.rt<=0){const n=spawnEnemy();if(n)Object.assign(e,n);else e.rt=1.5}return}
- e.flash=Math.max(0,e.flash-dt);e.cd-=dt;const dx=m.x-e.x,dy=m.y-e.y,d=Math.hypot(dx,dy),chase=!m.dead&&!inTown(m.x,m.y,10)&&d<240;let sx=0,sy=0;
- if(chase){sx=dx/d*e.spd;sy=dy/d*e.spd;if(d<e.r+14&&e.cd<=0){e.cd=1;const dm=Math.max(1,Math.round(e.dmg*(1-Math.min(.6,CLASSES[ONL.cls].armor*.06))));hurtMe(dm)}}
- else{e.wt-=dt;if(e.wt<=0){e.wt=rand(2,4);e.wx=e.x+rand(-120,120);e.wy=e.y+rand(-120,120)}const wx=e.wx-e.x,wy=e.wy-e.y,wd=Math.hypot(wx,wy);if(wd>6){sx=wx/wd*e.spd*.4;sy=wy/wd*e.spd*.4}}
- if(sx)e.face=sx<0?-1:1;moveEnt(e,sx*dt,sy*dt,e.r*.8,true)}
-function hurtMe(dm){const m=W.me;if(m.dead||inTown(m.x,m.y,0))return;m.hp-=dm;sfx('hurt');W.txt.push({x:m.x,y:m.y-40,t:'-'+dm,c:'#ff6a6a',l:.9});
- if(m.hp<=0){m.hp=0;m.dead=1;m.rt=4;wSay('You were defeated. Returning to town…',3500)}}
-
-/* hero combat: hostile mobs are the ONLY valid targets; there is no code path that damages players or NPCs */
-function wAttack(dt){const m=W.me,a=CLASSES[ONL.cls].atk;m.cd-=dt;if(m.cd>0||m.dead||inTown(m.x,m.y,0))return;
- let best=null,bd=1e9;for(const e of W.enemies){if(e.dead)continue;const d=Math.hypot(e.x-m.x,e.y-m.y)-e.r;if(d<bd){bd=d;best=e}}
- const R=Math.min(a.range||300,420);if(!best||bd>R)return;
- const wp=WEAPON_BY['w_'+ONL.cls+'_0'],base=a.dmg*(wp?wp.d:1)*(1+.1*ONL.perkDmg)*(1+.03*(ONL.level-1));
- m.cd=a.cd*(wp&&wp.h?wp.h:1);const ang=Math.atan2(best.y-m.y,best.x-m.x);m.face=Math.cos(ang)<0?-1:1;sfx(a.type==='proj'||a.type==='orb'?'shoot':'swing');
- if(a.type==='arc'||a.type==='slam'){for(const e of W.enemies)if(!e.dead&&Math.hypot(e.x-m.x,e.y-m.y)<=R+e.r)dmgEnemy(e,base,a.crit);W.fx.push({k:'ring',x:m.x,y:m.y,r:R,l:.18,c:a.type==='slam'?'#e3b550':'#fff'})}
- else if(a.type==='thrust'){const L=a.len||R,wd=(a.width||34)/2;for(const e of W.enemies){if(e.dead)continue;const rx=e.x-m.x,ry=e.y-m.y,al=rx*Math.cos(ang)+ry*Math.sin(ang),pp=Math.abs(-rx*Math.sin(ang)+ry*Math.cos(ang));if(al>0&&al<L+e.r&&pp<wd+e.r)dmgEnemy(e,base,a.crit)}
-  W.fx.push({k:'line',x:m.x,y:m.y,x2:m.x+Math.cos(ang)*L,y2:m.y+Math.sin(ang)*L,l:.15,c:'#cfe8ff'})}
- else{for(let i=0;i<(a.n||1);i++)dmgEnemy(best,base,a.crit);if(a.aoe)for(const e of W.enemies)if(!e.dead&&e!==best&&Math.hypot(e.x-best.x,e.y-best.y)<a.aoe)dmgEnemy(e,base*.6,0);
-  W.fx.push({k:'line',x:m.x,y:m.y-14,x2:best.x,y2:best.y,l:.12,c:a.col||'#fff'})}}
-function dmgEnemy(e,dmg,crit){if(e.dead)return;const cr=Math.random()<(crit||0);dmg=Math.max(1,Math.round(dmg*rand(.9,1.1)*(cr?1.8:1)));e.hp-=dmg;e.flash=.1;W.txt.push({x:e.x,y:e.y-e.r-8,t:String(dmg),c:cr?'#ffd24a':'#fff',l:.7});sfx('hit');
- if(e.hp<=0){e.dead=1;e.rt=6+Math.random()*4;const gold=Math.round(rand(2,6)*(1+W.tier*.4));ONL.xp+=e.xp;ONL.gold+=gold;W.txt.push({x:e.x,y:e.y-e.r-24,t:'+'+e.xp+' xp  +'+gold+'g',c:'#9fe3ff',l:1.2});sfx('coin');
-  const nl=lvFor(ONL.xp);if(nl>ONL.level){ONL.level=nl;sfx('level');wSay('Level '+nl+'!',2500);const mh=maxHp();W.me.hp=mh}}}
-
-/* level-up benefit: pick one of three, saved permanently */
-function pendingPerks(){return lvFor(ONL.xp)-1-perkSum(ONL)}
-function openPerk(){openSheet(`<div class="sheethead"><h2>Level ${ONL.level}: choose a benefit</h2></div>`+PERKS.map(p=>`<div class="perk"><div><b>${p.n}</b><br><span>${p.d} · now ${ONL['perk'+p.k]}</span></div><button class="btn small" data-perk="${p.k}">Choose</button></div>`).join(''));
- $$('#sheet [data-perk]').forEach(b=>b.onclick=()=>{if(pendingPerks()<=0){closeSheet();return}ONL['perk'+b.dataset.perk]++;sfx('buy');const mh=maxHp();W.me.hp=Math.min(mh,W.me.hp+mh*.2);closeSheet();wSave()})}
-const sheetOpen=()=>$('#sheetModal').classList.contains('on');
-
-/* multiplayer presence */
-function netState(){const m=W.me;return{x:Math.round(m.x),y:Math.round(m.y),f:m.face,m:m.moving?1:0,h:Math.round(m.hp/maxHp()*100),d:m.dead?1:0,c:ONL.cls,g:ONL.gender,n:ONL.ign,l:ONL.level}}
-function startNet(){const O=window.SR_ONLINE;W.net=O&&O.world?O.world:null;
- if(!W.net){wSay('Solo mode: Realtime Database is not configured, so other players are not shown.',5000);return}
- const w=W;W.net.join(W.r.id,netState(),(uid,d)=>{if(W!==w)return;if(!d){w.others.delete(uid);return}let o=w.others.get(uid);if(!o){o={px:d.x,py:d.y};w.others.set(uid,o)}
-  Object.assign(o,{tx:d.x,ty:d.y,f:d.f||1,m:d.m,h:d.h,dead:d.d,cls:d.c,gen:d.g,name:d.n,lv:d.l,t:d.t})}).catch(()=>wSay('Could not reach the multiplayer service.',4000))}
-function netTick(dt){if(!W.net)return;W.sendT-=dt;if(W.sendT>0)return;W.sendT=.2;const st=netState(),k=JSON.stringify(st),n=Date.now();
- if(k!==W.lastSend||n-W.lastSendAt>5000){W.lastSend=k;W.lastSendAt=n;W.net.send(st)}
- const now=W.net.now?W.net.now():n;for(const [u,o] of W.others)if(o.t&&now-o.t>30000)W.others.delete(u);
- $('#wOn').textContent=(W.others.size+1)+(W.others.size?' players here':' player here')}
-
-/* persistence: bounded chunks, matched by the Firestore rules */
-async function wSave(){const O=window.SR_ONLINE;if(!O||!O.saveProgress||!ONL||ONL.saving)return;const S0=ONL.saved;
- const xp=Math.min(ONL.xp,S0.xp+300),gold=Math.min(ONL.gold,S0.gold+300),level=lvFor(xp),ps=[ONL.perkDmg,ONL.perkHp,ONL.perkSpd],ok=ps[0]+ps[1]+ps[2]<=level-1,
-  pk=ok?ps:[S0.perkDmg,S0.perkHp,S0.perkSpd],cont=ONL.continent||null;
- if(xp===S0.xp&&gold===S0.gold&&cont===S0.continent&&pk[0]===S0.perkDmg&&pk[1]===S0.perkHp&&pk[2]===S0.perkSpd)return;
- ONL.saving=1;const p={xp,gold,level,perkDmg:pk[0],perkHp:pk[1],perkSpd:pk[2],continent:cont};
- try{await O.saveProgress(p);ONL.saved=p;if(W)W.saveFail=0}catch(e){console.warn('save failed',e);if(W&&++W.saveFail===3)wSay('Progress could not be saved. Check your connection.',4000)}finally{ONL.saving=0}}
-window.addEventListener('pagehide',()=>{if(W)wSave()});document.addEventListener('visibilitychange',()=>{if(W&&document.hidden)wSave()});
-
-/* enter / leave */
-function enterWorld(id){const r=REALM_BY_ID[id];if(!r||ONL.level<REQ[id])return;stopCounts();ONL.continent=id;buildWorld(r);
- $('#wName').textContent=ONL.ign;$('#wCont').textContent=r.name;$('#wOn').textContent='1 player here';show('sWorld');startNet();wSay('Welcome to '+r.name+'. Enemies roam beyond the town walls.',3500);wSave();stopMusic();music(70)}
-async function leaveWorld(){const w=W;if(!w)return;w.leaving=1;$('#wLeave').disabled=true;try{await wSave()}catch(e){}try{if(w.net)await w.net.leave()}catch(e){}W=null;$('#wLeave').disabled=false;enterOnlineHub()}
-$('#wLeave').onclick=()=>{sfx('click');leaveWorld()};
-
-/* talk to NPCs (they only talk; they can never be attacked) */
-function talk(n){openSheet(head(n.name)+`<div class="row"><div class="tx"><b>${escH(n.role)}</b><span>${escH(n.text)}</span></div></div><p class="sub">Quests from townsfolk are not part of this phase yet.</p>`);bindClose()}
-$('#wTalk').onclick=()=>{if(W&&W.near&&!sheetOpen()){sfx('quest');talk(W.near)}};
-
-/* input */
-window.addEventListener('keydown',e=>{if(!W)return;const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();wKeys[k]=1;if(k==='e')$('#wTalk').click()});
-window.addEventListener('keyup',e=>{wKeys[e.key.toLowerCase()]=0});window.addEventListener('blur',()=>{for(const k in wKeys)wKeys[k]=0});
-(function(){const c=$('#wc');const pos=e=>{const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
- c.addEventListener('pointerdown',e=>{if(!W)return;c.setPointerCapture(e.pointerId);const p=pos(e);W.stick={ox:p.x,oy:p.y,x:p.x,y:p.y,id:e.pointerId}});
- c.addEventListener('pointermove',e=>{if(W&&W.stick&&W.stick.id===e.pointerId){const p=pos(e);W.stick.x=p.x;W.stick.y=p.y}});
- const up=e=>{if(W&&W.stick&&W.stick.id===e.pointerId)W.stick=null};c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up)})();
-
-/* per-frame update */
-function wUpdate(dt){const m=W.me;W.t+=dt;
- if(m.dead){m.rt-=dt;m.moving=0;if(m.rt<=0){m.dead=0;m.x=WLD.CX;m.y=WLD.CY+120;m.hp=maxHp();m.cd=.5}}
- else{let ix=(wKeys.d||wKeys.arrowright?1:0)-(wKeys.a||wKeys.arrowleft?1:0),iy=(wKeys.s||wKeys.arrowdown?1:0)-(wKeys.w||wKeys.arrowup?1:0);
-  if(W.stick){const dx=W.stick.x-W.stick.ox,dy=W.stick.y-W.stick.oy,d=Math.hypot(dx,dy);if(d>10){ix=dx/Math.max(d,40);iy=dy/Math.max(d,40);const l=Math.hypot(ix,iy);if(l>1){ix/=l;iy/=l}}}
-  const l=Math.hypot(ix,iy);m.moving=l>.05?1:0;if(m.moving){if(l>1){ix/=l;iy/=l}const sp=mySpd();moveEnt(m,ix*sp*dt,iy*sp*dt,12,false);if(ix)m.face=ix<0?-1:1}
-  const heal=inTown(m.x,m.y,0)?.12:.004;m.hp=Math.min(maxHp(),m.hp+maxHp()*heal*dt)}
- for(const e of W.enemies)updEnemy(e,dt);wAttack(dt);
- W.near=null;if(!m.dead)for(const n of W.npcs)if(Math.hypot(n.x-m.x,n.y-m.y)<70)W.near=n;
- const tb=$('#wTalk');tb.hidden=!W.near;if(W.near)tb.textContent='Talk to '+W.near.name+' (E)';
- for(const o of W.others.values()){const k=Math.min(1,dt*10);o.px+=(o.tx-o.px)*k;o.py+=(o.ty-o.py)*k}
- for(const f of W.fx)f.l-=dt;W.fx=W.fx.filter(f=>f.l>0);for(const t of W.txt){t.l-=dt;t.y-=28*dt}W.txt=W.txt.filter(t=>t.l>0);
- netTick(dt);W.saveT+=dt;if(W.saveT>=SAVE_MS/1000){W.saveT=0;wSave()}
- W.perkT-=dt;if(W.perkT<=0){W.perkT=.5;if(pendingPerks()>0&&!sheetOpen()&&!m.dead)openPerk()}
- const need=25*Math.pow(ONL.level,2),prev=25*Math.pow(ONL.level-1,2);
- $('#wHp').style.width=Math.max(0,m.hp/maxHp()*100)+'%';$('#wXp').style.width=clamp((ONL.xp-prev)/(need-prev),0,1)*100+'%';
- $('#wLv').textContent='Level '+ONL.level+' '+CLASSES[ONL.cls].name+' · '+ONL.gold+' gold';
- $('#wZone').textContent=inTown(m.x,m.y,0)?'Safe zone':'Wilderness'}
-
-/* drawing */
-function wDraw(){const c=$('#wc'),dpr=Math.min(2,window.devicePixelRatio||1),cw=c.clientWidth,ch=c.clientHeight;if(c.width!==Math.round(cw*dpr)||c.height!==Math.round(ch*dpr)){c.width=Math.round(cw*dpr);c.height=Math.round(ch*dpr)}
- const g=c.getContext('2d'),r=W.r,m=W.me,z=clamp(Math.min(cw,ch)/650,.8,1.5),vw=cw/z,vh=ch/z;W.zoom=z;
- let cx=clamp(m.x-vw/2,0,Math.max(0,WLD.W-vw)),cy=clamp(m.y-vh/2,0,Math.max(0,WLD.H-vh));if(vw>WLD.W)cx=(WLD.W-vw)/2;if(vh>WLD.H)cy=(WLD.H-vh)/2;W.cam.x=cx;W.cam.y=cy;
- g.setTransform(dpr*z,0,0,dpr*z,-cx*dpr*z,-cy*dpr*z);g.fillStyle='#0b0810';g.fillRect(cx-5,cy-5,vw+10,vh+10);
- const T=128,x0=Math.max(0,Math.floor(cx/T)),y0=Math.max(0,Math.floor(cy/T)),x1=Math.min(WLD.W/T-1,Math.floor((cx+vw)/T)),y1=Math.min(WLD.H/T-1,Math.floor((cy+vh)/T));
- for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const px=tx*T+T/2,py=ty*T+T/2,reg=Math.abs(px-WLD.CX)>Math.abs(py-WLD.CY)?(px>WLD.CX?1:3):(py>WLD.CY?2:0),h=((tx*73856093)^(ty*19349663))>>>0;
-  g.fillStyle=r.ground[(reg+(h%2))%4];g.fillRect(tx*T,ty*T,T+1,T+1);if(h%5===0){g.fillStyle='rgba(0,0,0,.08)';g.fillRect(tx*T+20,ty*T+30,50,28)}}
- const {CX,CY,HM,GAP}=WLD;g.fillStyle='#8a8478';g.fillRect(CX-HM,CY-HM,HM*2,HM*2);g.fillStyle='#a39c8e';g.fillRect(CX-GAP,CY-HM,GAP*2,HM*2);g.fillRect(CX-HM,CY-GAP,HM*2,GAP*2);
- g.fillStyle='rgba(150,130,90,.55)';g.fillRect(CX-45,CY-HM-900,90,900);g.fillRect(CX-45,CY+HM,90,900);g.fillRect(CX-HM-900,CY-45,900,90);g.fillRect(CX+HM,CY-45,900,90);
- for(const p of W.props){if(p.x<cx-60||p.x>cx+vw+60||p.y<cy-60||p.y>cy+vh+60)continue;g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(p.x,p.y+8*p.s,14*p.s,5*p.s,0,0,TAU);g.fill();
-  if(p.t===2){g.fillStyle=r.ground[2];g.beginPath();g.arc(p.x,p.y,9*p.s,0,TAU);g.fill()}else{g.fillStyle='#4a3420';g.fillRect(p.x-3*p.s,p.y-4*p.s,6*p.s,12*p.s);g.fillStyle=p.t?r.deco:r.col;g.beginPath();g.arc(p.x,p.y-12*p.s,15*p.s,0,TAU);g.fill()}}
- for(const s of W.solids){if(s.x>cx+vw||s.x+s.w<cx||s.y>cy+vh||s.y+s.h<cy)continue;
-  if(s.wall){g.fillStyle='#5b5560';g.fillRect(s.x,s.y,s.w,s.h);g.fillStyle='#7a7480';const hz=s.w>s.h;for(let i=0;i<(hz?s.w:s.h);i+=26){hz?g.fillRect(s.x+i,s.y-5,14,8):g.fillRect(s.x-5,s.y+i,8,14)}}
-  else if(s.fountain){g.fillStyle='#6a6a74';g.beginPath();g.arc(s.x+30,s.y+30,34,0,TAU);g.fill();g.fillStyle='#4aa0d0';g.beginPath();g.arc(s.x+30,s.y+30,24,0,TAU);g.fill()}
-  else{g.fillStyle='rgba(0,0,0,.3)';g.fillRect(s.x+6,s.y+8,s.w,s.h);g.fillStyle=s.col;g.fillRect(s.x,s.y,s.w,s.h);g.fillStyle='rgba(0,0,0,.28)';g.fillRect(s.x,s.y,s.w,14);g.strokeStyle='#2a1c10';g.lineWidth=2;g.strokeRect(s.x,s.y,s.w,s.h);
-   g.fillStyle='#2a1a0e';g.fillRect(s.x+s.w/2-9,s.y+s.h-24,18,24);g.fillStyle='#fff';g.font='700 13px "Alegreya Sans",sans-serif';g.textAlign='center';g.lineWidth=3;g.strokeStyle='#000';g.strokeText(s.n,s.x+s.w/2,s.y+s.h/2);g.fillText(s.n,s.x+s.w/2,s.y+s.h/2)}}
- g.font='800 14px "Alegreya Sans",sans-serif';g.textAlign='center';g.fillStyle='#e3b550';[['North Gate',CX,CY-HM-22],['South Gate',CX,CY+HM+30],['West Gate',CX-HM-60,CY-GAP-10],['East Gate',CX+HM+60,CY-GAP-10]].forEach(([t,x,y])=>{g.strokeStyle='#000';g.lineWidth=3;g.strokeText(t,x,y);g.fillText(t,x,y)});
- const list=[];const tag=(x,y,t,col,sub)=>{g.textAlign='center';g.font='700 12px "Alegreya Sans",sans-serif';g.lineWidth=3;g.strokeStyle='#000';g.strokeText(t,x,y);g.fillStyle=col;g.fillText(t,x,y);if(sub){g.font='600 10px "Alegreya Sans",sans-serif';g.strokeText(sub,x,y+11);g.fillStyle='#bbb';g.fillText(sub,x,y+11)}};
- for(const n of W.npcs)list.push({y:n.y,d:()=>{drawHero(g,n.x,n.y+10,.7,n.cls,n.gen,{face:1,t:W.t});tag(n.x,n.y-44,n.name,'#7fe0ff',n.role)}});
- for(const e of W.enemies)if(!e.dead)list.push({y:e.y,d:()=>{drawEnemy(g,e,W.t);const w=e.r*2.2;g.fillStyle='#000';g.fillRect(e.x-w/2,e.y-e.r-10,w,4);g.fillStyle='#d9434f';g.fillRect(e.x-w/2,e.y-e.r-10,w*e.hp/e.mhp,4)}});
- for(const o of W.others.values())list.push({y:o.py,d:()=>{if(o.dead)g.globalAlpha=.4;drawHero(g,o.px,o.py+10,.7,o.cls||'warrior',o.gen||'m',{face:o.f||1,t:W.t,moving:o.m});g.globalAlpha=1;tag(o.px,o.py-46,(o.name||'?')+'  Lv'+(o.lv||1),'#ffffff')}});
- list.push({y:m.y,d:()=>{if(m.dead)g.globalAlpha=.4;drawHero(g,m.x,m.y+10,.7,ONL.cls,ONL.gender,{face:m.face,t:W.t,moving:m.moving});g.globalAlpha=1;tag(m.x,m.y-46,ONL.ign+'  Lv'+ONL.level,'#ffd24a')}});
- list.sort((a,b)=>a.y-b.y).forEach(i=>i.d());
- for(const f of W.fx){g.globalAlpha=clamp(f.l*6,0,1);g.strokeStyle=f.c;g.lineWidth=3;g.beginPath();if(f.k==='ring')g.arc(f.x,f.y,f.r,0,TAU);else{g.moveTo(f.x,f.y);g.lineTo(f.x2,f.y2)}g.stroke();g.globalAlpha=1}
- g.textAlign='center';g.font='800 14px "Alegreya Sans",sans-serif';for(const t of W.txt){g.globalAlpha=clamp(t.l*2,0,1);g.lineWidth=3;g.strokeStyle='#000';g.strokeText(t.t,t.x,t.y);g.fillStyle=t.c;g.fillText(t.t,t.x,t.y)}g.globalAlpha=1;
- g.setTransform(dpr,0,0,dpr,0,0);if(W.stick){const s=W.stick;g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=2;g.beginPath();g.arc(s.ox,s.oy,40,0,TAU);g.stroke();g.fillStyle='rgba(227,181,80,.5)';const d=Math.hypot(s.x-s.ox,s.y-s.oy),k=Math.min(40,d)/Math.max(d,1);g.beginPath();g.arc(s.ox+(s.x-s.ox)*k,s.oy+(s.y-s.oy)*k,16,0,TAU);g.fill()}}
-function wFrame(t){requestAnimationFrame(wFrame);if(!W||cur!=='sWorld'||W.leaving){wLast=t;return}const dt=Math.min(.05,(t-wLast)/1000||0);wLast=t;if(!sheetOpen())wUpdate(dt);wDraw()}
-requestAnimationFrame(wFrame);
-if(window.__SR_TEST)window.__SR={get W(){return W},get ONL(){return ONL},lvFor,WLD};
-
 /* mode modal: offline continues, online flips to login / register / forgot */
 (function(){
  const pages=$('#mmPages'),ids={mode:'#mmMode',login:'#mmLogin',forgot:'#mmForgot',reg:'#mmReg'};
@@ -1635,50 +1379,18 @@ if(window.__SR_TEST)window.__SR={get W(){return W},get ONL(){return ONL},lvFor,W
   else{next.classList.add('under');from.classList.remove('cur');from.classList.add('out')}
   setTimeout(()=>{[from,next].forEach(p=>p.classList.remove('in','out','under','cur'));next.classList.add('cur');curPg=to;busy=false},1100)}
  fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);window.addEventListener('load',fit);
- $('#mmOff').onclick=()=>{ac();sfx('click');$('#modeModal').classList.remove('on');if(onlineFlow){onlineFlow=false;ONL=null;enterClass()}};
+ $('#mmOff').onclick=()=>{ac();sfx('click');$('#modeModal').classList.remove('on')};
  $('#mmOn').onclick=()=>{ac();sfx('click');flip('login')};
  $('#mmLoginBack').onclick=()=>{sfx('click');flip('mode',true)};
  $('#mmToReg').onclick=()=>{sfx('click');flip('reg')};
  $('#mmToForgot').onclick=()=>{sfx('click');flip('forgot')};
  $('#mmForgotBack').onclick=()=>{sfx('click');flip('login',true)};
  $('#mmRegBack').onclick=()=>{sfx('click');flip('login',true)};
- const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,MIN_AGE=13,sleep=ms=>new Promise(r=>setTimeout(r,ms));
- let authBusy=false;
- const say=(id,m,ok)=>{const e=$(id);e.textContent=m||'';e.classList.toggle('ok',!!ok)};
- function lock(on){authBusy=on;$('#mmSheet').classList.toggle('mm-busy',on)}
- async function run(btn,errId,fn){if(authBusy)return;sfx('click');say(errId,'');
-  const O=window.SR_ONLINE;
-  if(!O){say(errId,'Online services could not be loaded. Check your connection and reload the page.');return}
-  if(!O.configured){say(errId,'Online mode is not set up yet: paste your Firebase config into the page (see SETUP.md).');return}
-  if(!O.ready){say(errId,O.loadError?'Online services could not be loaded. Check your connection and reload.':'Online services are still starting. Try again in a moment.');return}
-  lock(true);const old=btn.textContent;btn.textContent='Please wait…';
-  try{await fn(O)}catch(e){say(errId,(e&&e.message)||'Something went wrong. Please try again.')}
-  finally{lock(false);btn.textContent=old}}
- async function afterAuth(r){$('#modeModal').classList.remove('on');
-  if(r.character){ONL=initONL(r.character);onlineFlow=true;playDoors(ONL.ign,enterOnlineHub)}else startOnlineCreation()}
- function checkAge(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return'Enter your birth date.';const d=new Date(v+'T00:00:00'),n=new Date();if(isNaN(d)||d.getFullYear()<1900||d>n)return'Enter a valid birth date.';
-  let a=n.getFullYear()-d.getFullYear();const m=n.getMonth()-d.getMonth();if(m<0||(m===0&&n.getDate()<d.getDate()))a--;return a<MIN_AGE?'You must be at least '+MIN_AGE+' years old to create an account.':''}
- function checkReg(f){const nm=/^[\p{L}][\p{L}' -]{0,39}$/u;
-  if(!f.firstName||!f.lastName||!f.email||!f.password||!f.confirm||!f.birthdate)return'Please complete every field.';
-  if(!nm.test(f.firstName))return'First name may contain letters, spaces, hyphens and apostrophes only.';
-  if(!nm.test(f.lastName))return'Last name may contain letters, spaces, hyphens and apostrophes only.';
-  if(!EMAIL_RE.test(f.email))return'Enter a valid email address.';
-  if(f.password.length<8||!/[A-Za-z]/.test(f.password)||!/\d/.test(f.password))return'Password needs at least 8 characters, including a letter and a digit.';
-  if(f.password!==f.confirm)return'Passwords do not match.';
-  return checkAge(f.birthdate)}
- $('#mmLoginBtn').onclick=()=>run($('#mmLoginBtn'),'#mmErrLogin',async O=>{const em=$('#mmEmail').value.trim(),pw=$('#mmPass').value;
-  if(!EMAIL_RE.test(em))throw new Error('Enter a valid email address.');if(!pw)throw new Error('Enter your password.');
-  await afterAuth(await O.login(em,pw))});
- $('#mmGoogle').onclick=()=>run($('#mmGoogle'),'#mmErrLogin',async O=>{await afterAuth(await O.google())});
- $('#mmForgotBtn').onclick=()=>run($('#mmForgotBtn'),'#mmErrForgot',async O=>{const em=$('#mmFEmail').value.trim();
-  if(!EMAIL_RE.test(em))throw new Error('Enter a valid email address.');
-  await O.resetPassword(em);say('#mmErrForgot','If that email belongs to an account, a reset link is on its way. Check your inbox and spam folder.',true)});
- $('#mmRegBtn').onclick=()=>run($('#mmRegBtn'),'#mmErrReg',async O=>{
-  const f={firstName:$('#mmFn').value.trim(),lastName:$('#mmLn').value.trim(),email:$('#mmREmail').value.trim(),password:$('#mmRPass').value,confirm:$('#mmRPass2').value,birthdate:$('#mmBd').value};
-  const bad=checkReg(f);if(bad)throw new Error(bad);
-  await O.register(f);say('#mmErrReg','Registration successful! Preparing your hero…',true);
-  await sleep(3000);await afterAuth({character:null})});
- [['#mmPass','#mmLoginBtn'],['#mmEmail','#mmLoginBtn'],['#mmFEmail','#mmForgotBtn'],['#mmRPass2','#mmRegBtn']].forEach(([a,b])=>$(a).addEventListener('keydown',e=>{if(e.key==='Enter')$(b).click()}));
+ const soon=id=>()=>{sfx('click');$(id).textContent=SOON};
+ $('#mmLoginBtn').onclick=soon('#mmErrLogin');
+ $('#mmGoogle').onclick=soon('#mmErrLogin');
+ $('#mmForgotBtn').onclick=soon('#mmErrForgot');
+ $('#mmRegBtn').onclick=soon('#mmErrReg');
  window.addEventListener('resize',()=>{if(!busy)fit()});
  $('#modeBtn').onclick=()=>{ac();sfx('click');$$('.mm-err').forEach(e=>e.textContent='');if(curPg!=='mode'){$$('.mm-pg').forEach(p=>p.classList.remove('cur','in','out','under'));$('#mmMode').classList.add('cur');curPg='mode'}$('#modeModal').classList.add('on')};
 })();
@@ -1696,108 +1408,4 @@ requestAnimationFrame(pvLoop);requestAnimationFrame(hubFx);requestAnimationFrame
 })();
 </script>
 
-<script type="module">
-/* Seven Realms Online layer: Firebase Auth + Firestore. Offline mode never touches this. */
-const FIREBASE_CONFIG={
-    apiKey: "AIzaSyDDXzmfa3DX0e2yW8IeAZMDrJdInpmBcdc",
-    authDomain: "seven-realms.firebaseapp.com",
-    projectId: "seven-realms",
-    storageBucket: "seven-realms.firebasestorage.app",
-    messagingSenderId: "1051813120456",
-    appId: "1:1051813120456:web:9b9eddaee4cba08f7958fd",
-    databaseURL:'https://seven-realms-default-rtdb.asia-southeast1.firebasedatabase.app'
-};
-const START_GOLD=60,START_GEMS=0,NEW_CLASSES=['archer','warrior','guardian','mage','assassin','lancer'];
-const O={configured:!!FIREBASE_CONFIG.apiKey&&!/^PASTE/.test(FIREBASE_CONFIG.apiKey)&&!/^PASTE/.test(FIREBASE_CONFIG.projectId),ready:false};
-window.SR_ONLINE=O;
-if(O.configured){try{
- const B='https://www.gstatic.com/firebasejs/10.14.1/';
- const [{initializeApp},A,F]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
- const app=initializeApp(FIREBASE_CONFIG),auth=A.getAuth(app),db=F.getFirestore(app);
- const {doc,getDoc,setDoc,updateDoc,writeBatch,serverTimestamp}=F;
-
- const AUTH_MSG={
-  'auth/invalid-credential':'Incorrect email or password.','auth/wrong-password':'Incorrect email or password.','auth/user-not-found':'Incorrect email or password.',
-  'auth/invalid-email':'That email address is not valid.','auth/user-disabled':'This account has been disabled.',
-  'auth/too-many-requests':'Too many attempts. Wait a moment and try again.','auth/network-request-failed':'Network error. Check your connection and try again.',
-  'auth/email-already-in-use':'An account with that email already exists.','auth/weak-password':'That password is too weak.',
-  'auth/popup-closed-by-user':'Google sign-in was closed before it finished.','auth/cancelled-popup-request':'Google sign-in was cancelled.',
-  'auth/popup-blocked':'Your browser blocked the Google sign-in window. Allow pop-ups and try again.',
-  'auth/operation-not-allowed':'This sign-in method is not enabled for the project yet.',
-  'auth/unauthorized-domain':'This website address is not authorised in Firebase Authentication.',
-  'auth/operation-not-supported-in-this-environment':'Sign-in needs the page to be served over http(s), not opened as a file.'};
- const fail=e=>{const err=new Error(AUTH_MSG[e&&e.code]||(e&&e.code==='permission-denied'?'The server refused the request. Make sure the Firestore rules are published.':(e&&e.message)||'Something went wrong.'));err.code=e&&e.code;throw err};
-
- async function loadCharacter(uid){
-  const [u,p]=await Promise.all([getDoc(doc(db,'users',uid)),getDoc(doc(db,'playerProgress',uid))]);
-  if(!u.exists())return null;const d=u.data();
-  let pr=p.exists()?p.data():null;
-  if(!pr){await setDoc(doc(db,'playerProgress',uid),{level:1,xp:0,gold:START_GOLD,gems:START_GEMS,continent:null,createdAt:serverTimestamp()});pr={level:1,xp:0,gold:START_GOLD,gems:START_GEMS,continent:null}}
-  if(!d.characterCreated)return null;
-  return{uid,email:d.email||'',firstName:d.firstName||'',lastName:d.lastName||'',cls:d.cls,gender:d.gender,ign:d.ign,level:pr.level,xp:pr.xp,gold:pr.gold,gems:pr.gems,continent:pr.continent||null,perkDmg:pr.perkDmg|0,perkHp:pr.perkHp|0,perkSpd:pr.perkSpd|0};
- }
- async function newProfileDocs(uid,f,provider){
-  const b=writeBatch(db);
-  b.set(doc(db,'users',uid),{uid,firstName:f.firstName,lastName:f.lastName,email:f.email,birthdate:f.birthdate,provider,characterCreated:false,createdAt:serverTimestamp(),lastLogin:serverTimestamp()});
-  b.set(doc(db,'playerProgress',uid),{level:1,xp:0,gold:START_GOLD,gems:START_GEMS,continent:null,createdAt:serverTimestamp()});
-  await b.commit();
- }
- async function finishAuth(user,provider){
-  try{
-   const ref=doc(db,'users',user.uid),snap=await getDoc(ref);
-   if(!snap.exists()){
-    const parts=(user.displayName||'').trim().split(/\s+/).filter(Boolean);
-    await newProfileDocs(user.uid,{firstName:(parts[0]||'').slice(0,40),lastName:parts.slice(1).join(' ').slice(0,40),email:user.email||'',birthdate:''},provider);
-   }else{try{await updateDoc(ref,{lastLogin:serverTimestamp()})}catch(e){/* not fatal */}}
-   return{character:await loadCharacter(user.uid)};
-  }catch(e){try{await A.signOut(auth)}catch(_){}fail(e)}
- }
-
- O.login=async(email,pw)=>{let c;try{c=await A.signInWithEmailAndPassword(auth,email,pw)}catch(e){fail(e)}return finishAuth(c.user,'password')};
- O.google=async()=>{let c;try{c=await A.signInWithPopup(auth,new A.GoogleAuthProvider())}catch(e){fail(e)}return finishAuth(c.user,'google')};
- O.register=async f=>{
-  let c;try{c=await A.createUserWithEmailAndPassword(auth,f.email,f.password)}catch(e){fail(e)}
-  try{await newProfileDocs(c.user.uid,f,'password')}
-  catch(e){try{await A.deleteUser(c.user)}catch(_){try{await A.signOut(auth)}catch(__){}}
-   throw new Error('We could not finish creating your account, so nothing was saved. Please try again.')}
-  return{character:null};
- };
- O.resetPassword=async email=>{try{await A.sendPasswordResetEmail(auth,email)}catch(e){if(e&&e.code==='auth/user-not-found')return;fail(e)}};
- O.logout=()=>A.signOut(auth);
- O.createCharacter=async({cls,gender,ign})=>{
-  const user=auth.currentUser;if(!user)throw new Error('You are signed out. Please log in again.');
-  if(!/^[A-Za-z0-9]{5,13}$/.test(ign))throw new Error('Names use 5 to 13 letters or digits.');
-  if(!NEW_CLASSES.includes(cls)||!['m','f'].includes(gender))throw new Error('Choose a class and a form first.');
-  const lower=ign.toLowerCase(),b=writeBatch(db);
-  b.set(doc(db,'playerNames',lower),{uid:user.uid,name:ign,createdAt:serverTimestamp()});
-  b.update(doc(db,'users',user.uid),{characterCreated:true,cls,gender,ign,ignLower:lower,characterCreatedAt:serverTimestamp()});
-  try{await b.commit()}
-  catch(e){
-   try{const mine=await loadCharacter(user.uid);if(mine&&mine.ign===ign)return mine}catch(_){}
-   try{const t=await getDoc(doc(db,'playerNames',lower));if(t.exists()&&t.data().uid!==user.uid)throw new Error('That name is already taken. Try another.')}
-   catch(x){if(x.message&&x.message.startsWith('That name'))throw x}
-   if(e&&e.code==='unavailable'||e&&e.code==='network-request-failed')throw new Error('Network error. Your hero was not saved. Try again.');
-   fail(e)}
-  const c=await loadCharacter(user.uid);if(!c)throw new Error('Your hero could not be confirmed. Try again.');return c;
- };
- O.saveProgress=async p=>{const u=auth.currentUser;if(!u)throw new Error('signed out');
-  await updateDoc(doc(db,'playerProgress',u.uid),{xp:p.xp,level:p.level,gold:p.gold,continent:p.continent||null,perkDmg:p.perkDmg,perkHp:p.perkHp,perkSpd:p.perkSpd,lastSave:serverTimestamp()})};
- if(FIREBASE_CONFIG.databaseURL&&!/^PASTE/.test(FIREBASE_CONFIG.databaseURL)){try{
-  const D=await import(B+'firebase-database.js'),rdb=D.getDatabase(app);let offset=0,cur=null;
-  D.onValue(D.ref(rdb,'.info/serverTimeOffset'),s=>{offset=s.val()||0});
-  O.world={
-   now:()=>Date.now()+offset,
-   watchCounts(cb){return D.onValue(D.ref(rdb,'online'),s=>{const v=s.val()||{},c={},n=Date.now()+offset;for(const u in v){const e=v[u];if(e&&e.c&&n-e.t<=60000)c[e.c]=(c[e.c]||0)+1}cb(c)})},
-   async join(cont,state,onPlayer){await O.world.leave();const uid=auth.currentUser.uid,on=D.ref(rdb,'online/'+uid),pos=D.ref(rdb,'pos/'+cont+'/'+uid),all=D.ref(rdb,'pos/'+cont);
-    await D.onDisconnect(on).remove();await D.onDisconnect(pos).remove();
-    await D.set(on,{c:cont,t:D.serverTimestamp()});await D.set(pos,{...state,t:D.serverTimestamp()});
-    const un=[D.onChildAdded(all,s=>{if(s.key!==uid)onPlayer(s.key,s.val())}),D.onChildChanged(all,s=>{if(s.key!==uid)onPlayer(s.key,s.val())}),D.onChildRemoved(all,s=>onPlayer(s.key,null))];
-    const hb=setInterval(()=>D.update(on,{t:D.serverTimestamp()}),20000);cur={on,pos,un,hb}},
-   send(state){if(cur)D.update(cur.pos,{...state,t:D.serverTimestamp()}).catch(()=>{})},
-   async leave(){if(!cur)return;const c=cur;cur=null;clearInterval(c.hb);c.un.forEach(f=>{try{f()}catch(e){}});try{await D.remove(c.pos);await D.remove(c.on)}catch(e){}try{D.onDisconnect(c.pos).cancel();D.onDisconnect(c.on).cancel()}catch(e){}}
-  };
- }catch(e){console.error('Realtime Database failed to load',e)}}
- O.ready=true;
-}catch(e){console.error('Seven Realms online failed to start',e);O.loadError=e}}
-</script>
 </body></html>
