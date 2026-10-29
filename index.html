@@ -344,12 +344,6 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .mm-link:hover{filter:brightness(1.3)}
 .mm-link.center{align-self:center}
 .mm-err{min-height:20px;margin:0;text-align:center;font:700 14px var(--body);color:#ff9aa2}
-.mm-err.ok{color:#9fe58a}
-.mm-btn:disabled,.mm-gbtn:disabled{opacity:.55;cursor:wait;filter:none!important}
-#modeModal.mm-closing{animation:mmClose .36s ease forwards}
-@keyframes mmClose{to{opacity:0;transform:scale(.985)}}
-.online-note{padding:10px 12px;border:1px solid var(--gold2);background:rgba(227,181,80,.08);border-radius:4px;color:var(--mute);font-size:14px;line-height:1.35}
-.online-note b{color:var(--gold)}
 
 /* mode page spacing */
 #mmMode{gap:26px;padding:28px 30px}
@@ -360,20 +354,12 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .mm-orn::before,.mm-orn::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold2))}
 .mm-orn::after{background:linear-gradient(90deg,var(--gold2),transparent)}
 .mm-orn i{width:9px;height:9px;transform:rotate(45deg);background:var(--gold2)}
-/* ===== online lobby · phase 2 ===== */
-.gemchip::before{display:none}
-.heroMeta{margin-top:10px;width:min(92vw,300px);display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:rgba(13,10,18,.58);font-size:14px;color:var(--mute)}
-.heroMeta div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(75,59,94,.5);padding:3px 0}
-.heroMeta b{color:var(--text);font-weight:700}
-#hubMenu.onlineMenu{width:min(100%,470px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-#hubMenu.onlineMenu .logo{grid-column:1/-1;text-align:left}
-#hubMenu.onlineMenu .big{min-width:0;padding:12px 14px;font-size:17px}
-#hubMenu.onlineMenu .big:hover{transform:translateY(-2px)}
-#hubMenu.onlineMenu .big.phaseLater{opacity:.62;border-color:var(--line);cursor:not-allowed}
-#hubMenu.onlineMenu .big.phaseLater:hover{transform:none;background:linear-gradient(90deg,rgba(227,181,80,.16),rgba(37,28,51,.9) 40%)}
-@media (max-width:760px){#hubMenu.onlineMenu{grid-template-columns:1fr;width:min(100%,360px)}#hubMenu.onlineMenu .logo{grid-column:auto;text-align:center}.heroMeta{grid-template-columns:1fr}}
-@media (max-height:620px) and (min-width:700px){#hubMenu.onlineMenu{grid-template-columns:repeat(3,minmax(0,1fr));width:min(62vw,620px)}#hubMenu.onlineMenu .logo{grid-column:1/-1}.heroMeta{font-size:12px;padding:6px 8px}.heropane canvas{height:min(38vh,160px);width:auto}}
-
+/* online mode */
+#sOnHub{overflow-y:auto;overflow-x:hidden;background:radial-gradient(ellipse at 30% 40%,#2b1d44,#0f0b17 65%)}
+#sOnHub .hubTop{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;left:12px}
+#sOnHub .big[disabled]{opacity:.45;cursor:not-allowed;transform:none}
+.mm-err.ok{color:#9be59b}
+.mm-busy{pointer-events:none}.mm-busy .mm-btn{opacity:.65}
 /* opening splash */
 #splash{position:absolute;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;background:radial-gradient(ellipse at 50% 45%,#241a33 0%,var(--ink) 70%);cursor:pointer;transition:opacity .9s ease}
 #splash.off{opacity:0;pointer-events:none}
@@ -414,10 +400,10 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
   <h2>Register</h2>
   <div class="mm-row2"><div class="mm-fld"><label for="mmFn">First Name</label><input id="mmFn" type="text" autocomplete="given-name"></div><div class="mm-fld"><label for="mmLn">Last Name</label><input id="mmLn" type="text" autocomplete="family-name"></div></div>
   <div class="mm-fld"><label for="mmREmail">Email</label><input id="mmREmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
-  <div class="mm-row2"><div class="mm-fld"><label for="mmRPass">Password</label><input id="mmRPass" type="password" autocomplete="new-password" placeholder="Password"></div><div class="mm-fld"><label for="mmRPass2">Confirm Password</label><input id="mmRPass2" type="password" autocomplete="new-password" placeholder="Repeat password"></div></div>
-  <div class="mm-fld"><label for="mmBd">Birth Date</label><input id="mmBd" type="date" autocomplete="bday"></div>
+  <div class="mm-row2"><div class="mm-fld"><label for="mmRPass">Password</label><input id="mmRPass" type="password" autocomplete="new-password"></div><div class="mm-fld"><label for="mmRPass2">Confirm</label><input id="mmRPass2" type="password" autocomplete="new-password"></div></div>
+  <div class="mm-fld"><label for="mmBd">Birth Date</label><input id="mmBd" type="date"></div>
   <button class="btn mm-btn gold" id="mmRegBtn" type="button">Register</button>
-  <p class="mm-err" id="mmErrReg" aria-live="polite"></p>
+  <p class="mm-err" id="mmErrReg"></p>
   <button class="mm-link center" id="mmRegBack" type="button">&larr; Back to Login</button>
  </div>
 </div></div></div>
@@ -459,20 +445,34 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 
 <section class="screen" id="sHub">
   <canvas id="hubFx"></canvas>
-  <div class="hubTop" style="display:flex;gap:8px;align-items:center"><span class="chip k" id="hubOnline" hidden>Online</span><span class="chip gemchip" id="hubGems" hidden>💎 0</span><span class="chip" id="hubGold">0</span></div>
+  <div class="hubTop"><span class="chip" id="hubGold">0</span></div>
   <div class="hubBody pad">
-    <div class="heropane"><canvas class="pv" id="hubHero" width="240" height="280"></canvas><div class="hname" id="hubName"></div><div class="hcls" id="hubCls"></div><div class="heroMeta" id="hubMeta" hidden></div></div>
-    <nav class="menu" id="hubMenu">
+    <div class="heropane"><canvas class="pv" id="hubHero" width="240" height="280"></canvas><div class="hname" id="hubName"></div><div class="hcls" id="hubCls"></div></div>
+    <nav class="menu">
       <h1 class="title logo"><img class="logoIcon" src="image/shield.png" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cpath%20d=%22M32%204%208%2012v18c0%2015%2010%2026%2024%2030%2014-4%2024-15%2024-30V12z%22%20fill=%22%23e3b550%22%20stroke=%22%23a97c26%22%20stroke-width=%223%22/%3E%3Cpath%20d=%22M32%2012%2016%2018v12c0%2010%206%2018%2016%2022z%22%20fill=%22%23fff3b0%22%20opacity=%22.5%22/%3E%3C/svg%3E'">Seven Realms</h1>
-      <button class="big" data-act="play">Play<small>Enter a live continent with other players</small></button>
-      <button class="big online-only" data-act="daily" hidden>Daily Quest<small>Five-minute survival challenge</small></button>
+      <button class="big" data-act="play">Play<small>Choose a continent and deploy</small></button>
       <button class="big" data-act="inv">Inventory<small>Gear, potions and materials</small></button>
       <button class="big" data-act="shop">Shop<small>Upgrade gear, buy and sell</small></button>
-      <button class="big online-only" data-act="guild" hidden>Guild<small>Create, join and manage a guild</small></button>
-      <button class="big online-only" data-act="tournament" hidden>Tournament<small>Ranked PvP battles</small></button>
-      <button class="big online-only" data-act="dungeon" hidden>Dungeon<small>Explore the 100-floor dungeon</small></button>
-      <button class="big online-only" data-act="leaderboard" hidden>Leaderboard<small>View the top heroes and guilds</small></button>
       <button class="big" data-act="set">Settings<small>Sound, effects and your save</small></button>
+    </nav>
+  </div>
+</section>
+
+<section class="screen" id="sOnHub">
+  <div class="hubTop"><span class="chip" id="onLevel">Level 1</span> <span class="chip" id="onGold">0</span> <span class="chip k" id="onGems">0</span></div>
+  <div class="hubBody pad">
+    <div class="heropane"><canvas class="pv" id="onHero" width="240" height="280"></canvas><div class="hname" id="onName"></div><div class="hcls" id="onCls"></div><div class="hcls" id="onWpn"></div><div class="hcls" id="onCont"></div></div>
+    <nav class="menu">
+      <h1 class="title logo">Seven Realms<small style="display:block;font-size:.4em;letter-spacing:.3em;color:var(--mute)">Online</small></h1>
+      <button class="big" data-on="play" disabled>Play<small>Multiplayer world &middot; Phase 3</small></button>
+      <button class="big" data-on="daily" disabled>Daily Quest<small>Five-minute survival &middot; Phase 5</small></button>
+      <button class="big" data-on="inv" disabled>Inventory<small>Equipment and storage &middot; Phase 4</small></button>
+      <button class="big" data-on="shop" disabled>Shop<small>Phase 4</small></button>
+      <button class="big" data-on="guild" disabled>Guild<small>Phase 6</small></button>
+      <button class="big" data-on="tour" disabled>Tournament<small>Phase 6</small></button>
+      <button class="big" data-on="dun" disabled>Dungeon<small>100 floors &middot; Phase 5</small></button>
+      <button class="big" data-on="lb" disabled>Leaderboard<small>Phase 7</small></button>
+      <button class="big" data-on="set">Settings<small>Account and log out</small></button>
     </nav>
   </div>
 </section>
@@ -489,7 +489,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
   <div id="hud" class="pad">
     <div class="hudTL"><div class="nameLine"><span id="hName"></span><span id="hLvl">Lv 1</span></div><div class="meter"><i id="hpFill"></i><span id="hpTxt"></span></div><div class="meter xp"><i id="xpFill" style="width:0"></i></div></div>
     <div class="hudTC" id="hTime">0:00</div>
-    <div class="hudTR"><button class="iconbtn" id="pauseBtn" aria-label="Pause">II</button><span class="chip" id="hGold">0</span><span class="chip k" id="hKills">0</span><span class="chip" id="onlineWorldStatus" hidden>● 1 online</span></div>
+    <div class="hudTR"><button class="iconbtn" id="pauseBtn" aria-label="Pause">II</button><span class="chip" id="hGold">0</span><span class="chip k" id="hKills">0</span></div>
     <div class="hudBL" id="questTrack"></div>
     <div class="buffs" id="buffs"></div>
     <div class="hudBR"><button class="btn small" id="actBtn" hidden>Talk</button><button class="btn small" id="bagBtn">Bag</button><button class="btn small" id="potBtn">Potion</button></div>
@@ -508,165 +508,12 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 <div id="sheetModal" class="pad"><div class="sheet" id="sheet"></div></div>
 
 </div>
-<!-- Firebase Online Mode foundation. Replace the config object in the script below with your Firebase Web App values. -->
-<script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-functions-compat.js"></script>
 <script>
 (()=>{'use strict';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const TAU=Math.PI*2,rand=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function rng(seed){let s=seed>>>0;return()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
-
-/* ============ ONLINE / FIREBASE FOUNDATION ============ */
-/*
-  Paste the Firebase Web App configuration from Firebase Console > Project settings > Your apps.
-  Firebase web API keys are identifiers, not Admin SDK secrets. Never place service-account keys here.
-  You may also define window.SEVEN_REALMS_FIREBASE_CONFIG before this script instead of editing this object.
-*/
-const FIREBASE_CONFIG=window.SEVEN_REALMS_FIREBASE_CONFIG||{
-    apiKey: "AIzaSyDDXzmfa3DX0e2yW8IeAZMDrJdInpmBcdc",
-    authDomain: "seven-realms.firebaseapp.com",
-    projectId: "seven-realms",
-    databaseURL:"https://seven-realms-default-rtdb.asia-southeast1.firebasedatabase.app",
-    storageBucket: "seven-realms.firebasestorage.app",
-    messagingSenderId: "1051813120456",
-    appId: "1:1051813120456:web:9b9eddaee4cba08f7958fd"
-};
-const ONLINE_MIN_AGE=Number.isFinite(+window.SEVEN_REALMS_MIN_AGE)?+window.SEVEN_REALMS_MIN_AGE:13;
-const REQUIRE_EMAIL_VERIFICATION=window.SEVEN_REALMS_REQUIRE_EMAIL_VERIFICATION===true;
-const ONLINE_LOCAL_KEY='sevenRealms.online.ui.v1';
-let gameMode='offline';
-const FB={app:null,auth:null,db:null,rtdb:null,func:null,user:null,profile:null,ready:false};
-function firebaseConfigured(){return !!(FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId&&FIREBASE_CONFIG.appId&&!String(FIREBASE_CONFIG.apiKey).startsWith('PASTE_')&&!String(FIREBASE_CONFIG.projectId).startsWith('PASTE_')&&!String(FIREBASE_CONFIG.appId).startsWith('PASTE_'))}
-async function initFirebase(){
- if(FB.ready)return FB;
- if(!firebaseConfigured())throw new Error('Firebase is not configured yet. Paste your Firebase Web App config into FIREBASE_CONFIG in index.html.');
- if(typeof firebase==='undefined')throw new Error('Firebase SDK failed to load. Check your internet connection and content-security policy.');
- FB.app=firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(FIREBASE_CONFIG);
- FB.auth=FB.app.auth();FB.db=FB.app.firestore();FB.rtdb=typeof FB.app.database==='function'?FB.app.database():null;FB.func=typeof FB.app.functions==='function'?FB.app.functions():null;
- try{await FB.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)}catch(_){}
- FB.ready=true;return FB
-}
-/* ============ PHASE 3 · REALTIME MULTIPLAYER ============ */
-const ONLINE_WORLD_ID='mythara-1';
-const PRESENCE_TTL_MS=45000;
-const NET={realm:null,selfRef:null,realmRef:null,infoRef:null,remote:{},counts:{},countRefs:[],lastSend:0,connected:false};
-function rtdbReady(){return gameMode==='online'&&FB.user&&FB.rtdb}
-function presencePath(realmId){return `worlds/${ONLINE_WORLD_ID}/continents/${realmId}/players`}
-function netPayload(){
- const h=G&&G.hero,hero=S.hero||{},eq=FB.profile&&FB.profile.equipment||{};
- return {uid:FB.user.uid,name:hero.name||'Hero',classId:hero.cls||'archer',gender:hero.gender||'m',weaponId:eq.weaponId||S.equip.w||null,
-  x:h?Math.round(h.x*10)/10:WORLD/2,y:h?Math.round(h.y*10)/10:WORLD/2,face:h?h.face:1,moving:!!(h&&h.moving),state:G?G.state:'idle',hp:h?Math.max(0,Math.round(h.hp)):0,
-  updatedAt:firebase.database.ServerValue.TIMESTAMP};
-}
-function cleanupPresenceCounts(){for(const x of NET.countRefs){try{x.ref.off('value',x.cb)}catch(_){}}NET.countRefs=[]}
-function watchPresenceCounts(){
- if(!rtdbReady())return;cleanupPresenceCounts();
- for(const R of REALMS){const ref=FB.rtdb.ref(presencePath(R.id));const cb=snap=>{let n=0,now=Date.now();snap.forEach(c=>{const v=c.val()||{};if(!v.updatedAt||now-v.updatedAt<PRESENCE_TTL_MS)n++});NET.counts[R.id]=n;if(cur==='sMap')updateMapPresenceLabels()};ref.on('value',cb);NET.countRefs.push({ref,cb})}
-}
-function updateMapPresenceLabels(){if(gameMode!=='online')return;for(const R of REALMS){const el=document.querySelector(`#mapSvg .land[data-id="${R.id}"] .pcount`);if(el)el.textContent=(NET.counts[R.id]||0)+' online'}}
-function stopRealmPresence(){
- if(NET.realmRef){try{NET.realmRef.off()}catch(_){}}if(NET.selfRef){try{NET.selfRef.onDisconnect().cancel()}catch(_){}try{NET.selfRef.remove()}catch(_){}}
- NET.realm=null;NET.selfRef=null;NET.realmRef=null;NET.remote={};NET.connected=false;if($('#onlineWorldStatus'))$('#onlineWorldStatus').hidden=true;
-}
-async function startRealmPresence(R){
- cleanupPresenceCounts();if(!rtdbReady())throw new Error('Realtime Database is not configured. Add databaseURL to FIREBASE_CONFIG and enable Realtime Database.');
- stopRealmPresence();NET.realm=R.id;NET.remote={};
- const base=FB.rtdb.ref(presencePath(R.id));NET.realmRef=base;NET.selfRef=base.child(FB.user.uid);
- try{await NET.selfRef.onDisconnect().remove()}catch(_){}
- const apply=(snap)=>{if(snap.key===FB.user.uid)return;const v=snap.val()||{};if(v.updatedAt&&Date.now()-v.updatedAt>PRESENCE_TTL_MS)return;const old=NET.remote[snap.key]||{};NET.remote[snap.key]={...old,...v,uid:snap.key,tx:+v.x||WORLD/2,ty:+v.y||WORLD/2,x:Number.isFinite(old.x)?old.x:(+v.x||WORLD/2),y:Number.isFinite(old.y)?old.y:(+v.y||WORLD/2),seen:Date.now()}}
- base.on('child_added',apply);base.on('child_changed',apply);base.on('child_removed',snap=>{delete NET.remote[snap.key]});
- await NET.selfRef.set(netPayload());NET.connected=true;NET.lastSend=0;
- const st=$('#onlineWorldStatus');if(st){st.hidden=false;st.textContent='● '+(1+Object.keys(NET.remote).length)+' online'}
-}
-function tickNetwork(now){
- if(gameMode!=='online'||!G||!NET.selfRef||NET.realm!==G.realm.id)return;
- if(now-NET.lastSend>=100){NET.lastSend=now;NET.selfRef.update(netPayload()).catch(()=>{})}
- const t=Date.now();for(const [uid,p] of Object.entries(NET.remote)){if(t-(p.seen||0)>PRESENCE_TTL_MS){delete NET.remote[uid];continue}p.x+=(p.tx-p.x)*.22;p.y+=(p.ty-p.y)*.22}
- const st=$('#onlineWorldStatus');if(st)st.textContent='● '+(1+Object.keys(NET.remote).length)+' online';
-}
-async function persistOnlineContinent(id){if(gameMode!=='online'||!FB.user||!FB.db)return;try{await FB.db.collection('users').doc(FB.user.uid).set({currentContinent:id,lastLoginAt:serverTime()},{merge:true});if(FB.profile)FB.profile.currentContinent=id;S.currentContinent=id}catch(_){} }
-
-function serverTime(){return firebase.firestore.FieldValue.serverTimestamp()}
-function emailOK(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim())}
-function ageOnDate(iso){if(!iso)return -1;const d=new Date(iso+'T00:00:00');if(Number.isNaN(d.getTime()))return -1;const n=new Date();let a=n.getFullYear()-d.getFullYear();const m=n.getMonth()-d.getMonth();if(m<0||(m===0&&n.getDate()<d.getDate()))a--;return a}
-function namePartOK(v){return /^[A-Za-z][A-Za-z' -]{0,39}$/.test(String(v||'').trim())}
-function titleCaseName(v){return String(v||'').replace(/(^|[\s'-])([A-Za-z])/g,(m,p,c)=>p+c.toUpperCase())}
-function onlineNameOK(v){return /^[A-Za-z0-9]{5,13}$/.test(String(v||''))}
-function normalizePlayerName(v){return String(v||'').toLowerCase()}
-function authMessage(err){const c=err&&err.code||'';const map={
- 'auth/invalid-email':'Enter a valid email address.',
- 'auth/missing-password':'Enter your password.',
- 'auth/weak-password':'Your password does not meet the Firebase password policy.',
- 'auth/email-already-in-use':'An account already exists for this email address.',
- 'auth/invalid-credential':'The email or password is incorrect.',
- 'auth/wrong-password':'The email or password is incorrect.',
- 'auth/user-disabled':'This account has been disabled.',
- 'auth/too-many-requests':'Too many attempts. Please try again later.',
- 'auth/network-request-failed':'Network error. Check your connection and try again.',
- 'auth/popup-closed-by-user':'Google sign-in was canceled.',
- 'auth/popup-blocked':'The browser blocked the Google sign-in window. Allow pop-ups and try again.',
- 'permission-denied':'Firebase security rules rejected this request.'};
- return map[c]||(err&&err.message)||'Something went wrong. Please try again.'
-}
-function splitDisplayName(v){const p=String(v||'').trim().split(/\s+/).filter(Boolean);return {firstName:p.shift()||'',lastName:p.join(' ')}}
-function baseProfile(user,extra){const d=extra||{},dn=splitDisplayName(user.displayName);return {
- uid:user.uid,firstName:d.firstName||dn.firstName||'',lastName:d.lastName||dn.lastName||'',email:user.email||d.email||'',birthdate:d.birthdate||null,
- characterCreated:false,characterDraft:{},character:null,level:1,experience:0,currentContinent:null,
- currencies:{gold:60,gems:0},equipment:{weaponId:null,helmet:null,chest:null,leggings:null,boots:null,wings:null,necklace:null,earrings:null,bracelet:null,ring:null},
- inventory:{items:{potion:2},armors:{},weapons:{},accessories:{},bundleChest:{}},questProgress:{},dungeonProgress:{highestFloor:0,completedFloors:[]},
- tournamentStats:{wins:0,losses:0,ties:0,rank:0},guildId:null,appearance:{},createdAt:serverTime(),lastLoginAt:serverTime(),profileVersion:1
- }}
-async function ensureProfile(user,seed){
- const ref=FB.db.collection('users').doc(user.uid),snap=await ref.get();
- if(snap.exists){await ref.set({lastLoginAt:serverTime(),email:user.email||snap.data().email||''},{merge:true});return {...snap.data(),uid:user.uid}}
- const data=baseProfile(user,seed);await ref.set(data);return data
-}
-async function createRegisteredProfile(user,form){
- const ref=FB.db.collection('users').doc(user.uid),data=baseProfile(user,form);
- try{await ref.set(data);return data}catch(err){try{await user.delete()}catch(_){}throw err}
-}
-function closeModeSmooth(){return new Promise(resolve=>{const m=$('#modeModal');m.classList.add('mm-closing');setTimeout(()=>{m.classList.remove('on','mm-closing');m.style.opacity='';resolve()},370)})}
-function setAuthStatus(id,msg,ok){const e=$(id);if(!e)return;e.textContent=msg||'';e.classList.toggle('ok',!!ok)}
-function busyButton(btn,on,label){if(!btn)return;if(on){if(!btn.dataset.oldText)btn.dataset.oldText=btn.textContent;btn.disabled=true;if(label)btn.textContent=label}else{btn.disabled=false;if(btn.dataset.oldText){btn.textContent=btn.dataset.oldText;delete btn.dataset.oldText}}}
-function loadOnlineUi(){try{const x=JSON.parse(localStorage.getItem(ONLINE_LOCAL_KEY)||'{}');return x&&x.set||null}catch(_){return null}}
-function saveOnlineUi(){try{localStorage.setItem(ONLINE_LOCAL_KEY,JSON.stringify({set:S.set}))}catch(_){}}
-function prepareOnlineRuntime(profile){const r=defSave(),ch=profile.character||{},ui=loadOnlineUi();if(ui)r.set=Object.assign(r.set,ui);r.hero=ch&&ch.classId?{name:ch.inGameName||'Hero',cls:ch.classId,gender:ch.gender||'m'}:null;r.gold=profile.currencies&&Number.isFinite(+profile.currencies.gold)?+profile.currencies.gold:60;r.gems=profile.currencies&&Number.isFinite(+profile.currencies.gems)?+profile.currencies.gems:0;r.level=Number.isFinite(+profile.level)?+profile.level:1;r.experience=Number.isFinite(+profile.experience)?+profile.experience:0;r.currentContinent=profile.currentContinent||null;const eq=profile.equipment||{};r.equip.w=eq.weaponId||null;r.equip.a=eq.chest||null;return r}
-async function saveCharacterDraft(patch){if(gameMode!=='online'||!FB.user||!FB.db)return;const next=Object.assign({},FB.profile&&FB.profile.characterDraft||{},patch);FB.profile.characterDraft=next;try{await FB.db.collection('users').doc(FB.user.uid).set({characterDraft:next},{merge:true})}catch(_){} }
-async function finalizeOnlineCharacter(raw){
- if(!FB.user||!FB.db)throw new Error('Your online session is not ready. Please sign in again.');
- if(!onlineNameOK(raw))throw new Error('In-game name must be 5 to 13 letters or digits with no spaces or special characters.');
- if(!sel.cls||!CLASSES[sel.cls]||CLASSES[sel.cls].hidden)throw new Error('Choose a valid class.');
- if(!['m','f'].includes(sel.gender))throw new Error('Choose a valid character gender.');
- const displayName=raw,normalized=normalizePlayerName(raw),userRef=FB.db.collection('users').doc(FB.user.uid),nameRef=FB.db.collection('playerNames').doc(normalized);
- await FB.db.runTransaction(async tx=>{
-  const [nameSnap,userSnap]=await Promise.all([tx.get(nameRef),tx.get(userRef)]);
-  if(!userSnap.exists)throw new Error('Player profile was not found.');
-  const u=userSnap.data();if(u.characterCreated)throw new Error('This account already has a completed character.');
-  if(nameSnap.exists&&nameSnap.data().uid!==FB.user.uid){const e=new Error('That in-game name is already taken.');e.code='name-taken';throw e}
-  const starter=`w_${sel.cls}_0`;
-  tx.set(nameRef,{uid:FB.user.uid,displayName,normalizedName:normalized,createdAt:serverTime()},{merge:false});
-  tx.update(userRef,{characterCreated:true,characterDraft:{},character:{classId:sel.cls,gender:sel.gender,inGameName:displayName,normalizedName:normalized,createdAt:serverTime()},level:1,experience:0,currentContinent:null,'currencies.gold':60,'currencies.gems':0,'equipment.weaponId':starter,'inventory.weapons':{[starter]:1},lastLoginAt:serverTime()});
- });
- const snap=await userRef.get();FB.profile={...snap.data(),uid:FB.user.uid};S=prepareOnlineRuntime(FB.profile);playDoors()
-}
-function openOnlineCharacterConfirmation(raw){
- const c=CLASSES[sel.cls];if(!c||!['m','f'].includes(sel.gender))return;
- openSheet(head('Confirm Your Hero')+`<div class="row"><canvas class="pv" width="110" height="130" data-cls="${sel.cls}" data-gen="${sel.gender}" style="width:90px;height:auto;flex:none"></canvas><div class="tx"><b>${raw}</b><span>${c.name} · ${GENDER_LABEL[sel.gender]}</span><span>Starting weapon: ${c.weapon}</span><span>HP ${c.hp} · SPD ${c.spd} · ARMOR ${c.armor}</span></div></div><div class="online-note"><b>Confirm this character?</b><br>Your in-game name will be reserved when you confirm. Your account progress will then be linked to this character.</div><div class="foot" style="margin-top:0"><button class="btn ghost" id="heroConfirmBack" type="button">Back</button><button class="btn" id="heroConfirmBtn" type="button">Confirm Character</button></div>`);
- bindClose();$('#heroConfirmBack').onclick=()=>{sfx('click');closeSheet()};$('#heroConfirmBtn').onclick=async()=>{const b=$('#heroConfirmBtn');busyButton(b,true,'Saving Hero…');try{await finalizeOnlineCharacter(raw);closeSheet()}catch(err){busyButton(b,false);closeSheet();$('#nameHint').textContent=err&&err.code==='name-taken'?'That in-game name is already taken.':authMessage(err);$('#nameHint').className='hintline bad'}}
-}
-function setupNameStep(){const cv=$('#nameCv');cv.dataset.cls=sel.cls;cv.dataset.gen=sel.gender;$('#nameCls').textContent=CLASSES[sel.cls].name+' · '+GENDER_LABEL[sel.gender];$('#nameInput').value='';nameInput();show('sName');setTimeout(()=>$('#nameInput').focus(),50)}
-function startOnlineCharacterCreation(profile){gameMode='online';FB.profile=profile;S=prepareOnlineRuntime(profile);const d=profile.characterDraft||{};sel={cls:null,gender:null};applyNameMode();if(d.classId&&CLASSES[d.classId]&&!CLASSES[d.classId].hidden){sel.cls=d.classId;if(['m','f'].includes(d.gender)){sel.gender=d.gender;setupNameStep()}else{buildGender();show('sGender')}}else enterClass()}
-async function routeOnlineUser(user,opts){
- opts=opts||{};FB.user=user;if(REQUIRE_EMAIL_VERIFICATION&&user.providerData&&user.providerData.some(p=>p.providerId==='password')&&!user.emailVerified){await FB.auth.signOut();throw Object.assign(new Error('Please verify your email before signing in.'),{code:'auth/email-not-verified'})}
- const profile=opts.profile||await ensureProfile(user,opts.seed);FB.profile=profile;gameMode='online';
- if(profile.characterCreated&&profile.character&&profile.character.classId){S=prepareOnlineRuntime(profile);await closeModeSmooth();playDoors()}else{await closeModeSmooth();startOnlineCharacterCreation(profile)}
-}
-async function onlineLogout(){stopRealmPresence();cleanupPresenceCounts();try{if(FB.auth)await FB.auth.signOut()}catch(_){}FB.user=null;FB.profile=null;gameMode='offline';S=offlineS;closeSheet();enterClass();$('#modeModal').classList.add('on')}
 
 /* ============ DATA ============ */
 const CLASSES={
@@ -838,8 +685,8 @@ const aStat=a=>`+${a.a} armor · +${a.h} health`+(a.s?` · ${a.s>0?'+':''}${a.s}
 const KEY='sevenRealms.save.v1';
 const defSave=()=>({hero:null,gold:60,up:{dmg:0,hp:0,spd:0,gold:0,mag:0},items:{potion:2},own:{},equip:{w:null,a:null},best:{},runs:0,set:{sfx:.6,music:.35,dmgnum:true,shake:true,joy:true}});
 function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&typeof j==='object'){const d=defSave();return Object.assign(d,j,{set:Object.assign(d.set,j.set||{}),up:Object.assign(d.up,j.up||{}),items:j.items||d.items,own:j.own||{},equip:Object.assign({w:null,a:null},j.equip||{}),best:j.best||{}})}}catch(e){}return defSave()}
-let offlineS=load(),S=offlineS;
-function save(){if(gameMode==='online'){saveOnlineUi();return}offlineS=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
 /* ============ AUDIO ============ */
 let AC=null,musicNodes=null;
@@ -873,7 +720,7 @@ function stopMusic(){if(!musicNodes)return;const m=musicNodes;musicNodes=null;tr
 function setMusicVol(){if(musicNodes&&AC){musicNodes.g.gain.value=S.set.music*.07}}
 
 /* ============ UI FLOW ============ */
-let cur='sClass',sel={cls:null,gender:null};
+let cur='sClass',sel={cls:null,gender:null},onlineFlow=false,ONL=null;
 function show(id){cur=id;$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
 function pvLoop(t){requestAnimationFrame(pvLoop);$$('canvas.pv').forEach(c=>{if(c.offsetParent===null)return;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);if(c.dataset.cls)drawPortrait(g,c.width,c.height,c.dataset.cls,c.dataset.gen||'m',t/1000)})}
 const GENDER_LABEL={m:'Male',f:'Female'};
@@ -886,20 +733,42 @@ function enterClass(){buildClassCards();sel={cls:null,gender:null};$('#classNext
 function buildGender(){const box=$('#genderCards');box.innerHTML='';$('#genderSub').textContent='Your '+CLASSES[sel.cls].name+' can take either form. It changes how your hero looks, not how they fight.';
  ['m','f'].forEach(g=>{const el=document.createElement('button');el.type='button';el.className='card';el.innerHTML=`<canvas class="pv" width="150" height="170" data-cls="${sel.cls}" data-gen="${g}"></canvas><b>${GENDER_LABEL[g]}</b>`;
   el.onclick=()=>{sel.gender=g;sfx('click');$$('#genderCards .card').forEach(x=>x.classList.toggle('sel',x===el));$('#genderNext').disabled=false};box.appendChild(el)});$('#genderNext').disabled=true}
-function validName(v){return gameMode==='online'?onlineNameOK(v):/^[A-Za-z]{3,8}$/.test(v)}
-function applyNameMode(){const i=$('#nameInput'),h=$('#nameHint');if(gameMode==='online'){i.maxLength=13;i.style.textTransform='none';i.placeholder='5–13 letters or digits';h.textContent='5 to 13 letters or digits · no spaces'}else{i.maxLength=8;i.style.textTransform='capitalize';i.placeholder='Enter a name';h.textContent='3 to 8 letters'}}
-function nameInput(){const i=$('#nameInput'),h=$('#nameHint');
- if(gameMode==='online'){i.value=i.value.replace(/[^A-Za-z0-9]/g,'').slice(0,13);const v=i.value;$('#nameShow').textContent=v||'Hero';if(!v){h.textContent='5 to 13 letters or digits · no spaces';h.className='hintline'}else if(v.length<5){h.textContent=v.length+'/13 · at least 5 characters';h.className='hintline bad'}else{h.textContent=v.length+'/13 · letters and digits only';h.className='hintline'}$('#nameNext').disabled=!onlineNameOK(v);return}
- i.value=i.value.replace(/[^A-Za-z]/g,'').slice(0,8);const v=i.value;$('#nameShow').textContent=v?v.charAt(0).toUpperCase()+v.slice(1).toLowerCase():'Hero';if(!v){h.textContent='3 to 8 letters';h.className='hintline'}else if(v.length<3){h.textContent=v.length+'/8 · at least 3 letters';h.className='hintline bad'}else{h.textContent=v.length+'/8 letters';h.className='hintline'}$('#nameNext').disabled=!/^[A-Za-z]{3,8}$/.test(v)}
-$('#classNext').onclick=()=>{sfx('click');if(gameMode==='online')saveCharacterDraft({classId:sel.cls});buildGender();show('sGender')};
+function validName(v){return onlineFlow?/^[A-Za-z0-9]{5,13}$/.test(v):/^[A-Za-z]{3,8}$/.test(v)}
+function nameInput(){const on=onlineFlow,i=$('#nameInput'),mx=on?13:8,mn=on?5:3,unit=on?' characters':' letters';i.maxLength=mx;i.value=i.value.replace(on?/[^A-Za-z0-9]/g:/[^A-Za-z]/g,'').slice(0,mx);const v=i.value,h=$('#nameHint');
+ $('#nameShow').textContent=v?(on?v:v.charAt(0).toUpperCase()+v.slice(1).toLowerCase()):'Hero';
+ if(!v){h.textContent=on?'5 to 13 letters or digits':'3 to 8 letters';h.className='hintline'}else if(v.length<mn){h.textContent=v.length+'/'+mx+' · at least '+mn+unit;h.className='hintline bad'}else{h.textContent=v.length+'/'+mx+unit;h.className='hintline'}
+ $('#nameNext').disabled=!validName(v)}
+$('#classNext').onclick=()=>{sfx('click');buildGender();show('sGender')};
 $('#genderBack').onclick=()=>{sfx('click');show('sClass')};
-$('#genderNext').onclick=()=>{sfx('click');if(gameMode==='online')saveCharacterDraft({classId:sel.cls,gender:sel.gender});applyNameMode();setupNameStep()};
+$('#genderNext').onclick=()=>{sfx('click');const cv=$('#nameCv');cv.dataset.cls=sel.cls;cv.dataset.gen=sel.gender;$('#nameCls').textContent=CLASSES[sel.cls].name+' · '+GENDER_LABEL[sel.gender];$('#nameInput').value='';nameInput();show('sName');setTimeout(()=>$('#nameInput').focus(),50)};
 $('#nameBack').onclick=()=>{sfx('click');show('sGender')};
 $('#nameInput').addEventListener('input',nameInput);
 $('#nameInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('#nameNext').disabled)$('#nameNext').click()});
-$('#nameNext').onclick=async()=>{const raw=$('#nameInput').value;if(!validName(raw))return;if(gameMode==='online'){$('#nameHint').className='hintline';openOnlineCharacterConfirmation(raw);return}const nm=raw.charAt(0).toUpperCase()+raw.slice(1).toLowerCase();
+$('#nameNext').onclick=()=>{const raw=$('#nameInput').value;if(!validName(raw))return;if(onlineFlow){onlineCreate(raw);return}const nm=raw.charAt(0).toUpperCase()+raw.slice(1).toLowerCase();
  S.hero={name:nm,cls:sel.cls,gender:sel.gender};S.equip.w=null;save();playDoors()};
 $('#contBtn').onclick=()=>{sfx('click');ac();enterHub()};
+
+/* ===== online mode (separate from the offline save S) ===== */
+const escH=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function onlineCreate(ign){const h=$('#nameHint'),b=$('#nameNext');if(b.dataset.busy)return;b.dataset.busy='1';b.disabled=true;h.textContent='Reserving your name…';h.className='hintline';
+ try{const O=window.SR_ONLINE;if(!O||!O.ready)throw new Error('Online services are unavailable. Check your connection.');
+  const c=await O.createCharacter({cls:sel.cls,gender:sel.gender,ign});ONL=c;playDoors(c.ign,enterOnlineHub)}
+ catch(e){h.textContent=(e&&e.message)||'Could not save your hero. Try again.';h.className='hintline bad';b.disabled=!validName($('#nameInput').value)}
+ finally{delete b.dataset.busy}}
+function startOnlineCreation(){onlineFlow=true;ONL=null;enterClass();$('#contBox').classList.remove('on')}
+function enterOnlineHub(){const o=ONL;if(!o){startOnlineCreation();return}
+ const cv=$('#onHero');cv.dataset.cls=o.cls;cv.dataset.gen=o.gender;$('#onName').textContent=o.ign;
+ $('#onCls').textContent=CLASSES[o.cls].name+' · '+GENDER_LABEL[o.gender];
+ const w=WEAPON_BY['w_'+o.cls+'_0'];$('#onWpn').textContent='Weapon: '+(w?w.n:CLASSES[o.cls].weapon);
+ $('#onCont').textContent=o.continent?('Continent: '+o.continent):'Continent: none yet';
+ $('#onLevel').textContent='Level '+o.level;$('#onGold').textContent=o.gold;$('#onGems').textContent=o.gems+' gems';
+ show('sOnHub');music(55)}
+function openOnSettings(){const o=ONL||{};
+ openSheet(head('Online Settings')+`<div class="row"><div class="tx"><b>${escH(o.ign)}</b><span>${escH(o.email||'')}</span></div></div><div class="row"><div class="tx"><b>Account</b><span>Edit Profile arrives in Phase 7.</span></div><div class="act"><button class="btn small" id="onLogout">Log out</button></div></div>`);bindClose();
+ $('#onLogout').onclick=async()=>{sfx('click');const b=$('#onLogout');b.disabled=true;try{if(window.SR_ONLINE&&window.SR_ONLINE.logout)await window.SR_ONLINE.logout()}catch(e){}
+  ONL=null;onlineFlow=false;closeSheet();stopMusic();enterClass();$('#modeBtn').click()}}
+$$('#sOnHub .big').forEach(b=>b.onclick=()=>{sfx('click');ac();if(b.dataset.on==='set')openOnSettings()});
+
 
 function buildGate(){const g='#e3b550',d='#a97c26',P=Math.PI;
  const star=(cx,cy,ro,ri,n,fill)=>{let pts='';for(let i=0;i<n*2;i++){const a=i*P/n-P/2,r=i%2?ri:ro;pts+=(cx+Math.cos(a)*r).toFixed(1)+','+(cy+Math.sin(a)*r).toFixed(1)+' '}return `<polygon points="${pts}" fill="${fill}" stroke="#2a1a05" stroke-width=".8"/>`};
@@ -914,30 +783,26 @@ function buildGate(){const g='#e3b550',d='#a97c26',P=Math.PI;
  a+=`<g class="cr"><circle cx="100" cy="120" r="34" fill="#1a1018" stroke="${g}" stroke-width="2.5"/><circle cx="100" cy="120" r="27" fill="none" stroke="${d}" stroke-width="1"/>${star(100,120,24,10,8,g)}<circle cx="100" cy="120" r="5" fill="#ff7a3a"/></g>`;
  $('#gate .doorL svg').innerHTML=a;$('#gate .doorR svg').innerHTML=`<g transform="translate(100 0) scale(-1 1)">${a}</g>`}
 buildGate();
-function playDoors(){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom','ajar');$('#doorMsg').textContent='The gates of Seven Realms stir…';
+function playDoors(dn,after){show('sDoors');const gate=$('#gate');gate.classList.remove('open','zoom','ajar');$('#doorMsg').textContent='The gates of Seven Realms stir…';
  void gate.offsetWidth;setTimeout(()=>{sfx('door');gate.classList.add('ajar')},500);
- setTimeout(()=>{$('#doorMsg').textContent='Welcome, '+S.hero.name+'.'},2200);
+ setTimeout(()=>{$('#doorMsg').textContent='Welcome, '+(dn||S.hero.name)+'.'},2200);
  setTimeout(()=>{gate.classList.remove('ajar');gate.classList.add('open');sfx('door');$('#doorMsg').textContent=''},3600);
  setTimeout(()=>gate.classList.add('zoom'),5800);
- setTimeout(()=>enterHub(),7300)}
+ setTimeout(()=>(after||enterHub)(),7300)}
 
 /* hub */
 let hubStars=[];
 function enterHub(){const h=S.hero;if(!h){enterClass();return}
- const cv=$('#hubHero');cv.dataset.cls=h.cls;cv.dataset.gen=h.gender;$('#hubName').textContent=h.name;$('#hubCls').textContent=CLASSES[h.cls].name+' · '+CLASSES[h.cls].weapon+(gameMode==='online'?' · ONLINE':'');
- const online=gameMode==='online';$('#hubOnline').hidden=!online;$('#hubGems').hidden=!online;$('#hubMeta').hidden=!online;$('#hubMenu').classList.toggle('onlineMenu',online);$$('#sHub .online-only').forEach(b=>b.hidden=!online);
- if(online){const p=FB.profile||{},eq=p.equipment||{},wid=eq.weaponId||S.equip.w||`w_${h.cls}_0`,w=WEAPON_BY[wid],realm=p.currentContinent&&REALM_BY_ID[p.currentContinent]?REALM_BY_ID[p.currentContinent].name:'Not selected';$('#hubGems').textContent='💎 '+String(S.gems||0);$('#hubMeta').innerHTML=`<div><span>Level</span><b>${Number.isFinite(+p.level)?+p.level:(S.level||1)}</b></div><div><span>Weapon</span><b>${w?w.n:CLASSES[h.cls].weapon}</b></div><div><span>Gold</span><b>${S.gold||0}</b></div><div><span>Gems</span><b>💎 ${S.gems||0}</b></div><div><span>Continent</span><b>${realm}</b></div><div><span>Status</span><b>Online</b></div>`;
-  $$('#hubMenu .big').forEach(b=>{b.disabled=false;b.classList.remove('phaseLater');b.title=''})
- }else{$$('#hubMenu .big').forEach(b=>{b.disabled=false;b.classList.remove('phaseLater');b.title=''})}
+ const cv=$('#hubHero');cv.dataset.cls=h.cls;cv.dataset.gen=h.gender;$('#hubName').textContent=h.name;$('#hubCls').textContent=CLASSES[h.cls].name+' · '+CLASSES[h.cls].weapon;
  refreshGold();show('sHub');music(55);}
-function refreshGold(){const t=String(S.gold);$('#hubGold').textContent=t;$('#hGold').textContent=t;if(gameMode==='online'&&$('#hubGems'))$('#hubGems').textContent='💎 '+String(S.gems||0)}
+function refreshGold(){const t=String(S.gold);$('#hubGold').textContent=t;$('#hGold').textContent=t}
 function hubFx(t){requestAnimationFrame(hubFx);if(cur!=='sHub')return;const c=$('#hubFx'),w=c.clientWidth,h=c.clientHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h;hubStars=Array.from({length:70},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.8+.4,s:Math.random()*30+8,p:Math.random()*TAU}))}
  const g=c.getContext('2d');g.clearRect(0,0,w,h);for(const s of hubStars){s.y-=s.s*.016;if(s.y<-5){s.y=h+5;s.x=Math.random()*w}const a=.35+.35*Math.sin(t/700+s.p);g.fillStyle=`rgba(255,214,130,${a})`;g.beginPath();g.arc(s.x+Math.sin(t/1800+s.p)*10,s.y,s.r,0,TAU);g.fill()}}
-$$('#sHub .big').forEach(b=>b.onclick=()=>{if(b.disabled)return;sfx('click');ac();const a=b.dataset.act;if(gameMode==='online')routeOnlineHubAction(a);else if(a==='play')enterMap();else if(a==='inv')openInv();else if(a==='shop')openShop('items',true);else if(a==='set')openSettings()});
+$$('#sHub .big').forEach(b=>b.onclick=()=>{sfx('click');ac();const a=b.dataset.act;if(a==='play')enterMap();else if(a==='inv')openInv();else if(a==='shop')openShop('items',true);else openSettings()});
 
 /* sheets */
 function openSheet(html){$('#sheet').innerHTML=html;$('#sheetModal').classList.add('on')}
-function closeSheet(){if(typeof stopOnlineTimers==='function')stopOnlineTimers();$('#sheetModal').classList.remove('on');refreshGold();if(typeof G!=='undefined'&&G&&G.pausedBySheet){G.pausedBySheet=false}}
+function closeSheet(){$('#sheetModal').classList.remove('on');refreshGold();if(typeof G!=='undefined'&&G&&G.pausedBySheet){G.pausedBySheet=false}}
 $('#sheetModal').addEventListener('click',e=>{if(e.target.id==='sheetModal')closeSheet()});
 const icon=c=>`<div class="ic" style="background:radial-gradient(circle at 35% 30%,#fff9 0,${c} 45%,#0006 100%)"></div>`;
 function head(t){return `<div class="sheethead"><h2>${t}</h2><button class="btn ghost" data-close>Close</button></div>`}
@@ -973,16 +838,15 @@ function openShop(tab,reset){tab=tab||shopTab;shopTab=tab;const was=$('#sheetMod
  $$('#sheet [data-up]').forEach(b=>b.onclick=()=>{const u=UPS.find(x=>x.k===b.dataset.up),lv=S.up[u.k],cost=upCost(u,lv);if(S.gold>=cost&&lv<UPMAX){S.gold-=cost;S.up[u.k]++;save();sfx('buy');openShop()}});
  $$('#sheet [data-sell]').forEach(b=>b.onclick=()=>{const k=b.dataset.sell,n=b.dataset.n==='all'?items[k]:1;if(items[k]>=n){items[k]-=n;S.gold+=n*SELL_PRICE;save();sfx('coin');openShop()}})}
 function toastShop(){sfx('hurt')}
-function openSettings(){if(gameMode==='online'){openOnlineSettings();return}const s=S.set;
+function openSettings(){const s=S.set;
  const tog=(k,l,d)=>`<div class="setrow"><label>${l}<br><small style="color:var(--mute)">${d}</small></label><button class="tog ${s[k]?'on':''}" data-tog="${k}" aria-label="${l}" aria-pressed="${!!s[k]}"></button></div>`;
- const accountRow=gameMode==='online'?`<div class="setrow" style="border:0"><label>Online account<br><small style="color:var(--mute)">${FB.user&&FB.user.email?FB.user.email:'Signed in'} · server profile protected</small></label><button class="btn danger small" id="logoutBtn">Log out</button></div>`:`<div class="setrow" style="border:0"><label>Hero and save<br><small style="color:var(--mute)">Erasing removes your hero, gold, gear and items.</small></label><button class="btn danger small" id="eraseBtn">Erase hero</button></div>`;
  openSheet(head('Settings')+`<div class="setrow"><label>Sound effects</label><input type="range" min="0" max="1" step=".05" value="${s.sfx}" id="rSfx"></div><div class="setrow"><label>Music</label><input type="range" min="0" max="1" step=".05" value="${s.music}" id="rMus"></div>`+
-  tog('dmgnum','Damage numbers','Show floating numbers when you hit')+tog('shake','Screen shake','Shake the camera when you are hurt')+tog('joy','Touch joystick','Drag anywhere on touch screens to move')+accountRow);bindClose();
+  tog('dmgnum','Damage numbers','Show floating numbers when you hit')+tog('shake','Screen shake','Shake the camera when you are hurt')+tog('joy','Touch joystick','Drag anywhere on touch screens to move')+
+  `<div class="setrow" style="border:0"><label>Hero and save<br><small style="color:var(--mute)">Erasing removes your hero, gold, gear and items.</small></label><button class="btn danger small" id="eraseBtn">Erase hero</button></div>`);bindClose();
  $('#rSfx').oninput=e=>{S.set.sfx=+e.target.value;save();tone(660,.08,'square',.15)};
  $('#rMus').oninput=e=>{const was=S.set.music;S.set.music=+e.target.value;save();if(S.set.music>0&&!musicNodes)music(55);else if(S.set.music<=0)stopMusic();else setMusicVol()};
  $$('#sheet [data-tog]').forEach(b=>b.onclick=()=>{const k=b.dataset.tog;S.set[k]=!S.set[k];b.classList.toggle('on',S.set[k]);b.setAttribute('aria-pressed',S.set[k]);save();sfx('click')});
- if(gameMode==='online'){const lo=$('#logoutBtn');if(lo)lo.onclick=()=>{sfx('click');onlineLogout()};return}
- let armed=false;$('#eraseBtn').onclick=e=>{if(!armed){armed=true;e.target.textContent='Press again to confirm';return}const set=S.set;S=defSave();S.set=set;offlineS=S;save();closeSheet();if(G&&G.state!=='idle')quitRun(true);enterClass()}}
+ let armed=false;$('#eraseBtn').onclick=e=>{if(!armed){armed=true;e.target.textContent='Press again to confirm';return}const set=S.set;S=defSave();S.set=set;save();closeSheet();if(G&&G.state!=='idle')quitRun(true);enterClass()}}
 
 /* map */
 let deploying=false;
@@ -1022,12 +886,12 @@ function buildMap(){const svg=$('#mapSvg');svg.classList.remove('deploying');
    if(R.id==='drakthar')inner+=`<path d="M${R.cx-40},${R.cy+30} q30,-60 60,-10 t50,-40" stroke="#ff7a2a" stroke-width="4" fill="none"/>`;
    if(R.id==='umbraxis')inner+=`<circle cx="${R.cx}" cy="${R.cy}" r="${R.r*.9}" fill="#8a5ad0" opacity=".16"/>`}
   const lx=R.id==='thalassara'?868:R.cx,ly=R.id==='thalassara'?492:R.cy;
-  h+=`<g class="land" data-id="${R.id}" tabindex="0" role="button" aria-label="Deploy to ${R.name}">${inner}<text x="${lx}" y="${ly}" text-anchor="middle" font-size="${R.id==='frostheim'||R.id==='umbraxis'?19:22}">${R.name}</text><text class="sm" x="${lx}" y="${ly+20}" text-anchor="middle">${gameMode==='online'?R.sub.split(' & ')[0]:(best?'Best '+fmtT(best.time):R.sub.split(' & ')[0])}</text><text class="sm pcount" x="${lx}" y="${ly+38}" text-anchor="middle" style="display:${gameMode==='online'?'block':'none'}">${NET.counts[R.id]||0} online</text></g>`}
+  h+=`<g class="land" data-id="${R.id}" tabindex="0" role="button" aria-label="Deploy to ${R.name}">${inner}<text x="${lx}" y="${ly}" text-anchor="middle" font-size="${R.id==='frostheim'||R.id==='umbraxis'?19:22}">${R.name}</text><text class="sm" x="${lx}" y="${ly+20}" text-anchor="middle">${best?'Best '+fmtT(best.time):R.sub.split(' & ')[0]}</text></g>`}
  h+=mapOverlay();
  h+=`<g id="orbG" opacity="0"><circle r="26" fill="#fff0b0" filter="url(#glow)"/><circle r="9" fill="#fffbe6"/></g><circle id="flashC" cx="500" cy="320" r="0" fill="#fff" opacity="0"/>`;
  svg.innerHTML=h;
  $$('#mapSvg .lore').forEach(g=>{const go=()=>{if(!deploying)openLore(g.dataset.lore)};g.onclick=go;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}};g.onmouseenter=()=>{$('#mapCap').innerHTML='<b>'+LORE[g.dataset.lore].n+'</b>Click to read its legend.'}});
- $$('#mapSvg .land').forEach(g=>{const R=REALM_BY_ID[g.dataset.id];const info=()=>{$('#mapCap').innerHTML=`<b>${R.name} · ${R.sub}</b>${R.desc}${gameMode==='online'?`<br><strong>${NET.counts[R.id]||0} player${(NET.counts[R.id]||0)===1?'':'s'} online</strong>`:''}`};g.onmouseenter=info;g.onfocus=info;g.onclick=()=>deploy(R);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();deploy(R)}}})}
+ $$('#mapSvg .land').forEach(g=>{const R=REALM_BY_ID[g.dataset.id];const info=()=>{$('#mapCap').innerHTML=`<b>${R.name} · ${R.sub}</b>${R.desc}`};g.onmouseenter=info;g.onfocus=info;g.onclick=()=>deploy(R);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();deploy(R)}}})}
 const LORE={
  kraken:{n:'The Kraken',age:'About 3,000 years',by:'The Tidecallers of Thalassara',t:[
   'When storms first began swallowing the pearl fleets of Thalassara, the Tidecallers struck a bargain with the deep. One sliver of the ocean’s hunger would be bound into flesh and set to drown any ship that carried war to the islands. They named it the Kraken and fed it once every year.',
@@ -1054,9 +918,9 @@ function closeLore(){$('#loreModal').classList.remove('on')}
 $('#loreModal').addEventListener('click',e=>{if(e.target.id==='loreModal')closeLore()});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#loreModal').classList.contains('on')){e.stopPropagation();closeLore()}},true);
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function enterMap(){deploying=false;if(gameMode==='online')watchPresenceCounts();buildMap();$('#mapCap').textContent=gameMode==='online'?'Select a continent. Live player counts update automatically.':'Mythara, the Known World. Select a continent to send your light there.';show('sMap');
+function enterMap(){deploying=false;buildMap();$('#mapCap').textContent='Mythara, the Known World. Select a continent to send your light there.';show('sMap');
  const mb=$('.mapbox');if(mb.scrollWidth>mb.clientWidth+4){mb.scrollLeft=(mb.scrollWidth-mb.clientWidth)/2;$('#mapCap').textContent='Mythara, the Known World. Swipe sideways to look around, then tap a continent.'}}
-$('#mapBack').onclick=()=>{sfx('click');if(!deploying){if(gameMode==='online')cleanupPresenceCounts();enterHub()}};
+$('#mapBack').onclick=()=>{sfx('click');if(!deploying)enterHub()};
 function deploy(R){if(deploying)return;deploying=true;sfx('click');const svg=$('#mapSvg');
  {const mb=$('.mapbox');if(mb.scrollWidth>mb.clientWidth+4){const tx=(R.id==='thalassara'?848:R.cx)/1000*svg.getBoundingClientRect().width;mb.scrollTo({left:tx-mb.clientWidth/2,behavior:'smooth'})}}svg.classList.add('deploying');$(`#mapSvg .land[data-id="${R.id}"]`).classList.add('target');
  $('#mapCap').innerHTML=`<b>${R.name}</b>Your light descends…`;
@@ -1162,24 +1026,6 @@ function drawProj(g,p){g.save();g.translate(p.x,p.y);const a=Math.atan2(p.vy,p.v
  else{g.shadowColor='#bfeaff';g.shadowBlur=8;g.fillStyle='#e6f6ff';g.beginPath();g.moveTo(-6,-2);g.lineTo(9,0);g.lineTo(-6,2);g.closePath();g.fill();g.fillStyle='#2fb5a8';g.fillRect(-9,-1.5,4,3)}
  g.restore()}
 
-/* online safe-zone town */
-const TOWN={cx:1100,cy:1100,hw:330,hh:265,wall:28,gate:62};
-function insideSafeTown(x,y,pad){pad=pad||0;return Math.abs(x-TOWN.cx)<TOWN.hw-pad&&Math.abs(y-TOWN.cy)<TOWN.hh-pad}
-function inTownWall(x,y){const dx=Math.abs(x-TOWN.cx),dy=Math.abs(y-TOWN.cy),vWall=dx>TOWN.hw-TOWN.wall&&dx<TOWN.hw+TOWN.wall&&dy<TOWN.hh+TOWN.wall&&Math.abs(y-TOWN.cy)>TOWN.gate,hWall=dy>TOWN.hh-TOWN.wall&&dy<TOWN.hh+TOWN.wall&&dx<TOWN.hw+TOWN.wall&&Math.abs(x-TOWN.cx)>TOWN.gate;return vWall||hWall}
-function resolveTownMove(x,y,nx,ny){if(gameMode!=='online')return[nx,ny];if(inTownWall(nx,ny))return[x,y];return[nx,ny]}
-function drawSafeTown(g,R){
- const {cx,cy,hw,hh,wall,gate}=TOWN,stone=R.id==='dunemara'?'#9b7446':R.id==='frostheim'?'#93a8b7':R.id==='drakthar'?'#51444b':'#6c6871',roof=R.id==='drakthar'?'#6f2a20':R.id==='frostheim'?'#516c82':'#5a3131';
- g.save();g.fillStyle='rgba(0,0,0,.18)';g.fillRect(cx-hw,cy-hh,hw*2,hh*2);g.fillStyle=stone;
- g.fillRect(cx-hw-wall,cy-hh-wall,hw+wall-gate,wall);g.fillRect(cx+gate,cy-hh-wall,hw+wall-gate,wall);
- g.fillRect(cx-hw-wall,cy+hh,hw+wall-gate,wall);g.fillRect(cx+gate,cy+hh,hw+wall-gate,wall);
- g.fillRect(cx-hw-wall,cy-hh,wall,hh-gate);g.fillRect(cx-hw-wall,cy+gate,wall,hh-gate);
- g.fillRect(cx+hw,cy-hh,wall,hh-gate);g.fillRect(cx+hw,cy+gate,wall,hh-gate);
- g.strokeStyle='#d5b76b';g.lineWidth=4;[[cx,cy-hh-wall/2],[cx,cy+hh+wall/2],[cx-hw-wall/2,cy],[cx+hw+wall/2,cy]].forEach(([x,y],i)=>{g.beginPath();if(i<2){g.moveTo(x-gate,y);g.lineTo(x+gate,y)}else{g.moveTo(x,y-gate);g.lineTo(x,y+gate)}g.stroke()});
- const buildings=[[-185,-120,120,78,'Town Hall'],[20,-132,112,70,'Library'],[155,-112,105,72,'Blacksmith'],[-175,80,104,68,'General Store'],[-25,92,112,70,'Equipment'],[150,82,98,64,'Inn']];
- g.textAlign='center';g.font='700 15px Alegreya Sans, sans-serif';for(const [ox,oy,w,h,n] of buildings){const x=cx+ox,y=cy+oy;g.fillStyle='#d0bd91';g.fillRect(x-w/2,y-h/2,w,h);g.fillStyle=roof;g.beginPath();g.moveTo(x-w*.6,y-h/2);g.lineTo(x,y-h*.9);g.lineTo(x+w*.6,y-h/2);g.closePath();g.fill();g.fillStyle='#2b1a12';g.fillRect(x-9,y+h/2-26,18,26);g.fillStyle='#fff0c8';g.fillText(n,x,y+h/2+18)}
- g.fillStyle='#e3b550';g.font='900 22px Cinzel,serif';g.fillText(R.name+' Safe Zone',cx,cy-5);g.restore();
-}
-
 /* world */
 const WORLD=2200;
 function buildWorld(R){const c=document.createElement('canvas');c.width=c.height=WORLD;const g=c.getContext('2d'),r=rng(R.seed*977+3),W=WORLD;
@@ -1217,7 +1063,7 @@ function buildWorld(R){const c=document.createElement('canvas');c.width=c.height
   for(let i=0;i<90;i++){const x=r()*W,y=r()*W;if(!clear(x,y,130))continue;D(y,()=>{g.fillStyle='#4a4358';rrect(g,x-8,y-26,16,26,7);g.fill();g.fillStyle='#6a6278';g.fillRect(x-1.5,y-20,3,12);g.fillRect(x-5,y-16,10,3)})}
   for(let i=0;i<24;i++){const x=r()*W,y=r()*W;D(y,()=>{g.save();g.shadowColor='#a060ff';g.shadowBlur=14;g.fillStyle='#8a4ae0';g.beginPath();g.moveTo(x-6,y);g.lineTo(x,y-30);g.lineTo(x+6,y);g.fill();g.restore()})}
   for(let i=0;i<60;i++){const x=r()*W,y=r()*W,rad=80+r()*140,gr=g.createRadialGradient(x,y,0,x,y,rad);gr.addColorStop(0,'rgba(10,4,18,.55)');gr.addColorStop(1,'rgba(10,4,18,0)');g.fillStyle=gr;g.fillRect(x-rad,y-rad,rad*2,rad*2)}}
- dec.sort((a,b)=>a[0]-b[0]);for(const d of dec)d[1]();if(gameMode==='online')drawSafeTown(g,R);
+ dec.sort((a,b)=>a[0]-b[0]);for(const d of dec)d[1]();
  return c}
 
 /* ambient particles (screen space) */
@@ -1250,11 +1096,10 @@ let toastT=0,bannerT=0;
 function toast(m,ms){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms||2600)}
 function banner(m,ms){const t=$('#banner');t.textContent=m;t.classList.add('on');clearTimeout(bannerT);bannerT=setTimeout(()=>t.classList.remove('on'),ms||2400)}
 
-async function startRun(R){const h=S.hero,C=CLASSES[h.cls];
- if(gameMode==='online'){try{await startRealmPresence(R);persistOnlineContinent(R.id)}catch(err){deploying=false;alert(authMessage(err));enterMap();return}}
- const worldKey=gameMode+':'+R.id;if(!worldCache[worldKey])worldCache[worldKey]=buildWorld(R);
+function startRun(R){const h=S.hero,C=CLASSES[h.cls];
+ if(!worldCache[R.id])worldCache[R.id]=buildWorld(R);
  const GA=equippedA(),maxhp=Math.round(C.hp*(1+.1*S.up.hp)+GA.h);
- G={state:'wake',realm:R,cls:h.cls,world:worldCache[worldKey],amb:makeAmbient(),t:0,wt:0,
+ G={state:'wake',realm:R,cls:h.cls,world:worldCache[R.id],amb:makeAmbient(),t:0,wt:0,
   hero:{x:WORLD/2,y:WORLD/2,hp:maxhp,maxhp,spd:C.spd*(1+.04*S.up.spd)*(1+GA.s/100),armor:C.armor+GA.a,face:1,aim:0,moving:false,inv:0,lvl:1,xp:0,next:6,regen:0,mag:70*(1+.2*S.up.mag),atkT:1,fire:0,r:10},
   atk:Object.assign({},C.atk),m:{dmg:1+.1*S.up.dmg,cd:1,area:1,gold:1+.1*S.up.gold,crit:0},
   enemies:[],projs:[],fx:[],drops:[],texts:[],later:[],npcs:[],quests:[],upg:{},pendingLv:0,
@@ -1272,7 +1117,7 @@ function mkQuest(i,R,x,y){
  if(i===1){const goal=5+Math.floor(Math.random()*3);return{type:'collect',goal,prog:0,title:`Gather ${goal} ${R.mat}`,desc:`Collect ${goal} ${R.mat} dropped by monsters. They glow when they fall.`,gold:90,xp:12}}
  const a=Math.random()*TAU,d=700+Math.random()*200;return{type:'scout',goal:1,prog:0,mx:clamp(x+Math.cos(a)*d,150,WORLD-150),my:clamp(y+Math.sin(a)*d,150,WORLD-150),title:'Scout the marked spot',desc:'Travel to the glowing marker on your map, then return.',gold:110,xp:15}}
 function spawnNPCs(){const R=G.realm,base=Math.random()*TAU;
- R.npcs.forEach((n,i)=>{let x,y;if(gameMode==='online'){const pos=[[-235,5],[0,-45],[225,10]][i]||[0,0];x=TOWN.cx+pos[0];y=TOWN.cy+pos[1]}else{const a=base+i*TAU/3+(Math.random()-.5)*.5,d=360+Math.random()*240;x=clamp(WORLD/2+Math.cos(a)*d,140,WORLD-140);y=clamp(WORLD/2+Math.sin(a)*d,140,WORLD-140)}
+ R.npcs.forEach((n,i)=>{const a=base+i*TAU/3+(Math.random()-.5)*.5,d=360+Math.random()*240,x=clamp(WORLD/2+Math.cos(a)*d,140,WORLD-140),y=clamp(WORLD/2+Math.sin(a)*d,140,WORLD-140);
   G.npcs.push({name:n[0],role:n[1],line:n[2],col:n[3],x,y,ph:Math.random()*6,q:mkQuest(i,R,x,y),qs:'available'})})}
 
 /* quests + dialog */
@@ -1356,7 +1201,7 @@ function explode(x,y,dmg){const R=G.atk.aoe*G.m.area;G.fx.push({t:'boom',x,y,r:R
 function spawnEnemy(boss,ring){const R=G.realm,h=G.hero,t=G.t;let def;
  if(boss)def=[R.boss,'brute',R.bossc];else{const avail=Math.min(R.en.length,1+Math.floor(t/70));const wts=R.en.slice(0,avail).map((_,i)=>i===avail-1&&avail>1?.8:1.2);let s=wts.reduce((a,b)=>a+b,0)*Math.random(),idx=0;for(;idx<avail-1;idx++){s-=wts[idx];if(s<=0)break}def=R.en[idx]}
  const b=ENEMY_BASE[def[1]],ang=Math.random()*TAU,dist=Math.max(view.w,view.h)/view.z*.62+rand(30,90);
- let x=clamp(h.x+Math.cos(ang)*dist,20,WORLD-20),y=clamp(h.y+Math.sin(ang)*dist,20,WORLD-20);if(gameMode==='online'&&insideSafeTown(x,y,-60)){const a2=ang+Math.PI*.55;x=clamp(TOWN.cx+Math.cos(a2)*(TOWN.hw+180),20,WORLD-20);y=clamp(TOWN.cy+Math.sin(a2)*(TOWN.hh+180),20,WORLD-20)}
+ const x=clamp(h.x+Math.cos(ang)*dist,20,WORLD-20),y=clamp(h.y+Math.sin(ang)*dist,20,WORLD-20);
  const hp=boss?(520+t*5.5):b.hp*(1+t/70),sp=boss?52:b.spd*(1+Math.min(.35,t/900));
  G.enemies.push({x,y,k:def[1],c:def[2],name:def[0],r:boss?36:b.r,hp,maxhp:hp,spd:sp,dmg:boss?16*(1+t/300):b.dmg*(1+t/240),xp:b.xp,ph:Math.random()*6,flash:0,kx:0,ky:0,stun:0,face:1,boss:!!boss,dead:false})}
 
@@ -1414,8 +1259,8 @@ function die(){G.state='dead';sfx('die');G.deadT=0;setTimeout(()=>{if(!G||G.stat
   $('#resTitle').textContent='You have fallen';
   $('#resBody').innerHTML=`<div>Realm<strong>${R.name}</strong></div><div>Time survived<strong>${fmtT(G.t)}</strong></div><div>Monsters slain<strong>${G.kills}</strong></div><div>Level reached<strong>${G.hero.lvl}</strong></div><div>Quests done<strong>${G.qDone}</strong></div><div>Gold earned<strong>${G.gold}</strong></div>${b?`<div>Best time<strong>${fmtT(Math.max(b.time,G.t))}</strong></div>`:''}`;
   $('#resModal').classList.add('on')},1400)}
-function leaveRun(){if(!G)return;if(gameMode==='online'){stopRealmPresence();quitRun();refreshOnlineProfile().then(()=>enterHub()).catch(()=>enterHub());return}S.gold+=G.gold;S.runs++;const b=S.best[G.realm.id];if(!b||G.t>b.time)S.best[G.realm.id]={time:G.t,kills:G.kills,lvl:G.hero.lvl};save();quitRun();enterHub()}
-function quitRun(){if(gameMode==='online')stopRealmPresence();G=null;$$('#sGame .modal').forEach(m=>m.classList.remove('on'));$('#lids').classList.remove('on','go');cv.classList.remove('wake');joy.id=null;$('#stick').style.display='none'}
+function leaveRun(){if(!G)return;S.gold+=G.gold;S.runs++;const b=S.best[G.realm.id];if(!b||G.t>b.time)S.best[G.realm.id]={time:G.t,kills:G.kills,lvl:G.hero.lvl};save();quitRun();enterHub()}
+function quitRun(){G=null;$$('#sGame .modal').forEach(m=>m.classList.remove('on'));$('#lids').classList.remove('on','go');cv.classList.remove('wake');joy.id=null;$('#stick').style.display='none'}
 function camFollow(dt,snap){const c=G.cam,h=G.hero,vw=view.w/view.z,vh=view.h/view.z,k=snap?1:1-Math.exp(-dt*8);c.x+=(h.x-c.x)*k;c.y+=(h.y-c.y)*k;c.x=clamp(c.x,Math.min(vw/2,WORLD/2),Math.max(WORLD-vw/2,WORLD/2));c.y=clamp(c.y,Math.min(vh/2,WORLD/2),Math.max(WORLD-vh/2,WORLD/2))}
 function update(dt){
  if(G.state==='wake'){G.wt+=dt;if(G.wt>=3.5){G.state='play';banner(G.realm.name.toUpperCase(),2800);G.hero.inv=1.2;toast(G.realm.sub,3200)}camFollow(dt,true);return}
@@ -1424,20 +1269,20 @@ function update(dt){
  G.t+=dt;const h=G.hero,a=G.atk,m=G.m;
  let ix=0,iy=0;if(keys.KeyA||keys.ArrowLeft)ix--;if(keys.KeyD||keys.ArrowRight)ix++;if(keys.KeyW||keys.ArrowUp)iy--;if(keys.KeyS||keys.ArrowDown)iy++;
  if(joy.id!==null){ix+=joy.dx;iy+=joy.dy}const il=Math.hypot(ix,iy);if(il>1){ix/=il;iy/=il}
- h.moving=il>.12;if(h.moving){let nx=clamp(h.x+ix*h.spd*dt,24,WORLD-24),ny=clamp(h.y+iy*h.spd*dt,24,WORLD-24);[nx,ny]=resolveTownMove(h.x,h.y,nx,ny);h.x=nx;h.y=ny;if(h.fire<=0&&Math.abs(ix)>.08)h.face=ix>0?1:-1}
+ h.moving=il>.12;if(h.moving){h.x=clamp(h.x+ix*h.spd*dt,24,WORLD-24);h.y=clamp(h.y+iy*h.spd*dt,24,WORLD-24);if(h.fire<=0&&Math.abs(ix)>.08)h.face=ix>0?1:-1}
  h.inv-=dt;h.fire-=dt;if(h.regen>0)h.hp=Math.min(h.maxhp,h.hp+h.regen*dt);tickBuffs(dt);
  specialTick(dt);h.atkT-=dt;if(h.atkT<=0){h.atkT=fireWeapon()?a.cd*m.cd*(CH.nocd?.12:1):.08}
  for(let i=G.later.length-1;i>=0;i--){const l=G.later[i];l.t-=dt;if(l.t<=0){G.later.splice(i,1);l.fn()}}
  /* spawning */
  const rate=Math.min(9,1.2+G.t/38);G.spawnAcc+=dt*rate;while(G.spawnAcc>=1){G.spawnAcc--;if(G.enemies.length<170)spawnEnemy(false)}
  if(G.t>=G.nextBoss){G.nextBoss+=180;spawnEnemy(true);banner('Boss: '+G.realm.boss,3000);sfx('boss')}
- if(G.t>=G.swarmT){G.swarmT+=75;const R=G.realm,kind=R.en.find(e=>e[1]==='bat')||R.en[0];banner('A swarm approaches',2200);for(let i=0;i<22;i++){const an=i/22*TAU,b=ENEMY_BASE[kind[1]];const hp=b.hp*(1+G.t/70);let sx=clamp(h.x+Math.cos(an)*520,20,WORLD-20),sy=clamp(h.y+Math.sin(an)*520,20,WORLD-20);if(gameMode==='online'&&insideSafeTown(sx,sy,-60)){sx=clamp(TOWN.cx+Math.cos(an)*(TOWN.hw+200),20,WORLD-20);sy=clamp(TOWN.cy+Math.sin(an)*(TOWN.hh+200),20,WORLD-20)}G.enemies.push({x:sx,y:sy,k:kind[1],c:kind[2],name:kind[0],r:b.r,hp,maxhp:hp,spd:b.spd*1.15,dmg:b.dmg*(1+G.t/240),xp:b.xp,ph:Math.random()*6,flash:0,kx:0,ky:0,stun:0,face:1,boss:false,dead:false})}}
+ if(G.t>=G.swarmT){G.swarmT+=75;const R=G.realm,kind=R.en.find(e=>e[1]==='bat')||R.en[0];banner('A swarm approaches',2200);for(let i=0;i<22;i++){const an=i/22*TAU,b=ENEMY_BASE[kind[1]];const hp=b.hp*(1+G.t/70);G.enemies.push({x:clamp(h.x+Math.cos(an)*520,20,WORLD-20),y:clamp(h.y+Math.sin(an)*520,20,WORLD-20),k:kind[1],c:kind[2],name:kind[0],r:b.r,hp,maxhp:hp,spd:b.spd*1.15,dmg:b.dmg*(1+G.t/240),xp:b.xp,ph:Math.random()*6,flash:0,kx:0,ky:0,stun:0,face:1,boss:false,dead:false})}}
  /* enemies */
  const E=G.enemies;
  for(const e of E){if(e.dead)continue;e.flash-=dt;e.stun-=dt;let dx=h.x-e.x,dy=h.y-e.y,d=Math.hypot(dx,dy)||1;
   if(d>1500){const an=Math.random()*TAU;e.x=clamp(h.x+Math.cos(an)*600,20,WORLD-20);e.y=clamp(h.y+Math.sin(an)*600,20,WORLD-20);continue}
   let sp=e.spd*(e.stun>0?.15:1),mx=dx/d*sp,my=dy/d*sp;if(e.k==='bat'){const w=Math.sin(G.t*5+e.ph)*.8;mx+=-dy/d*sp*w*.6;my+=dx/d*sp*w*.6}
-  {const nx=e.x+(mx+e.kx)*dt,ny=e.y+(my+e.ky)*dt;if(!(gameMode==='online'&&insideSafeTown(nx,ny,-10))){e.x=nx;e.y=ny}}const kd=Math.exp(-dt*8);e.kx*=kd;e.ky*=kd;e.face=dx>0?1:-1;
+  e.x+=(mx+e.kx)*dt;e.y+=(my+e.ky)*dt;const kd=Math.exp(-dt*8);e.kx*=kd;e.ky*=kd;e.face=dx>0?1:-1;
   if(d<e.r+h.r*.9&&h.inv<=0){const dm=Math.max(1,Math.round(e.dmg-h.armor));if(!CH.god)h.hp-=dm;h.inv=.55;sfx('hurt');if(S.set.shake)G.shake=.25;dmgNum(h.x,h.y-44,'-'+dm,'#ff7a84',true);if(h.hp<=0){if(!tryRevive()){h.hp=0;die();return}}}}
  for(let i=0;i<E.length;i++){const a1=E[i];if(a1.dead)continue;for(let j=i+1;j<E.length;j++){const b1=E[j];if(b1.dead)continue;const dx=b1.x-a1.x,dy=b1.y-a1.y,mn=(a1.r+b1.r)*.75;if(dx>mn||dx<-mn||dy>mn||dy<-mn)continue;const d=Math.hypot(dx,dy)||.01;if(d<mn){const p=(mn-d)/d*.5*(a1.boss||b1.boss?.3:1);a1.x-=dx*p;a1.y-=dy*p;b1.x+=dx*p;b1.y+=dy*p}}}
  G.enemies=E.filter(e=>!e.dead);
@@ -1478,7 +1323,6 @@ function render(t){const g=ctx,z=view.z,dpr=view.dpr,vw=view.w/z,vh=view.h/z,c=G
  const list=[];
  for(const n of G.npcs)if(inV(n.x,n.y,90))list.push([n.y,()=>drawNPC(g,n,t,n.qs==='available'?'available':n.qs==='ready'?'ready':n.qs==='active'?'active':null)]);
  for(const e of G.enemies)if(inV(e.x,e.y,90))list.push([e.y,()=>drawEnemy(g,e,t)]);
- if(gameMode==='online')for(const p of Object.values(NET.remote))if(inV(p.x,p.y,100))list.push([p.y,()=>{drawHero(g,p.x,p.y,1.05,p.classId&&CLASSES[p.classId]?p.classId:'archer',p.gender==='f'?'f':'m',{face:p.face||1,t,moving:!!p.moving});g.save();g.textAlign='center';g.font='800 13px Alegreya Sans,sans-serif';const nm=String(p.name||'Adventurer');const tw=g.measureText(nm).width;g.fillStyle='rgba(5,3,9,.72)';g.fillRect(p.x-tw/2-6,p.y-68,tw+12,18);g.fillStyle='#7fd0ee';g.fillText(nm,p.x,p.y-54);g.restore()}]);
  list.push([h.y,()=>{let rot=0,al=null,fire=h.fire>0;
    if(G.state==='wake'){const w=G.wt;rot=w<1.7?-1.52:w<3?-1.52*(1-(w-1.7)/1.3)**1:0;if(w>=3)rot=0}
    if(G.state==='play'&&h.inv>0&&Math.floor(h.inv*14)%2)al=.45;
@@ -1503,18 +1347,17 @@ function drawMinimap(g){const s=96*UI,x=view.w-s-24*UI,y=150*UI,k=s/WORLD,h=G.he
  for(const n of G.npcs){const px=x+n.x*k,py=y+n.y*k;if(n.qs==='active'&&n.q.type==='scout'){g.fillStyle='#7fd0ee';g.fillRect(x+n.q.mx*k-2,y+n.q.my*k-2,5,5)}
   if(n.qs==='done')continue;g.fillStyle=n.qs==='ready'?'#9fe58a':n.qs==='active'?'#aaa':'#ffd24a';g.beginPath();g.arc(px,py,3,0,TAU);g.fill()}
  for(const e of G.enemies)if(e.boss){g.fillStyle='#ff4a3a';g.beginPath();g.arc(x+e.x*k,y+e.y*k,3.5,0,TAU);g.fill()}
- if(gameMode==='online'){g.fillStyle='#7fd0ee';for(const p of Object.values(NET.remote)){g.beginPath();g.arc(x+p.x*k,y+p.y*k,2.4,0,TAU);g.fill()}}
  g.fillStyle='#fff';g.beginPath();g.arc(x+h.x*k,y+h.y*k,2.6,0,TAU);g.fill();g.restore()}
 
 /* loop */
-function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-lastT)/1000||0);lastT=now;if(!G||cur!=='sGame')return;if(!view.w)resize();update(dt);if(G){tickNetwork(now);render(now/1000)}}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-lastT)/1000||0);lastT=now;if(!G||cur!=='sGame')return;if(!view.w)resize();update(dt);if(G)render(now/1000)}
 
 /* input */
 function setKey(e,v){const c=e.code;if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(c)){keys[c]=v;if(cur==='sGame')e.preventDefault()}}
 window.addEventListener('keydown',e=>{setKey(e,true);if(!G||cur!=='sGame')return;if(e.code==='Escape'||e.code==='KeyP'){if(G.state==='play')pauseGame();else if(G.state==='pause')resumeGame();else if(G.state==='bag')closeBag()}else if(e.code==='KeyQ')usePotion();else if(e.code==='KeyB'){if(G.state==='play')openBag();else if(G.state==='bag')closeBag()}else if(e.code==='KeyE'&&G.state==='play'&&G.near)tryInteract(G.near)});
 window.addEventListener('keyup',e=>setKey(e,false));
 window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(G&&G.state==='play')pauseGame()}});window.addEventListener('beforeunload',()=>{if(gameMode==='online'&&NET.selfRef)try{NET.selfRef.remove()}catch(_){}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(G&&G.state==='play')pauseGame()}});
 function clickWorld(e){if(!G||G.state!=='play')return;const r=cv.getBoundingClientRect(),z=view.z,vw=view.w/z,vh=view.h/z,wx=(e.clientX-r.left)/z+G.cam.x-vw/2,wy=(e.clientY-r.top)/z+G.cam.y-vh/2;
  let best=null,bd=60;for(const n of G.npcs){const d=Math.hypot(n.x-wx,n.y-22-wy);if(d<bd){bd=d;best=n}}if(best)tryInteract(best)}
 cv.addEventListener('pointerdown',e=>{ac();if(!G)return;if(e.pointerType==='mouse'){if(e.button===0)clickWorld(e);return}
@@ -1530,121 +1373,12 @@ $('#resBtn').onclick=()=>{sfx('click');leaveRun()};
 $('#potBtn').onclick=usePotion;$('#bagBtn').onclick=openBag;
 $('#actBtn').onclick=()=>{if(G&&G.near)tryInteract(G.near)};
 
-/* ============ ONLINE PHASES 4-8 ============ */
-const ONLINE_ARMOR_SLOTS=['helmet','chest','leggings','boots'];
-const ONLINE_ARMOR=[];
-const OA_NAMES={helmet:['Scout Hood','Iron Helm','Runic Crown','Dragon Helm','Celestial Crown'],chest:['Leather Cuirass','Knight Plate','Runic Aegis','Dragonlord Mail','Celestial Plate'],leggings:['Trail Leggings','Iron Greaves','Runic Legguards','Dragon Greaves','Celestial Legguards'],boots:['Traveler Boots','Iron Sabatons','Runic Boots','Dragonstep Boots','Celestial Boots']};
-const OA_PRICE=[120,420,1050,2600,6200],OA_RAR=['Common','Uncommon','Rare','Epic','Legendary'];
-ONLINE_ARMOR_SLOTS.forEach((slot,si)=>OA_NAMES[slot].forEach((n,i)=>ONLINE_ARMOR.push({id:`oa_${slot}_${i}`,n,slot,rarity:OA_RAR[i],price:OA_PRICE[i]+si*35,armor:i+1,hp:(i+1)*10,desc:`${OA_RAR[i]} ${slot} armor. +${i+1} armor and +${(i+1)*10} health.`})));
-const ACCESSORIES=[];
-const ACC_SETS={wings:['Windrunner Wings','Aegis Wings','Ember Wings','Frost Wings','Astral Wings'],ring:['Keen Ring','Titan Ring','Fortune Ring','Ward Ring','Eclipse Ring'],necklace:['Vital Necklace','Sage Necklace','Ward Necklace','Hunter Necklace','Phoenix Necklace'],earrings:['Hawkeye Earrings','Storm Earrings','Guardian Earrings','Oracle Earrings','Void Earrings'],bracelet:['Swift Bracelet','Iron Bracelet','Renewal Bracelet','Berserker Bracelet','Celestial Bracelet']};
-const ACC_BONUS={wings:[['speed',4],['defense',2],['attack',5],['health',30],['attackSpeed',5]],ring:[['crit',3],['attack',6],['gold',8],['defense',2],['critDamage',8]],necklace:[['health',35],['xp',8],['resistance',4],['attack',5],['regen',1]],earrings:[['accuracy',5],['critDamage',7],['resistance',3],['xp',7],['crit',4]],bracelet:[['attackSpeed',4],['defense',2],['regen',1],['attack',7],['health',25]]};
-Object.entries(ACC_SETS).forEach(([slot,names])=>names.forEach((n,i)=>{const [stat,val]=ACC_BONUS[slot][i];ACCESSORIES.push({id:`acc_${slot}_${i}`,n,slot,rarity:OA_RAR[i],price:350+i*550,stat,val,desc:`${OA_RAR[i]} accessory. ${stat} +${val}${['speed','attack','attackSpeed','crit','critDamage','accuracy','xp','gold','resistance'].includes(stat)?'%':''}.`})}));
-const ONLINE_ITEM_EXTRAS=[
- {id:'dungeon_scroll',n:'Dungeon Scroll',price:260,cat:'items',d:'Required to enter one dungeon floor.'},
- {id:'tournament_scroll',n:'Tournament Scroll',price:300,cat:'items',d:'Required to enter one tournament battle.'},
- {id:'bundle_chest',n:'Bundle Chest',price:0,cat:'bundleChest',d:'Open to receive a randomized server-controlled reward bundle.'}
-];
-const ONLINE_CATALOG={};
-ITEMS.forEach(i=>ONLINE_CATALOG[i.id]={id:i.id,n:i.n,price:i.price,cat:'items',d:i.d});
-WEAPONS.filter(w=>!CLASSES[w.cls].hidden).forEach(w=>ONLINE_CATALOG[w.id]={id:w.id,n:w.n,price:w.price,cat:'weapons',cls:w.cls,d:wStat(w)});
-ONLINE_ARMOR.forEach(a=>ONLINE_CATALOG[a.id]={...a,cat:'armors'});ACCESSORIES.forEach(a=>ONLINE_CATALOG[a.id]={...a,cat:'accessories'});ONLINE_ITEM_EXTRAS.forEach(i=>ONLINE_CATALOG[i.id]=i);
-const EQ_LABELS=[['weaponId','Weapon'],['helmet','Helmet'],['chest','Chest'],['leggings','Leggings'],['boots','Boots'],['wings','Wings'],['necklace','Necklace'],['earrings','Earrings'],['bracelet','Bracelet'],['ring','Ring']];
-const INV_CATS=[['items','Items'],['armors','Armors'],['weapons','Weapons'],['accessories','Accessories'],['bundleChest','Bundle Chest']];
-let onlineInvCat='items',onlineShopTab='items',onlineTimer=null,dailyPulseTimer=null;
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function onlineReady(){return gameMode==='online'&&FB.user&&FB.db&&FB.func}
-async function callOnline(name,data){if(!onlineReady())throw new Error('Online services are not ready. Please sign in again.');const fn=FB.func.httpsCallable(name);const r=await fn(data||{});return r.data||{}}
-function stopOnlineTimers(){if(onlineTimer){clearInterval(onlineTimer);onlineTimer=null}if(dailyPulseTimer){clearInterval(dailyPulseTimer);dailyPulseTimer=null}}
-async function refreshOnlineProfile(){if(!FB.user||!FB.db)return null;const s=await FB.db.collection('users').doc(FB.user.uid).get();if(!s.exists)throw new Error('Your player profile was not found.');FB.profile={...s.data(),uid:FB.user.uid};S=prepareOnlineRuntime(FB.profile);return FB.profile}
-function applyServerProfile(p){if(!p)return;if(p.uid||p.characterCreated!=null){FB.profile={...(FB.profile||{}),...p,uid:FB.user.uid};S=prepareOnlineRuntime(FB.profile)}else refreshOnlineProfile().catch(()=>{});refreshGold()}
-function itemData(id){return ONLINE_CATALOG[id]||{id,n:id,price:0,cat:'items',d:'Game item'} }
-function invQty(cat,id){const inv=(FB.profile&&FB.profile.inventory)||{};return +((inv[cat]||{})[id]||0)}
-function eqSlotFor(id){const x=itemData(id);if(x.cat==='weapons')return'weaponId';if(x.cat==='armors')return x.slot||'chest';if(x.cat==='accessories')return x.slot;return null}
-function onlineIconFor(x){const r=['#9a8f7e','#6cbf5a','#4aa0e0','#a070e0','#e8a23a'];const i=Math.max(0,OA_RAR.indexOf(x.rarity));return icon(r[i]||'#e3b550')}
-function profileGold(){return +(((FB.profile||{}).currencies||{}).gold||0)}
-function profileGems(){return +(((FB.profile||{}).currencies||{}).gems||0)}
-function onlineToastError(err){sfx('hurt');alert(authMessage(err))}
-async function runBtn(btn,label,fn){busyButton(btn,true,label);try{return await fn()}catch(e){onlineToastError(e);throw e}finally{busyButton(btn,false)}}
-
-function onlineSlot(cat,id,n){const it=id?itemData(id):null;return `<button class="oslot ${id?'filled':''}" ${id?`data-oinv="${esc(id)}" data-cat="${cat}"`:''}>${id?onlineIconFor(it):''}<span>${id?esc(it.n):'Empty'}</span>${id&&n>1?`<b>${n}</b>`:''}</button>`}
-function openOnlineInventory(cat){onlineInvCat=cat||onlineInvCat;const p=FB.profile||{},inv=p.inventory||{},eq=p.equipment||{},h=S.hero;
- let equip=EQ_LABELS.map(([k,l])=>{const id=eq[k],it=id?itemData(id):null;return `<button class="eqslot" data-eqslot="${k}" ${id?`data-item="${esc(id)}"`:''}><small>${l}</small>${id?onlineIconFor(it):'<i>+</i>'}<b>${id?esc(it.n):'Empty'}</b></button>`}).join('');
- const list=Object.entries(inv[onlineInvCat]||{}).filter(([,n])=>+n>0);let slots='';for(let i=0;i<50;i++){const e=list[i];slots+=e?onlineSlot(onlineInvCat,e[0],+e[1]):onlineSlot(onlineInvCat,null,0)}
- openSheet(head('Online Inventory')+`<div class="oinvTop"><div class="ohero"><canvas class="pv" width="170" height="205" data-cls="${h.cls}" data-gen="${h.gender}"></canvas><b>${esc(h.name)}</b><span>${esc(CLASSES[h.cls].name)} · Level ${+p.level||1}</span></div><div class="oequip">${equip}</div></div><div class="tabs ocat">${INV_CATS.map(([k,l])=>`<button class="tab ${onlineInvCat===k?'on':''}" data-icat="${k}">${l}</button>`).join('')}</div><div class="ogrid">${slots}</div><div class="currencybar"><span>Gold <b>${profileGold()}</b></span><span>💎 <b>${profileGems()}</b></span></div><div id="onlineItemDetail" class="online-note">Select an item to inspect it.</div>`);bindClose();
- $$('#sheet [data-icat]').forEach(b=>b.onclick=()=>openOnlineInventory(b.dataset.icat));
- $$('#sheet [data-oinv]').forEach(b=>b.onclick=()=>showOnlineItemDetail(b.dataset.cat,b.dataset.oinv));
- $$('#sheet [data-item]').forEach(b=>b.onclick=()=>showOnlineItemDetail(null,b.dataset.item,true));
-}
-function showOnlineItemDetail(cat,id,equipped){const it=itemData(id),slot=eqSlotFor(id),qty=cat?invQty(cat,id):1;let action='';if(slot&&!equipped)action=`<button class="btn small" id="oiEquip">Equip</button>`;if(equipped)action=`<button class="btn ghost small" id="oiUnequip">Unequip</button>`;if(id==='bundle_chest')action=`<button class="btn small" id="oiOpen">Open Chest</button>`;const d=$('#onlineItemDetail');if(!d)return;d.innerHTML=`<b>${esc(it.n)}</b><br>${esc(it.d||it.desc||'')}<br><small>Quantity: ${qty}${it.rarity?' · '+esc(it.rarity):''}</small><div class="foot" style="margin-top:8px">${action}</div>`;
- const e=$('#oiEquip');if(e)e.onclick=()=>runBtn(e,'Equipping…',async()=>{const r=await callOnline('equipItem',{itemId:id});applyServerProfile(r.profile);openOnlineInventory(cat||onlineInvCat)}).catch(()=>{});
- const u=$('#oiUnequip');if(u)u.onclick=()=>runBtn(u,'Removing…',async()=>{const r=await callOnline('unequipItem',{slot});applyServerProfile(r.profile);openOnlineInventory(onlineInvCat)}).catch(()=>{});
- const o=$('#oiOpen');if(o)o.onclick=()=>runBtn(o,'Opening…',async()=>{const r=await callOnline('openBundleChest',{});applyServerProfile(r.profile);alert('Bundle Chest rewards:\n'+(r.rewards||[]).map(x=>`${x.name}: ${x.amount}`).join('\n'));openOnlineInventory('bundleChest')}).catch(()=>{});
-}
-
-function onlineShopProductRow(x){const owned=invQty(x.cat,x.id);return `<div class="row">${onlineIconFor(x)}<div class="tx"><b>${esc(x.n)}${x.rarity?` <small class="tag">${esc(x.rarity)}</small>`:''}</b><span>${esc(x.d||x.desc||'')}</span>${owned?`<span>Owned: ${owned}</span>`:''}</div><div class="act"><button class="btn small" data-opurchase="${esc(x.id)}" ${x.price<=0||profileGold()<x.price?'disabled':''}>Buy · ${x.price}g</button></div></div>`}
-function openOnlineShop(tab){onlineShopTab=tab||onlineShopTab;const tabs=[['items','Items'],['armors','Armors'],['weapons','Weapons'],['accessories','Accessories'],['upgrades','Upgrades'],['sell','Sell']];let body='';
- if(onlineShopTab==='items')body='<div class="rows">'+Object.values(ONLINE_CATALOG).filter(x=>x.cat==='items'&&x.price>0).map(onlineShopProductRow).join('')+'</div>';
- else if(onlineShopTab==='armors')body='<div class="rows">'+ONLINE_ARMOR.map(onlineShopProductRow).join('')+'</div>';
- else if(onlineShopTab==='weapons')body='<div class="rows">'+WEAPONS.filter(w=>w.cls===S.hero.cls&&!CLASSES[w.cls].hidden).map(w=>onlineShopProductRow(ONLINE_CATALOG[w.id])).join('')+'</div>';
- else if(onlineShopTab==='accessories')body='<div class="rows">'+ACCESSORIES.map(onlineShopProductRow).join('')+'</div>';
- else if(onlineShopTab==='upgrades'){const u=(FB.profile&&FB.profile.upgrades)||{};body='<div class="rows">'+UPS.map(x=>{const lv=+u[x.k]||0,cost=Math.round(x.base*(1+lv*.8));return `<div class="row">${icon(x.c)}<div class="tx"><b>${x.n} · Lv ${lv}/${UPMAX}</b><span>${x.d}</span></div><div class="act"><button class="btn small" data-oup="${x.k}" ${lv>=UPMAX||profileGold()<cost?'disabled':''}>Upgrade · ${cost}g</button></div></div>`}).join('')+'</div>'}
- else{let rows=[];for(const [cat,label] of INV_CATS){if(cat==='bundleChest')continue;for(const [id,n] of Object.entries(((FB.profile||{}).inventory||{})[cat]||{})){const it=itemData(id);if(+n>0&&it.price>0)rows.push(`<div class="row">${onlineIconFor(it)}<div class="tx"><b>${esc(it.n)} × ${n}</b><span>Sell value: ${Math.max(1,Math.floor(it.price*.5))}g each</span></div><div class="act"><button class="btn small" data-osell="${esc(id)}" data-cat="${cat}">Sell 1</button></div></div>`)}}body=rows.length?`<div class="rows">${rows.join('')}</div>`:'<p class="sub">No eligible items to sell.</p>'}
- openSheet(`<div class="stickhd">${head('Online Shop')}<div class="tabrow"><div class="tabs">${tabs.map(([k,l])=>`<button class="tab ${onlineShopTab===k?'on':''}" data-ostab="${k}">${l}</button>`).join('')}</div><span class="chip">${profileGold()}g</span></div></div>${body}`);bindClose();
- $$('#sheet [data-ostab]').forEach(b=>b.onclick=()=>openOnlineShop(b.dataset.ostab));
- $$('#sheet [data-opurchase]').forEach(b=>b.onclick=()=>runBtn(b,'Buying…',async()=>{const r=await callOnline('purchaseItem',{itemId:b.dataset.opurchase,quantity:1});applyServerProfile(r.profile);sfx('buy');openOnlineShop()}).catch(()=>{}));
- $$('#sheet [data-osell]').forEach(b=>b.onclick=()=>{if(!confirm('Sell one '+itemData(b.dataset.osell).n+'?'))return;runBtn(b,'Selling…',async()=>{const r=await callOnline('sellItem',{itemId:b.dataset.osell,category:b.dataset.cat,quantity:1});applyServerProfile(r.profile);sfx('coin');openOnlineShop('sell')}).catch(()=>{})});
- $$('#sheet [data-oup]').forEach(b=>b.onclick=()=>runBtn(b,'Upgrading…',async()=>{const r=await callOnline('upgradePlayer',{upgradeId:b.dataset.oup});applyServerProfile(r.profile);openOnlineShop('upgrades')}).catch(()=>{}));
-}
-
-async function openDailyQuest(){stopOnlineTimers();let state;try{state=await callOnline('getDailyQuest',{})}catch(e){onlineToastError(e);return}renderDaily(state)}
-function renderDaily(s){const active=s&&s.run&&s.run.status==='active',done=s&&s.completedToday;let body=`<div class="challengeHero"><b>Five-Minute Survival</b><span>Survive server-timed enemy pressure for exactly 5:00. There are no bosses.</span></div>`;
- if(done)body+='<div class="online-note"><b>Completed today</b><br>Your daily reward has already been claimed. Return after the daily reset.</div>';
- else if(!active)body+='<button class="btn" id="dailyStart">Start Daily Quest</button>';
- else{const r=s.run;body+=`<div class="dailyhud"><div><span>Time</span><b id="dqTime">${esc(s.remainingText||'5:00')}</b></div><div><span>Health</span><b id="dqHp">${r.hp}/${r.maxHp}</b></div><div><span>Enemies</span><b id="dqEnemies">${r.enemyCount||0}</b></div><div><span>Defeated</span><b id="dqKills">${r.kills||0}</b></div></div><div class="meter"><i id="dqHpFill" style="width:${Math.max(0,Math.min(100,r.hp/r.maxHp*100))}%"></i></div><div class="online-note" id="dqStatus">The survival server advances every 10 seconds. Keep this screen open and stay alive.</div>`}
- openSheet(head('Daily Quest')+body);bindClose();
- const st=$('#dailyStart');if(st)st.onclick=()=>runBtn(st,'Starting…',async()=>{const r=await callOnline('startDailyQuest',{});renderDaily(r)}).catch(()=>{});
- if(active){const started=s.run.startedAtMillis||Date.now();onlineTimer=setInterval(()=>{const left=Math.max(0,300000-(Date.now()-started)),el=$('#dqTime');if(el)el.textContent=fmtT(Math.ceil(left/1000));if(left<=0)clearInterval(onlineTimer)},1000);dailyPulseTimer=setInterval(()=>dailyPulse(),10000)}
-}
-async function dailyPulse(){try{const s=await callOnline('dailyQuestPulse',{});if(s.run){const r=s.run;const hp=$('#dqHp'),en=$('#dqEnemies'),ki=$('#dqKills'),hf=$('#dqHpFill'),st=$('#dqStatus');if(hp)hp.textContent=`${r.hp}/${r.maxHp}`;if(en)en.textContent=r.enemyCount;if(ki)ki.textContent=r.kills;if(hf)hf.style.width=Math.max(0,Math.min(100,r.hp/r.maxHp*100))+'%';if(r.status==='failed'){stopOnlineTimers();if(st)st.innerHTML='<b>Challenge failed.</b> You died before the five-minute timer ended.'}else if(s.canClaim){stopOnlineTimers();if(st)st.innerHTML='<b>Survival complete.</b> Claim your Bundle Chest.<br><button class="btn small" id="dailyClaim">Claim Bundle Chest</button>';const c=$('#dailyClaim');if(c)c.onclick=()=>runBtn(c,'Claiming…',async()=>{const x=await callOnline('claimDailyQuest',{});applyServerProfile(x.profile);alert('Bundle Chest awarded.');openDailyQuest()}).catch(()=>{})}}}catch(e){console.warn('Daily quest pulse failed',e)}}
-
-async function openGuild(){let r;try{r=await callOnline('getGuildDashboard',{})}catch(e){onlineToastError(e);return}if(r.guild)return renderGuild(r.guild,r.members||[],r.myRole);renderGuildBrowser(r.guilds||[])}
-function renderGuildBrowser(gs){openSheet(head('Guild')+`<div class="online-note"><b>You are not currently in a guild.</b><br>Create one for exactly 10,000 Gold or join an available guild.</div><button class="btn" id="createGuildBtn">Create Guild · 10,000g</button><div class="rows">${gs.map(g=>`<div class="row"><div class="tx"><b>[${esc(g.sign)}] ${esc(g.name)}</b><span>Leader: ${esc(g.leaderName||'Unknown')} · ${g.memberCount||0}/50 members · Lv ${g.level||1}</span></div><div class="act"><button class="btn small" data-gjoin="${g.id}" ${(g.memberCount||0)>=50?'disabled':''}>Join</button></div></div>`).join('')||'<p class="sub">No guilds are available yet.</p>'}</div>`);bindClose();
- $('#createGuildBtn').onclick=()=>{openSheet(head('Create Guild')+`<div class="mm-fld"><label>Guild Sign (3-4 characters)</label><input id="guildSign" maxlength="4"></div><div class="mm-fld"><label>Guild Name (8-13 letters/digits)</label><input id="guildName" maxlength="13"></div><div class="online-note">Current Gold: <b>${profileGold()}</b><br>Creation cost: <b>10,000 Gold</b></div><button class="btn" id="guildCreateGo">Create Guild</button>`);bindClose();$('#guildCreateGo').onclick=()=>{const b=$('#guildCreateGo');runBtn(b,'Creating…',async()=>{await callOnline('createGuild',{sign:$('#guildSign').value.trim(),name:$('#guildName').value.trim()});await refreshOnlineProfile();openGuild()}).catch(()=>{})}};
- $$('#sheet [data-gjoin]').forEach(b=>b.onclick=()=>runBtn(b,'Joining…',async()=>{await callOnline('joinGuild',{guildId:b.dataset.gjoin});await refreshOnlineProfile();openGuild()}).catch(()=>{}));
-}
-function renderGuild(g,members,myRole){const canManage=['Guild Leader','Vice Leader'].includes(myRole);openSheet(head('Guild')+`<div class="guildHead"><b>[${esc(g.sign)}] ${esc(g.name)}</b><span>Level ${g.level||1} · ${g.memberCount||0}/50 members</span><span>Your role: ${esc(myRole||'Member')}</span></div><div class="rows">${members.map(m=>`<div class="row"><div class="tx"><b>${esc(m.inGameName||m.uid)}</b><span>Level ${m.level||1} · ${esc(m.role||'Member')} · ${m.online?'Online':'Offline'}</span></div>${canManage&&m.uid!==FB.user.uid?`<div class="act"><button class="btn small" data-roleuid="${m.uid}">Role</button>${myRole==='Guild Leader'?`<button class="btn ghost small" data-transfer="${m.uid}">Transfer Leader</button>`:''}</div>`:''}</div>`).join('')}</div><div class="foot"><button class="btn danger small" id="leaveGuild">${myRole==='Guild Leader'?'Disband / Transfer Required':'Leave Guild'}</button></div>`);bindClose();
- $$('#sheet [data-roleuid]').forEach(b=>b.onclick=()=>{const role=prompt('Assign role: Vice Leader, Commander, Captain, Elite, or Member','Member');if(!role)return;runBtn(b,'Saving…',async()=>{await callOnline('setGuildRole',{memberUid:b.dataset.roleuid,role});openGuild()}).catch(()=>{})});
- $$('#sheet [data-transfer]').forEach(b=>b.onclick=()=>{if(!confirm('Transfer Guild Leader authority to this member? You will become a Member.'))return;runBtn(b,'Transferring…',async()=>{await callOnline('transferGuildLeadership',{memberUid:b.dataset.transfer});openGuild()}).catch(()=>{})});
- $('#leaveGuild').onclick=()=>{if(!confirm('Continue with leaving the guild?'))return;runBtn($('#leaveGuild'),'Leaving…',async()=>{await callOnline('leaveGuild',{});await refreshOnlineProfile();openGuild()}).catch(()=>{})};
-}
-
-async function openTournament(){let r;try{r=await callOnline('getTournamentDashboard',{})}catch(e){onlineToastError(e);return}const s=r.stats||{};openSheet(head('Tournament')+`<div class="dailyhud"><div><span>Rank</span><b>${s.rank||0}</b></div><div><span>Wins</span><b>${s.wins||0}</b></div><div><span>Losses</span><b>${s.losses||0}</b></div><div><span>Ties</span><b>${s.ties||0}</b></div></div><button class="btn" id="tourEnter">Enter Tournament · 1 Scroll</button><div class="sec">Recent Battle Log</div><div class="rows">${(r.matches||[]).map(m=>`<div class="row"><div class="tx"><b>${esc(m.opponentName||'Unknown')}</b><span>${esc(m.result||'Pending')} · ${m.opponentType==='ai'?'AI-controlled profile':'Player'}</span></div></div>`).join('')||'<p class="sub">No tournament matches yet.</p>'}</div>`);bindClose();$('#tourEnter').onclick=()=>runBtn($('#tourEnter'),'Matching…',async()=>{const x=await callOnline('startTournament',{});renderTournamentBattle(x.match)}).catch(()=>{})}
-function renderTournamentBattle(m){openSheet(head('Tournament Battle')+`<div class="battleVs"><div><b>${esc(S.hero.name)}</b><span>${esc(CLASSES[S.hero.cls].name)}</span><div class="meter"><i id="tbPHp" style="width:${m.playerHp/m.playerMaxHp*100}%"></i></div><small id="tbPtxt">${m.playerHp}/${m.playerMaxHp}</small></div><strong>VS</strong><div><b>${esc(m.opponentName)}</b><span>${esc(m.opponentClass||'Hero')} · ${m.opponentType==='ai'?'AI':''}</span><div class="meter"><i id="tbOHp" style="width:${m.opponentHp/m.opponentMaxHp*100}%"></i></div><small id="tbOtxt">${m.opponentHp}/${m.opponentMaxHp}</small></div></div><div class="online-note" id="tbLog">Choose an action. The server resolves both combatants.</div><div class="foot"><button class="btn" data-taction="attack">Attack</button><button class="btn" data-taction="guard">Guard</button><button class="btn" data-taction="skill">Class Skill</button></div>`);bindClose();$$('#sheet [data-taction]').forEach(b=>b.onclick=()=>runBtn(b,'Resolving…',async()=>{const r=await callOnline('tournamentAction',{matchId:m.id,action:b.dataset.taction});if(r.match.status==='complete'){applyServerProfile(r.profile);alert('Tournament result: '+r.match.result);openTournament()}else renderTournamentBattle(r.match)}).catch(()=>{}))}
-
-async function openDungeon(){let r;try{r=await callOnline('getDungeonDashboard',{})}catch(e){onlineToastError(e);return}const hi=(r.progress&&r.progress.highestFloor)||0,done=new Set((r.progress&&r.progress.completedFloors)||[]);let nodes='';for(let i=1;i<=100;i++){const avail=i<=Math.max(1,hi+1)||done.has(i);nodes+=`<button class="floorNode ${done.has(i)?'done':''} ${i%10===0?'boss':''}" data-floor="${i}" ${avail?'':'disabled'}>${i}</button>`}openSheet(head('Dungeon · 100 Floors')+`<div class="online-note">Highest floor reached: <b>${hi}</b>. Every entry consumes one Dungeon Scroll. Milestone bosses appear every 10 floors.</div><div class="floorPath">${nodes}</div>`);bindClose();$$('#sheet [data-floor]').forEach(b=>b.onclick=()=>showFloorInfo(+b.dataset.floor))}
-function dungeonBiome(f){return REALMS[(Math.floor((f-1)/15))%REALMS.length]}
-function showFloorInfo(f){const R=dungeonBiome(f),mil=f%10===0;openSheet(head('Dungeon Floor '+f)+`<div class="online-note"><b>${esc(R.name)} biome</b><br>${esc(R.desc)}<br><br>Expected enemies: ${esc(R.en.map(x=>x[0]).slice(0,3).join(', '))}<br>Boss: <b>${mil?'Empowered '+R.boss:R.boss}</b>${mil?' · Milestone difficulty':''}<br>Requirement: 1 Dungeon Scroll</div><div class="foot"><button class="btn ghost" id="floorBack">Back</button><button class="btn" id="floorEnter">Enter Floor</button></div>`);bindClose();$('#floorBack').onclick=openDungeon;$('#floorEnter').onclick=()=>runBtn($('#floorEnter'),'Entering…',async()=>{const x=await callOnline('startDungeon',{floor:f});renderDungeonBattle(x.run)}).catch(()=>{})}
-function renderDungeonBattle(r){openSheet(head('Dungeon Floor '+r.floor)+`<div class="battleVs"><div><b>${esc(S.hero.name)}</b><span>HP</span><div class="meter"><i style="width:${r.heroHp/r.heroMaxHp*100}%"></i></div><small>${r.heroHp}/${r.heroMaxHp}</small></div><strong>${r.stage==='boss'?'BOSS':'WAVE '+r.wave}</strong><div><b>${esc(r.enemyName)}</b><span>${r.stage==='boss'?'Floor Boss':'Hostile Mob'}</span><div class="meter"><i style="width:${r.enemyHp/r.enemyMaxHp*100}%"></i></div><small>${r.enemyHp}/${r.enemyMaxHp}</small></div></div><div class="online-note">Biome: ${esc(r.biome)}. Defeat the hostile waves and floor boss.</div><div class="foot"><button class="btn" data-daction="attack">Attack</button><button class="btn" data-daction="guard">Guard</button><button class="btn" data-daction="skill">Class Skill</button></div>`);bindClose();$$('#sheet [data-daction]').forEach(b=>b.onclick=()=>runBtn(b,'Fighting…',async()=>{const x=await callOnline('dungeonAction',{runId:r.id,action:b.dataset.daction});if(x.run.status==='complete'){applyServerProfile(x.profile);alert(`Floor ${r.floor} completed. Reward: ${x.rewardGold||0} Gold${x.bundleChest?' + Bundle Chest':''}`);openDungeon()}else if(x.run.status==='failed'){alert('You were defeated on floor '+r.floor+'.');openDungeon()}else renderDungeonBattle(x.run)}).catch(()=>{}))}
-
-async function openLeaderboard(){let r;try{r=await callOnline('getLeaderboards',{})}catch(e){onlineToastError(e);return}let tab='players';function draw(){const map={players:['Top Players',x=>`${x.className} · Lv ${x.level}`],guilds:['Top Guild',x=>`[${x.sign}] Lv ${x.level} · ${x.memberCount}/50`],richest:['Richest Player',x=>`${x.className} · ${x.gold}g`],tournament:['Tournament Champions',x=>`${x.wins}W ${x.losses}L ${x.ties}T`],dungeon:['Top Dungeon Explorers',x=>`${x.className} · Floor ${x.highestFloor}`]};const [title,sub]=map[tab],arr=r[tab]||[];openSheet(head('Leaderboard')+`<div class="tabs">${Object.entries(map).map(([k,v])=>`<button class="tab ${tab===k?'on':''}" data-lb="${k}">${v[0]}</button>`).join('')}</div><div class="sec">${title}</div><div class="rows">${arr.map((x,i)=>`<div class="row"><b style="width:30px">#${i+1}</b><div class="tx"><b>${esc(x.name||x.guildName)}</b><span>${esc(sub(x))}</span></div></div>`).join('')||'<p class="sub">No rankings yet.</p>'}</div>`);bindClose();$$('#sheet [data-lb]').forEach(b=>b.onclick=()=>{tab=b.dataset.lb;draw()})}draw()}
-
-async function openOnlineSettings(){const p=FB.profile||{},c=p.character||{},s=S.set;let admin=false;try{const t=await FB.user.getIdTokenResult();admin=!!t.claims.admin}catch(_){}const classOptions=Object.entries(CLASSES).filter(([,x])=>!x.hidden).map(([id,x])=>`<option value="${id}" ${c.classId===id?'selected':''}>${x.name}</option>`).join('');openSheet(head('Online Settings')+`<div class="sec">Edit Profile</div><div class="mm-row2"><div class="mm-fld"><label>First Name</label><input id="epFirst" value="${esc(p.firstName||'')}"></div><div class="mm-fld"><label>Last Name</label><input id="epLast" value="${esc(p.lastName||'')}"></div></div><div class="mm-fld"><label>Birthdate</label><input id="epBirth" type="date" value="${esc(p.birthdate||'')}"></div><div class="mm-row2"><div class="mm-fld"><label>Class Type</label><select id="epClass">${classOptions}</select></div><div class="mm-fld"><label>Gender</label><select id="epGender"><option value="m" ${c.gender==='m'?'selected':''}>Male</option><option value="f" ${c.gender==='f'?'selected':''}>Female</option></select></div></div><div class="mm-fld"><label>In-Game Name</label><input id="epName" maxlength="13" value="${esc(c.inGameName||'')}"></div><button class="btn" id="epSave">Save Profile</button><div class="sec">Preferences</div><div class="setrow"><label>Sound effects</label><input type="range" min="0" max="1" step=".05" value="${s.sfx}" id="orSfx"></div><div class="setrow"><label>Music</label><input type="range" min="0" max="1" step=".05" value="${s.music}" id="orMus"></div>${admin?'<button class="btn" id="adminBtn">Administrator Console</button>':''}<button class="btn danger" id="onlineLogoutBtn">Sign Out</button>`);bindClose();
- ['#epFirst','#epLast'].forEach(q=>$(q).addEventListener('input',e=>e.currentTarget.value=titleCaseName(e.currentTarget.value)));
- $('#orSfx').oninput=e=>{S.set.sfx=+e.target.value;saveOnlineUi()};$('#orMus').oninput=e=>{S.set.music=+e.target.value;saveOnlineUi();setMusicVol()};
- $('#epSave').onclick=()=>runBtn($('#epSave'),'Saving…',async()=>{const x=await callOnline('updateProfile',{firstName:$('#epFirst').value.trim(),lastName:$('#epLast').value.trim(),birthdate:$('#epBirth').value,classId:$('#epClass').value,gender:$('#epGender').value,inGameName:$('#epName').value.trim()});applyServerProfile(x.profile);alert('Profile updated.');enterHub();closeSheet()}).catch(()=>{});
- $('#onlineLogoutBtn').onclick=onlineLogout;if(admin)$('#adminBtn').onclick=openAdminConsole}
-function openAdminConsole(){openSheet(head('Administrator Console')+`<div class="online-note">Authorized custom-claim administrators only. Commands are validated and audited on the backend.</div><div class="mm-fld"><label>Command</label><input id="adminCommand" placeholder="/gold Shadow123 5000"></div><button class="btn" id="adminRun">Run Command</button><pre id="adminOut" class="adminOut">Use /help for commands.</pre>`);bindClose();$('#adminRun').onclick=()=>{const raw=$('#adminCommand').value.trim();if(/\sall\s/i.test(raw)&&!confirm('This command targets ALL eligible players. Continue?'))return;runBtn($('#adminRun'),'Running…',async()=>{const x=await callOnline('adminCommand',{command:raw});$('#adminOut').textContent=x.message||JSON.stringify(x,null,2)}).catch(()=>{})}}
-
-async function routeOnlineHubAction(a){try{if(a==='play')return enterMap();if(a==='inv')return openOnlineInventory('items');if(a==='shop')return openOnlineShop('items');if(a==='daily')return openDailyQuest();if(a==='guild')return openGuild();if(a==='tournament')return openTournament();if(a==='dungeon')return openDungeon();if(a==='leaderboard')return openLeaderboard();if(a==='set')return openOnlineSettings()}catch(e){onlineToastError(e)}}
-
-
 /* ============ HIDDEN CONSOLE ============ */
 let freeShop=false,kSl=0,kBs=0;const CH={god:false,nocd:false};let chOpen=false,chPaused=false;
 const chEl=document.createElement('div');chEl.id='cheat';chEl.innerHTML='<div id="cheatLog"></div><input id="cheatIn" autocomplete="off" spellcheck="false" aria-label="Console">';$('#app').appendChild(chEl);
 const chIn=$('#cheatIn'),chLog=$('#cheatLog');
 function cmsg(t,k){const d=document.createElement('div');d.textContent=t;if(k)d.className=k;chLog.appendChild(d);while(chLog.children.length>14)chLog.firstChild.remove();setTimeout(()=>d.remove(),chOpen?30000:9000)}
-function chOpenFn(){if(gameMode==='online')return;if(chOpen)return;chOpen=true;chEl.classList.add('open');chIn.value='/';if(G&&G.state==='play'){G.state='console';chPaused=true}setTimeout(()=>{chIn.focus();chIn.setSelectionRange(1,1)},0)}
+function chOpenFn(){if(chOpen)return;chOpen=true;chEl.classList.add('open');chIn.value='/';if(G&&G.state==='play'){G.state='console';chPaused=true}setTimeout(()=>{chIn.focus();chIn.setSelectionRange(1,1)},0)}
 function chClose(){chOpen=false;chEl.classList.remove('open');chIn.blur();if(chPaused&&G&&G.state==='console'){G.state='play';if(G.pendingLv>0)openLevel()}chPaused=false}
 const ownAll=()=>ARMORS.concat(WEAPONS).forEach(g=>S.own[g.id]=1);
 function setFree(on){[ITEMS,ARMORS,WEAPONS].forEach(L=>L.forEach(x=>{if(x._p==null)x._p=x.price;x.price=on?0:x._p}));freeShop=on}
@@ -1678,36 +1412,68 @@ function runCmd(line){const p=line.trim().replace(/^\//,'').split(/\s+/),c=(p[0]
   default:cmsg('Unknown command "'+c+'". Type /commandhelp','bad')}}
 window.addEventListener('keydown',e=>{
  if(e.target===chIn){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();const v=chIn.value;cmsg(v);runCmd(v);chIn.value='/'}else if(e.key==='Escape'){e.preventDefault();chClose()}return}
- if(gameMode!=='online'&&(e.key==='/'||e.key==='\\')&&!/INPUT|TEXTAREA/.test((e.target.tagName||''))){const nw=performance.now();if(e.key==='/')kSl=nw;else kBs=nw;if(!chOpen&&kSl&&kBs&&Math.abs(kSl-kBs)<800){e.preventDefault();kSl=kBs=0;chOpenFn()}}},true);
+ if((e.key==='/'||e.key==='\\')&&!/INPUT|TEXTAREA/.test((e.target.tagName||''))){const nw=performance.now();if(e.key==='/')kSl=nw;else kBs=nw;if(!chOpen&&kSl&&kBs&&Math.abs(kSl-kBs)<800){e.preventDefault();kSl=kBs=0;chOpenFn()}}},true);
 
 
-/* mode modal: Offline stays local; Online uses Firebase Authentication + Firestore */
+/* mode modal: offline continues, online flips to login / register / forgot */
 (function(){
  const pages=$('#mmPages'),ids={mode:'#mmMode',login:'#mmLogin',forgot:'#mmForgot',reg:'#mmReg'};
- let curPg='mode',busy=false;
+ let curPg='mode',busy=false;const SOON='This feature will be added soon.';
  function fit(){let h=0;$$('.mm-pg').forEach(p=>{const b=p.style.bottom;p.style.bottom='auto';h=Math.max(h,p.offsetHeight);p.style.bottom=b});if(h)pages.style.setProperty('--mmh',h+'px')}
- function resetErrors(){$$('.mm-err').forEach(e=>{e.textContent='';e.classList.remove('ok')})}
- function flip(to,back){if(busy||to===curPg)return;busy=true;const from=$(ids[curPg]),next=$(ids[to]);resetErrors();if(back){next.classList.add('in');from.classList.add('under');from.classList.remove('cur')}else{next.classList.add('under');from.classList.remove('cur');from.classList.add('out')}setTimeout(()=>{[from,next].forEach(p=>p.classList.remove('in','out','under','cur'));next.classList.add('cur');curPg=to;busy=false;fit()},1100)}
- function forcePage(to){$$('.mm-pg').forEach(p=>p.classList.remove('cur','in','out','under'));$(ids[to]).classList.add('cur');curPg=to;busy=false;fit()}
- async function openOnline(){resetErrors();try{await initFirebase();if(FB.auth.currentUser){const b=$('#mmOn');busyButton(b,true,'Loading Account…');await routeOnlineUser(FB.auth.currentUser);busyButton(b,false)}else flip('login')}catch(err){setAuthStatus('#mmErrLogin',authMessage(err));flip('login');setTimeout(()=>setAuthStatus('#mmErrLogin',authMessage(err)),1150)}}
+ function flip(to,back){if(busy||to===curPg)return;busy=true;const from=$(ids[curPg]),next=$(ids[to]);
+  $$('.mm-err').forEach(e=>e.textContent='');
+  if(back){next.classList.add('in');from.classList.add('under');from.classList.remove('cur')}
+  else{next.classList.add('under');from.classList.remove('cur');from.classList.add('out')}
+  setTimeout(()=>{[from,next].forEach(p=>p.classList.remove('in','out','under','cur'));next.classList.add('cur');curPg=to;busy=false},1100)}
  fit();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);window.addEventListener('load',fit);
- $('#mmOff').onclick=()=>{ac();sfx('click');gameMode='offline';S=offlineS;applyNameMode();$('#modeModal').classList.remove('on');enterClass()};
- $('#mmOn').onclick=()=>{ac();sfx('click');openOnline()};
+ $('#mmOff').onclick=()=>{ac();sfx('click');$('#modeModal').classList.remove('on');if(onlineFlow){onlineFlow=false;ONL=null;enterClass()}};
+ $('#mmOn').onclick=()=>{ac();sfx('click');flip('login')};
  $('#mmLoginBack').onclick=()=>{sfx('click');flip('mode',true)};
  $('#mmToReg').onclick=()=>{sfx('click');flip('reg')};
- $('#mmToForgot').onclick=()=>{sfx('click');$('#mmFEmail').value=$('#mmEmail').value.trim();flip('forgot')};
+ $('#mmToForgot').onclick=()=>{sfx('click');flip('forgot')};
  $('#mmForgotBack').onclick=()=>{sfx('click');flip('login',true)};
  $('#mmRegBack').onclick=()=>{sfx('click');flip('login',true)};
- $('#mmLoginBtn').onclick=async()=>{const b=$('#mmLoginBtn'),email=$('#mmEmail').value.trim(),pass=$('#mmPass').value;setAuthStatus('#mmErrLogin','');if(!emailOK(email))return setAuthStatus('#mmErrLogin','Enter a valid email address.');if(!pass)return setAuthStatus('#mmErrLogin','Enter your password.');busyButton(b,true,'Signing In…');try{await initFirebase();const cred=await FB.auth.signInWithEmailAndPassword(email,pass);await routeOnlineUser(cred.user)}catch(err){setAuthStatus('#mmErrLogin',authMessage(err))}finally{busyButton(b,false)}};
- $('#mmGoogle').onclick=async()=>{const b=$('#mmGoogle');setAuthStatus('#mmErrLogin','');busyButton(b,true,'Opening Google…');try{await initFirebase();const provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});const cred=await FB.auth.signInWithPopup(provider);await routeOnlineUser(cred.user)}catch(err){setAuthStatus('#mmErrLogin',authMessage(err))}finally{busyButton(b,false)}};
- $('#mmForgotBtn').onclick=async()=>{const b=$('#mmForgotBtn'),email=$('#mmFEmail').value.trim();setAuthStatus('#mmErrForgot','');if(!emailOK(email))return setAuthStatus('#mmErrForgot','Enter a valid email address.');busyButton(b,true,'Sending…');try{await initFirebase();try{await FB.auth.sendPasswordResetEmail(email)}catch(err){if(!['auth/user-not-found','auth/invalid-credential'].includes(err&&err.code))throw err}setAuthStatus('#mmErrForgot','If this address can receive reset instructions, the email has been requested.',true)}catch(err){setAuthStatus('#mmErrForgot',authMessage(err))}finally{busyButton(b,false)}};
- $('#mmFn').addEventListener('input',e=>{const el=e.currentTarget,pos=el.selectionStart;el.value=titleCaseName(el.value);try{el.setSelectionRange(pos,pos)}catch(_){}});
- $('#mmLn').addEventListener('input',e=>{const el=e.currentTarget,pos=el.selectionStart;el.value=titleCaseName(el.value);try{el.setSelectionRange(pos,pos)}catch(_){}});
- $('#mmRegBtn').onclick=async()=>{const b=$('#mmRegBtn'),first=$('#mmFn').value.trim(),last=$('#mmLn').value.trim(),email=$('#mmREmail').value.trim(),pass=$('#mmRPass').value,pass2=$('#mmRPass2').value,birthdate=$('#mmBd').value;setAuthStatus('#mmErrReg','');if(!namePartOK(first)||!namePartOK(last))return setAuthStatus('#mmErrReg','Enter a valid first and last name.');if(!emailOK(email))return setAuthStatus('#mmErrReg','Enter a valid email address.');if(!pass)return setAuthStatus('#mmErrReg','Enter a password.');if(pass!==pass2)return setAuthStatus('#mmErrReg','Passwords do not match.');const age=ageOnDate(birthdate);if(age<0)return setAuthStatus('#mmErrReg','Enter a valid birthdate.');if(age<ONLINE_MIN_AGE)return setAuthStatus('#mmErrReg','You must be at least '+ONLINE_MIN_AGE+' years old to create an account.');busyButton(b,true,'Creating Account…');let createdUser=null;try{await initFirebase();const cred=await FB.auth.createUserWithEmailAndPassword(email,pass);createdUser=cred.user;try{await createdUser.updateProfile({displayName:(first+' '+last).trim()})}catch(_){}const profile=await createRegisteredProfile(createdUser,{firstName:first,lastName:last,email,birthdate});FB.user=createdUser;FB.profile=profile;if(REQUIRE_EMAIL_VERIFICATION&&!createdUser.emailVerified){try{await createdUser.sendEmailVerification()}catch(_){}setAuthStatus('#mmErrReg','Account created. Check your email for the verification link before signing in.',true);await new Promise(r=>setTimeout(r,3000));await FB.auth.signOut();flip('login',true);return}setAuthStatus('#mmErrReg','Registration successful. Preparing character creation…',true);await new Promise(r=>setTimeout(r,3000));await closeModeSmooth();startOnlineCharacterCreation(profile)}catch(err){setAuthStatus('#mmErrReg',authMessage(err));if(createdUser&&!FB.profile&&createdUser===FB.auth.currentUser){try{await createdUser.delete()}catch(_){}}}finally{busyButton(b,false)}};
- [['#mmPass','#mmLoginBtn'],['#mmRPass2','#mmRegBtn'],['#mmFEmail','#mmForgotBtn']].forEach(([i,b])=>$(i).addEventListener('keydown',e=>{if(e.key==='Enter')$(b).click()}));
+ const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,MIN_AGE=13,sleep=ms=>new Promise(r=>setTimeout(r,ms));
+ let authBusy=false;
+ const say=(id,m,ok)=>{const e=$(id);e.textContent=m||'';e.classList.toggle('ok',!!ok)};
+ function lock(on){authBusy=on;$('#mmSheet').classList.toggle('mm-busy',on)}
+ async function run(btn,errId,fn){if(authBusy)return;sfx('click');say(errId,'');
+  const O=window.SR_ONLINE;
+  if(!O){say(errId,'Online services could not be loaded. Check your connection and reload the page.');return}
+  if(!O.configured){say(errId,'Online mode is not set up yet: paste your Firebase config into the page (see SETUP.md).');return}
+  if(!O.ready){say(errId,O.loadError?'Online services could not be loaded. Check your connection and reload.':'Online services are still starting. Try again in a moment.');return}
+  lock(true);const old=btn.textContent;btn.textContent='Please wait…';
+  try{await fn(O)}catch(e){say(errId,(e&&e.message)||'Something went wrong. Please try again.')}
+  finally{lock(false);btn.textContent=old}}
+ async function afterAuth(r){$('#modeModal').classList.remove('on');
+  if(r.character){ONL=r.character;onlineFlow=true;playDoors(ONL.ign,enterOnlineHub)}else startOnlineCreation()}
+ function checkAge(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return'Enter your birth date.';const d=new Date(v+'T00:00:00'),n=new Date();if(isNaN(d)||d.getFullYear()<1900||d>n)return'Enter a valid birth date.';
+  let a=n.getFullYear()-d.getFullYear();const m=n.getMonth()-d.getMonth();if(m<0||(m===0&&n.getDate()<d.getDate()))a--;return a<MIN_AGE?'You must be at least '+MIN_AGE+' years old to create an account.':''}
+ function checkReg(f){const nm=/^[\p{L}][\p{L}' -]{0,39}$/u;
+  if(!f.firstName||!f.lastName||!f.email||!f.password||!f.confirm||!f.birthdate)return'Please complete every field.';
+  if(!nm.test(f.firstName))return'First name may contain letters, spaces, hyphens and apostrophes only.';
+  if(!nm.test(f.lastName))return'Last name may contain letters, spaces, hyphens and apostrophes only.';
+  if(!EMAIL_RE.test(f.email))return'Enter a valid email address.';
+  if(f.password.length<8||!/[A-Za-z]/.test(f.password)||!/\d/.test(f.password))return'Password needs at least 8 characters, including a letter and a digit.';
+  if(f.password!==f.confirm)return'Passwords do not match.';
+  return checkAge(f.birthdate)}
+ $('#mmLoginBtn').onclick=()=>run($('#mmLoginBtn'),'#mmErrLogin',async O=>{const em=$('#mmEmail').value.trim(),pw=$('#mmPass').value;
+  if(!EMAIL_RE.test(em))throw new Error('Enter a valid email address.');if(!pw)throw new Error('Enter your password.');
+  await afterAuth(await O.login(em,pw))});
+ $('#mmGoogle').onclick=()=>run($('#mmGoogle'),'#mmErrLogin',async O=>{await afterAuth(await O.google())});
+ $('#mmForgotBtn').onclick=()=>run($('#mmForgotBtn'),'#mmErrForgot',async O=>{const em=$('#mmFEmail').value.trim();
+  if(!EMAIL_RE.test(em))throw new Error('Enter a valid email address.');
+  await O.resetPassword(em);say('#mmErrForgot','If that email belongs to an account, a reset link is on its way. Check your inbox and spam folder.',true)});
+ $('#mmRegBtn').onclick=()=>run($('#mmRegBtn'),'#mmErrReg',async O=>{
+  const f={firstName:$('#mmFn').value.trim(),lastName:$('#mmLn').value.trim(),email:$('#mmREmail').value.trim(),password:$('#mmRPass').value,confirm:$('#mmRPass2').value,birthdate:$('#mmBd').value};
+  const bad=checkReg(f);if(bad)throw new Error(bad);
+  await O.register(f);say('#mmErrReg','Registration successful! Preparing your hero…',true);
+  await sleep(3000);await afterAuth({character:null})});
+ [['#mmPass','#mmLoginBtn'],['#mmEmail','#mmLoginBtn'],['#mmFEmail','#mmForgotBtn'],['#mmRPass2','#mmRegBtn']].forEach(([a,b])=>$(a).addEventListener('keydown',e=>{if(e.key==='Enter')$(b).click()}));
  window.addEventListener('resize',()=>{if(!busy)fit()});
- $('#modeBtn').onclick=()=>{ac();sfx('click');resetErrors();forcePage('mode');$('#modeModal').classList.add('on')};
+ $('#modeBtn').onclick=()=>{ac();sfx('click');$$('.mm-err').forEach(e=>e.textContent='');if(curPg!=='mode'){$$('.mm-pg').forEach(p=>p.classList.remove('cur','in','out','under'));$('#mmMode').classList.add('cur');curPg='mode'}$('#modeModal').classList.add('on')};
 })();
+
 
 /* opening splash */
 (function(){const sp=$('#splash');let done=false;
@@ -1716,9 +1482,95 @@ window.addEventListener('keydown',e=>{
 
 /* boot */
 setUI();window.addEventListener('resize',setUI);
-gameMode='offline';S=offlineS;applyNameMode();enterClass();
+enterClass();
 requestAnimationFrame(pvLoop);requestAnimationFrame(hubFx);requestAnimationFrame(frame);
 })();
 </script>
 
+<script type="module">
+/* Seven Realms Online layer: Firebase Auth + Firestore. Offline mode never touches this. */
+const FIREBASE_CONFIG={
+  apiKey:'PASTE_API_KEY',
+  authDomain:'PASTE_PROJECT_ID.firebaseapp.com',
+  projectId:'PASTE_PROJECT_ID',
+  storageBucket:'PASTE_PROJECT_ID.appspot.com',
+  messagingSenderId:'PASTE_SENDER_ID',
+  appId:'PASTE_APP_ID'
+};
+const START_GOLD=60,START_GEMS=0,NEW_CLASSES=['archer','warrior','guardian','mage','assassin','lancer'];
+const O={configured:!!FIREBASE_CONFIG.apiKey&&!/^PASTE/.test(FIREBASE_CONFIG.apiKey)&&!/^PASTE/.test(FIREBASE_CONFIG.projectId),ready:false};
+window.SR_ONLINE=O;
+if(O.configured){try{
+ const B='https://www.gstatic.com/firebasejs/10.14.1/';
+ const [{initializeApp},A,F]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
+ const app=initializeApp(FIREBASE_CONFIG),auth=A.getAuth(app),db=F.getFirestore(app);
+ const {doc,getDoc,setDoc,updateDoc,writeBatch,serverTimestamp}=F;
+
+ const AUTH_MSG={
+  'auth/invalid-credential':'Incorrect email or password.','auth/wrong-password':'Incorrect email or password.','auth/user-not-found':'Incorrect email or password.',
+  'auth/invalid-email':'That email address is not valid.','auth/user-disabled':'This account has been disabled.',
+  'auth/too-many-requests':'Too many attempts. Wait a moment and try again.','auth/network-request-failed':'Network error. Check your connection and try again.',
+  'auth/email-already-in-use':'An account with that email already exists.','auth/weak-password':'That password is too weak.',
+  'auth/popup-closed-by-user':'Google sign-in was closed before it finished.','auth/cancelled-popup-request':'Google sign-in was cancelled.',
+  'auth/popup-blocked':'Your browser blocked the Google sign-in window. Allow pop-ups and try again.',
+  'auth/operation-not-allowed':'This sign-in method is not enabled for the project yet.',
+  'auth/unauthorized-domain':'This website address is not authorised in Firebase Authentication.',
+  'auth/operation-not-supported-in-this-environment':'Sign-in needs the page to be served over http(s), not opened as a file.'};
+ const fail=e=>{const err=new Error(AUTH_MSG[e&&e.code]||(e&&e.code==='permission-denied'?'The server refused the request. Make sure the Firestore rules are published.':(e&&e.message)||'Something went wrong.'));err.code=e&&e.code;throw err};
+
+ async function loadCharacter(uid){
+  const [u,p]=await Promise.all([getDoc(doc(db,'users',uid)),getDoc(doc(db,'playerProgress',uid))]);
+  if(!u.exists())return null;const d=u.data();
+  let pr=p.exists()?p.data():null;
+  if(!pr){await setDoc(doc(db,'playerProgress',uid),{level:1,xp:0,gold:START_GOLD,gems:START_GEMS,continent:null,createdAt:serverTimestamp()});pr={level:1,xp:0,gold:START_GOLD,gems:START_GEMS,continent:null}}
+  if(!d.characterCreated)return null;
+  return{uid,email:d.email||'',firstName:d.firstName||'',lastName:d.lastName||'',cls:d.cls,gender:d.gender,ign:d.ign,level:pr.level,xp:pr.xp,gold:pr.gold,gems:pr.gems,continent:pr.continent||null};
+ }
+ async function newProfileDocs(uid,f,provider){
+  const b=writeBatch(db);
+  b.set(doc(db,'users',uid),{uid,firstName:f.firstName,lastName:f.lastName,email:f.email,birthdate:f.birthdate,provider,characterCreated:false,createdAt:serverTimestamp(),lastLogin:serverTimestamp()});
+  b.set(doc(db,'playerProgress',uid),{level:1,xp:0,gold:START_GOLD,gems:START_GEMS,continent:null,createdAt:serverTimestamp()});
+  await b.commit();
+ }
+ async function finishAuth(user,provider){
+  try{
+   const ref=doc(db,'users',user.uid),snap=await getDoc(ref);
+   if(!snap.exists()){
+    const parts=(user.displayName||'').trim().split(/\s+/).filter(Boolean);
+    await newProfileDocs(user.uid,{firstName:(parts[0]||'').slice(0,40),lastName:parts.slice(1).join(' ').slice(0,40),email:user.email||'',birthdate:''},provider);
+   }else{try{await updateDoc(ref,{lastLogin:serverTimestamp()})}catch(e){/* not fatal */}}
+   return{character:await loadCharacter(user.uid)};
+  }catch(e){try{await A.signOut(auth)}catch(_){}fail(e)}
+ }
+
+ O.login=async(email,pw)=>{let c;try{c=await A.signInWithEmailAndPassword(auth,email,pw)}catch(e){fail(e)}return finishAuth(c.user,'password')};
+ O.google=async()=>{let c;try{c=await A.signInWithPopup(auth,new A.GoogleAuthProvider())}catch(e){fail(e)}return finishAuth(c.user,'google')};
+ O.register=async f=>{
+  let c;try{c=await A.createUserWithEmailAndPassword(auth,f.email,f.password)}catch(e){fail(e)}
+  try{await newProfileDocs(c.user.uid,f,'password')}
+  catch(e){try{await A.deleteUser(c.user)}catch(_){try{await A.signOut(auth)}catch(__){}}
+   throw new Error('We could not finish creating your account, so nothing was saved. Please try again.')}
+  return{character:null};
+ };
+ O.resetPassword=async email=>{try{await A.sendPasswordResetEmail(auth,email)}catch(e){if(e&&e.code==='auth/user-not-found')return;fail(e)}};
+ O.logout=()=>A.signOut(auth);
+ O.createCharacter=async({cls,gender,ign})=>{
+  const user=auth.currentUser;if(!user)throw new Error('You are signed out. Please log in again.');
+  if(!/^[A-Za-z0-9]{5,13}$/.test(ign))throw new Error('Names use 5 to 13 letters or digits.');
+  if(!NEW_CLASSES.includes(cls)||!['m','f'].includes(gender))throw new Error('Choose a class and a form first.');
+  const lower=ign.toLowerCase(),b=writeBatch(db);
+  b.set(doc(db,'playerNames',lower),{uid:user.uid,name:ign,createdAt:serverTimestamp()});
+  b.update(doc(db,'users',user.uid),{characterCreated:true,cls,gender,ign,ignLower:lower,characterCreatedAt:serverTimestamp()});
+  try{await b.commit()}
+  catch(e){
+   try{const mine=await loadCharacter(user.uid);if(mine&&mine.ign===ign)return mine}catch(_){}
+   try{const t=await getDoc(doc(db,'playerNames',lower));if(t.exists()&&t.data().uid!==user.uid)throw new Error('That name is already taken. Try another.')}
+   catch(x){if(x.message&&x.message.startsWith('That name'))throw x}
+   if(e&&e.code==='unavailable'||e&&e.code==='network-request-failed')throw new Error('Network error. Your hero was not saved. Try again.');
+   fail(e)}
+  const c=await loadCharacter(user.uid);if(!c)throw new Error('Your hero could not be confirmed. Try again.');return c;
+ };
+ O.ready=true;
+}catch(e){console.error('Seven Realms online failed to start',e);O.loadError=e}}
+</script>
 </body></html>
