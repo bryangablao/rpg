@@ -1,0 +1,302 @@
+[
+  {
+    "id": "bandage",
+    "name": "Bandage",
+    "price": 15,
+    "category": "items"
+  },
+  {
+    "id": "bread",
+    "name": "Fresh Bread",
+    "price": 20,
+    "category": "items"
+  },
+  {
+    "id": "salve",
+    "name": "Herbal Salve",
+    "price": 25,
+    "category": "items"
+  },
+  {
+    "id": "minorpot",
+    "name": "Minor Health Potion",
+    "price": 30,
+    "category": "items"
+  },
+  {
+    "id": "honeycake",
+    "name": "Honey Cake",
+    "price": 35,
+    "category": "items"
+  },
+  {
+    "id": "potion",
+    "name": "Health Potion",
+    "price": 40,
+    "category": "items"
+  },
+  {
+    "id": "boar",
+    "name": "Roasted Boar Meat",
+    "price": 45,
+    "category": "items"
+  },
+  {
+    "id": "stew",
+    "name": "Fisherman’s Stew",
+    "price": 55,
+    "category": "items"
+  },
+  {
+    "id": "greaterpot",
+    "name": "Greater Health Potion",
+    "price": 90,
+    "category": "items"
+  },
+  {
+    "id": "grandelixir",
+    "name": "Grand Elixir",
+    "price": 160,
+    "category": "items"
+  },
+  {
+    "id": "mosstea",
+    "name": "Moss Tea",
+    "price": 45,
+    "category": "items"
+  },
+  {
+    "id": "incense",
+    "name": "Healing Incense",
+    "price": 80,
+    "category": "items"
+  },
+  {
+    "id": "trollsweat",
+    "name": "Troll Sweat",
+    "price": 90,
+    "category": "items"
+  },
+  {
+    "id": "lifebloom",
+    "name": "Lifebloom Seed",
+    "price": 100,
+    "category": "items"
+  },
+  {
+    "id": "whetoil",
+    "name": "Whetstone Oil",
+    "price": 60,
+    "category": "items"
+  },
+  {
+    "id": "berserk",
+    "name": "Berserker Brew",
+    "price": 110,
+    "category": "items"
+  },
+  {
+    "id": "dragonblood",
+    "name": "Dragon’s Blood",
+    "price": 160,
+    "category": "items"
+  },
+  {
+    "id": "quickdraw",
+    "name": "Quickdraw Tonic",
+    "price": 70,
+    "category": "items"
+  },
+  {
+    "id": "stormdraught",
+    "name": "Stormcaller Draught",
+    "price": 140,
+    "category": "items"
+  },
+  {
+    "id": "feather",
+    "name": "Swift Feather",
+    "price": 50,
+    "category": "items"
+  },
+  {
+    "id": "catsgrace",
+    "name": "Cat’s Grace",
+    "price": 75,
+    "category": "items"
+  },
+  {
+    "id": "windrunner",
+    "name": "Windrunner Potion",
+    "price": 100,
+    "category": "items"
+  },
+  {
+    "id": "stoneskin",
+    "name": "Stoneskin Potion",
+    "price": 80,
+    "category": "items"
+  },
+  {
+    "id": "ironbark",
+    "name": "Ironbark Tonic",
+    "price": 150,
+    "category": "items"
+  },
+  {
+    "id": "hawkeye",
+    "name": "Hawk Eye Drops",
+    "price": 70,
+    "category": "items"
+  },
+  {
+    "id": "venom",
+    "name": "Assassin’s Venom",
+    "price": 130,
+    "category": "items"
+  },
+  {
+    "id": "magnetcharm",
+    "name": "Magnet Charm",
+    "price": 45,
+    "category": "items"
+  },
+  {
+    "id": "scholar",
+    "name": "Scholar’s Incense",
+    "price": 60,
+    "category": "items"
+  },
+  {
+    "id": "sage",
+    "name": "Sage’s Elixir",
+    "price": 120,
+    "category": "items"
+  },
+  {
+    "id": "golddust",
+    "name": "Gold Dust",
+    "price": 55,
+    "category": "items"
+  },
+  {
+    "id": "merchant",
+    "name": "Merchant’s Blessing",
+    "price": 110,
+    "category": "items"
+  },
+  {
+    "id": "giantgrip",
+    "name": "Giant’s Grip",
+    "price": 85,
+    "category": "items"
+  },
+  {
+    "id": "spiritshield",
+    "name": "Spirit Shield",
+    "price": 120,
+    "category": "items"
+  },
+  {
+    "id": "aegisscroll",
+    "name": "Aegis Scroll",
+    "price": 190,
+    "category": "items"
+  },
+  {
+    "id": "firebomb",
+    "name": "Firebomb",
+    "price": 50,
+    "category": "items"
+  },
+  {
+    "id": "smoke",
+    "name": "Smoke Bomb",
+    "price": 60,
+    "category": "items"
+  },
+  {
+    "id": "poison",
+    "name": "Poison Flask",
+    "price": 65,
+    "category": "items"
+  },
+  {
+    "id": "frostbomb",
+    "name": "Frost Bomb",
+    "price": 70,
+    "category": "items"
+  },
+  {
+    "id": "holywater",
+    "name": "Holy Water",
+    "price": 80,
+    "category": "items"
+  },
+  {
+    "id": "keg",
+    "name": "Powder Keg",
+    "price": 90,
+    "category": "items"
+  },
+  {
+    "id": "nova",
+    "name": "Nova Crystal",
+    "price": 130,
+    "category": "items"
+  },
+  {
+    "id": "meteor",
+    "name": "Meteor Scroll",
+    "price": 200,
+    "category": "items"
+  },
+  {
+    "id": "thunder",
+    "name": "Thunder Scroll",
+    "price": 100,
+    "category": "items"
+  },
+  {
+    "id": "storm",
+    "name": "Storm Scroll",
+    "price": 210,
+    "category": "items"
+  },
+  {
+    "id": "xpscroll",
+    "name": "XP Scroll",
+    "price": 40,
+    "category": "items"
+  },
+  {
+    "id": "xptome",
+    "name": "Greater XP Tome",
+    "price": 120,
+    "category": "items"
+  },
+  {
+    "id": "magnetscroll",
+    "name": "Magnet Scroll",
+    "price": 55,
+    "category": "items"
+  },
+  {
+    "id": "revivecharm",
+    "name": "Revival Charm",
+    "price": 250,
+    "category": "items"
+  },
+  {
+    "id": "phoenix",
+    "name": "Phoenix Feather",
+    "price": 500,
+    "category": "items"
+  },
+  {
+    "id": "angel",
+    "name": "Guardian Angel",
+    "price": 900,
+    "category": "items"
+  }
+]
