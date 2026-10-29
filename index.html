@@ -1699,13 +1699,13 @@ requestAnimationFrame(pvLoop);requestAnimationFrame(hubFx);requestAnimationFrame
 <script type="module">
 /* Seven Realms Online layer: Firebase Auth + Firestore. Offline mode never touches this. */
 const FIREBASE_CONFIG={
-  apiKey:'PASTE_API_KEY',
-  authDomain:'PASTE_PROJECT_ID.firebaseapp.com',
-  projectId:'PASTE_PROJECT_ID',
-  storageBucket:'PASTE_PROJECT_ID.appspot.com',
-  messagingSenderId:'PASTE_SENDER_ID',
-  appId:'PASTE_APP_ID',
-  databaseURL:'PASTE_DATABASE_URL'   // Realtime Database URL, e.g. https://YOUR-PROJECT-default-rtdb.firebaseio.com
+    apiKey: "AIzaSyDDXzmfa3DX0e2yW8IeAZMDrJdInpmBcdc",
+    authDomain: "seven-realms.firebaseapp.com",
+    projectId: "seven-realms",
+    storageBucket: "seven-realms.firebasestorage.app",
+    messagingSenderId: "1051813120456",
+    appId: "1:1051813120456:web:9b9eddaee4cba08f7958fd",
+    databaseURL:'https://seven-realms-default-rtdb.asia-southeast1.firebasedatabase.app'
 };
 const START_GOLD=60,START_GEMS=0,NEW_CLASSES=['archer','warrior','guardian','mage','assassin','lancer'];
 const O={configured:!!FIREBASE_CONFIG.apiKey&&!/^PASTE/.test(FIREBASE_CONFIG.apiKey)&&!/^PASTE/.test(FIREBASE_CONFIG.projectId),ready:false};
