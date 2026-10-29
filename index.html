@@ -360,6 +360,20 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 .mm-orn::before,.mm-orn::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold2))}
 .mm-orn::after{background:linear-gradient(90deg,var(--gold2),transparent)}
 .mm-orn i{width:9px;height:9px;transform:rotate(45deg);background:var(--gold2)}
+/* ===== online lobby · phase 2 ===== */
+.gemchip::before{display:none}
+.heroMeta{margin-top:10px;width:min(92vw,300px);display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:rgba(13,10,18,.58);font-size:14px;color:var(--mute)}
+.heroMeta div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(75,59,94,.5);padding:3px 0}
+.heroMeta b{color:var(--text);font-weight:700}
+#hubMenu.onlineMenu{width:min(100%,470px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#hubMenu.onlineMenu .logo{grid-column:1/-1;text-align:left}
+#hubMenu.onlineMenu .big{min-width:0;padding:12px 14px;font-size:17px}
+#hubMenu.onlineMenu .big:hover{transform:translateY(-2px)}
+#hubMenu.onlineMenu .big.phaseLater{opacity:.62;border-color:var(--line);cursor:not-allowed}
+#hubMenu.onlineMenu .big.phaseLater:hover{transform:none;background:linear-gradient(90deg,rgba(227,181,80,.16),rgba(37,28,51,.9) 40%)}
+@media (max-width:760px){#hubMenu.onlineMenu{grid-template-columns:1fr;width:min(100%,360px)}#hubMenu.onlineMenu .logo{grid-column:auto;text-align:center}.heroMeta{grid-template-columns:1fr}}
+@media (max-height:620px) and (min-width:700px){#hubMenu.onlineMenu{grid-template-columns:repeat(3,minmax(0,1fr));width:min(62vw,620px)}#hubMenu.onlineMenu .logo{grid-column:1/-1}.heroMeta{font-size:12px;padding:6px 8px}.heropane canvas{height:min(38vh,160px);width:auto}}
+
 /* opening splash */
 #splash{position:absolute;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;background:radial-gradient(ellipse at 50% 45%,#241a33 0%,var(--ink) 70%);cursor:pointer;transition:opacity .9s ease}
 #splash.off{opacity:0;pointer-events:none}
@@ -400,7 +414,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
   <h2>Register</h2>
   <div class="mm-row2"><div class="mm-fld"><label for="mmFn">First Name</label><input id="mmFn" type="text" autocomplete="given-name"></div><div class="mm-fld"><label for="mmLn">Last Name</label><input id="mmLn" type="text" autocomplete="family-name"></div></div>
   <div class="mm-fld"><label for="mmREmail">Email</label><input id="mmREmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
-  <div class="mm-row2"><div class="mm-fld"><label for="mmRPass">Password</label><input id="mmRPass" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div><div class="mm-fld"><label for="mmRPass2">Confirm Password</label><input id="mmRPass2" type="password" autocomplete="new-password" placeholder="Repeat password"></div></div>
+  <div class="mm-row2"><div class="mm-fld"><label for="mmRPass">Password</label><input id="mmRPass" type="password" autocomplete="new-password" placeholder="Password"></div><div class="mm-fld"><label for="mmRPass2">Confirm Password</label><input id="mmRPass2" type="password" autocomplete="new-password" placeholder="Repeat password"></div></div>
   <div class="mm-fld"><label for="mmBd">Birth Date</label><input id="mmBd" type="date" autocomplete="bday"></div>
   <button class="btn mm-btn gold" id="mmRegBtn" type="button">Register</button>
   <p class="mm-err" id="mmErrReg" aria-live="polite"></p>
@@ -445,14 +459,19 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 
 <section class="screen" id="sHub">
   <canvas id="hubFx"></canvas>
-  <div class="hubTop" style="display:flex;gap:8px;align-items:center"><span class="chip k" id="hubOnline" hidden>Online</span><span class="chip k" id="hubGems" hidden>0 Gems</span><span class="chip" id="hubGold">0</span></div>
+  <div class="hubTop" style="display:flex;gap:8px;align-items:center"><span class="chip k" id="hubOnline" hidden>Online</span><span class="chip gemchip" id="hubGems" hidden>💎 0</span><span class="chip" id="hubGold">0</span></div>
   <div class="hubBody pad">
-    <div class="heropane"><canvas class="pv" id="hubHero" width="240" height="280"></canvas><div class="hname" id="hubName"></div><div class="hcls" id="hubCls"></div></div>
-    <nav class="menu">
+    <div class="heropane"><canvas class="pv" id="hubHero" width="240" height="280"></canvas><div class="hname" id="hubName"></div><div class="hcls" id="hubCls"></div><div class="heroMeta" id="hubMeta" hidden></div></div>
+    <nav class="menu" id="hubMenu">
       <h1 class="title logo"><img class="logoIcon" src="image/shield.png" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cpath%20d=%22M32%204%208%2012v18c0%2015%2010%2026%2024%2030%2014-4%2024-15%2024-30V12z%22%20fill=%22%23e3b550%22%20stroke=%22%23a97c26%22%20stroke-width=%223%22/%3E%3Cpath%20d=%22M32%2012%2016%2018v12c0%2010%206%2018%2016%2022z%22%20fill=%22%23fff3b0%22%20opacity=%22.5%22/%3E%3C/svg%3E'">Seven Realms</h1>
       <button class="big" data-act="play">Play<small>Choose a continent and deploy</small></button>
+      <button class="big online-only" data-act="daily" hidden>Daily Quest<small>Five-minute survival challenge · Phase 5</small></button>
       <button class="big" data-act="inv">Inventory<small>Gear, potions and materials</small></button>
       <button class="big" data-act="shop">Shop<small>Upgrade gear, buy and sell</small></button>
+      <button class="big online-only" data-act="guild" hidden>Guild<small>Create, join and manage a guild · Phase 6</small></button>
+      <button class="big online-only" data-act="tournament" hidden>Tournament<small>Ranked PvP battles · Phase 6</small></button>
+      <button class="big online-only" data-act="dungeon" hidden>Dungeon<small>Explore the 100-floor dungeon · Phase 5</small></button>
+      <button class="big online-only" data-act="leaderboard" hidden>Leaderboard<small>View the top heroes and guilds · Phase 7</small></button>
       <button class="big" data-act="set">Settings<small>Sound, effects and your save</small></button>
     </nav>
   </div>
@@ -533,6 +552,7 @@ function serverTime(){return firebase.firestore.FieldValue.serverTimestamp()}
 function emailOK(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim())}
 function ageOnDate(iso){if(!iso)return -1;const d=new Date(iso+'T00:00:00');if(Number.isNaN(d.getTime()))return -1;const n=new Date();let a=n.getFullYear()-d.getFullYear();const m=n.getMonth()-d.getMonth();if(m<0||(m===0&&n.getDate()<d.getDate()))a--;return a}
 function namePartOK(v){return /^[A-Za-z][A-Za-z' -]{0,39}$/.test(String(v||'').trim())}
+function titleCaseName(v){return String(v||'').replace(/(^|[\s'-])([A-Za-z])/g,(m,p,c)=>p+c.toUpperCase())}
 function onlineNameOK(v){return /^[A-Za-z0-9]{5,13}$/.test(String(v||''))}
 function normalizePlayerName(v){return String(v||'').toLowerCase()}
 function authMessage(err){const c=err&&err.code||'';const map={
@@ -572,7 +592,7 @@ function setAuthStatus(id,msg,ok){const e=$(id);if(!e)return;e.textContent=msg||
 function busyButton(btn,on,label){if(!btn)return;if(on){if(!btn.dataset.oldText)btn.dataset.oldText=btn.textContent;btn.disabled=true;if(label)btn.textContent=label}else{btn.disabled=false;if(btn.dataset.oldText){btn.textContent=btn.dataset.oldText;delete btn.dataset.oldText}}}
 function loadOnlineUi(){try{const x=JSON.parse(localStorage.getItem(ONLINE_LOCAL_KEY)||'{}');return x&&x.set||null}catch(_){return null}}
 function saveOnlineUi(){try{localStorage.setItem(ONLINE_LOCAL_KEY,JSON.stringify({set:S.set}))}catch(_){}}
-function prepareOnlineRuntime(profile){const r=defSave(),ch=profile.character||{},ui=loadOnlineUi();if(ui)r.set=Object.assign(r.set,ui);r.hero=ch&&ch.classId?{name:ch.inGameName||'Hero',cls:ch.classId,gender:ch.gender||'m'}:null;r.gold=profile.currencies&&Number.isFinite(+profile.currencies.gold)?+profile.currencies.gold:60;r.gems=profile.currencies&&Number.isFinite(+profile.currencies.gems)?+profile.currencies.gems:0;const eq=profile.equipment||{};r.equip.w=eq.weaponId||null;r.equip.a=eq.chest||null;return r}
+function prepareOnlineRuntime(profile){const r=defSave(),ch=profile.character||{},ui=loadOnlineUi();if(ui)r.set=Object.assign(r.set,ui);r.hero=ch&&ch.classId?{name:ch.inGameName||'Hero',cls:ch.classId,gender:ch.gender||'m'}:null;r.gold=profile.currencies&&Number.isFinite(+profile.currencies.gold)?+profile.currencies.gold:60;r.gems=profile.currencies&&Number.isFinite(+profile.currencies.gems)?+profile.currencies.gems:0;r.level=Number.isFinite(+profile.level)?+profile.level:1;r.experience=Number.isFinite(+profile.experience)?+profile.experience:0;r.currentContinent=profile.currentContinent||null;const eq=profile.equipment||{};r.equip.w=eq.weaponId||null;r.equip.a=eq.chest||null;return r}
 async function saveCharacterDraft(patch){if(gameMode!=='online'||!FB.user||!FB.db)return;const next=Object.assign({},FB.profile&&FB.profile.characterDraft||{},patch);FB.profile.characterDraft=next;try{await FB.db.collection('users').doc(FB.user.uid).set({characterDraft:next},{merge:true})}catch(_){} }
 async function finalizeOnlineCharacter(raw){
  if(!FB.user||!FB.db)throw new Error('Your online session is not ready. Please sign in again.');
@@ -590,6 +610,11 @@ async function finalizeOnlineCharacter(raw){
   tx.update(userRef,{characterCreated:true,characterDraft:{},character:{classId:sel.cls,gender:sel.gender,inGameName:displayName,normalizedName:normalized,createdAt:serverTime()},level:1,experience:0,currentContinent:null,'currencies.gold':60,'currencies.gems':0,'equipment.weaponId':starter,'inventory.weapons':{[starter]:1},lastLoginAt:serverTime()});
  });
  const snap=await userRef.get();FB.profile={...snap.data(),uid:FB.user.uid};S=prepareOnlineRuntime(FB.profile);playDoors()
+}
+function openOnlineCharacterConfirmation(raw){
+ const c=CLASSES[sel.cls];if(!c||!['m','f'].includes(sel.gender))return;
+ openSheet(head('Confirm Your Hero')+`<div class="row"><canvas class="pv" width="110" height="130" data-cls="${sel.cls}" data-gen="${sel.gender}" style="width:90px;height:auto;flex:none"></canvas><div class="tx"><b>${raw}</b><span>${c.name} · ${GENDER_LABEL[sel.gender]}</span><span>Starting weapon: ${c.weapon}</span><span>HP ${c.hp} · SPD ${c.spd} · ARMOR ${c.armor}</span></div></div><div class="online-note"><b>Confirm this character?</b><br>Your in-game name will be reserved when you confirm. Your account progress will then be linked to this character.</div><div class="foot" style="margin-top:0"><button class="btn ghost" id="heroConfirmBack" type="button">Back</button><button class="btn" id="heroConfirmBtn" type="button">Confirm Character</button></div>`);
+ bindClose();$('#heroConfirmBack').onclick=()=>{sfx('click');closeSheet()};$('#heroConfirmBtn').onclick=async()=>{const b=$('#heroConfirmBtn');busyButton(b,true,'Saving Hero…');try{await finalizeOnlineCharacter(raw);closeSheet()}catch(err){busyButton(b,false);closeSheet();$('#nameHint').textContent=err&&err.code==='name-taken'?'That in-game name is already taken.':authMessage(err);$('#nameHint').className='hintline bad'}}
 }
 function setupNameStep(){const cv=$('#nameCv');cv.dataset.cls=sel.cls;cv.dataset.gen=sel.gender;$('#nameCls').textContent=CLASSES[sel.cls].name+' · '+GENDER_LABEL[sel.gender];$('#nameInput').value='';nameInput();show('sName');setTimeout(()=>$('#nameInput').focus(),50)}
 function startOnlineCharacterCreation(profile){gameMode='online';FB.profile=profile;S=prepareOnlineRuntime(profile);const d=profile.characterDraft||{};sel={cls:null,gender:null};applyNameMode();if(d.classId&&CLASSES[d.classId]&&!CLASSES[d.classId].hidden){sel.cls=d.classId;if(['m','f'].includes(d.gender)){sel.gender=d.gender;setupNameStep()}else{buildGender();show('sGender')}}else enterClass()}
@@ -829,7 +854,7 @@ $('#genderNext').onclick=()=>{sfx('click');if(gameMode==='online')saveCharacterD
 $('#nameBack').onclick=()=>{sfx('click');show('sGender')};
 $('#nameInput').addEventListener('input',nameInput);
 $('#nameInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('#nameNext').disabled)$('#nameNext').click()});
-$('#nameNext').onclick=async()=>{const raw=$('#nameInput').value;if(!validName(raw))return;if(gameMode==='online'){const b=$('#nameNext');busyButton(b,true,'Reserving Name…');$('#nameHint').className='hintline';try{await finalizeOnlineCharacter(raw)}catch(err){$('#nameHint').textContent=err&&err.code==='name-taken'?'That in-game name is already taken.':authMessage(err);$('#nameHint').className='hintline bad';busyButton(b,false);return}busyButton(b,false);return}const nm=raw.charAt(0).toUpperCase()+raw.slice(1).toLowerCase();
+$('#nameNext').onclick=async()=>{const raw=$('#nameInput').value;if(!validName(raw))return;if(gameMode==='online'){$('#nameHint').className='hintline';openOnlineCharacterConfirmation(raw);return}const nm=raw.charAt(0).toUpperCase()+raw.slice(1).toLowerCase();
  S.hero={name:nm,cls:sel.cls,gender:sel.gender};S.equip.w=null;save();playDoors()};
 $('#contBtn').onclick=()=>{sfx('click');ac();enterHub()};
 
@@ -857,11 +882,15 @@ function playDoors(){show('sDoors');const gate=$('#gate');gate.classList.remove(
 let hubStars=[];
 function enterHub(){const h=S.hero;if(!h){enterClass();return}
  const cv=$('#hubHero');cv.dataset.cls=h.cls;cv.dataset.gen=h.gender;$('#hubName').textContent=h.name;$('#hubCls').textContent=CLASSES[h.cls].name+' · '+CLASSES[h.cls].weapon+(gameMode==='online'?' · ONLINE':'');
-  $('#hubOnline').hidden=gameMode!=='online';$('#hubGems').hidden=gameMode!=='online';if(gameMode==='online')$('#hubGems').textContent=String(S.gems||0)+' Gems';refreshGold();show('sHub');music(55);}
-function refreshGold(){const t=String(S.gold);$('#hubGold').textContent=t;$('#hGold').textContent=t;if(gameMode==='online'&&$('#hubGems'))$('#hubGems').textContent=String(S.gems||0)+' Gems'}
+ const online=gameMode==='online';$('#hubOnline').hidden=!online;$('#hubGems').hidden=!online;$('#hubMeta').hidden=!online;$('#hubMenu').classList.toggle('onlineMenu',online);$$('#sHub .online-only').forEach(b=>b.hidden=!online);
+ if(online){const p=FB.profile||{},eq=p.equipment||{},wid=eq.weaponId||S.equip.w||`w_${h.cls}_0`,w=WEAPON_BY[wid],realm=p.currentContinent&&REALM_BY_ID[p.currentContinent]?REALM_BY_ID[p.currentContinent].name:'Not selected';$('#hubGems').textContent='💎 '+String(S.gems||0);$('#hubMeta').innerHTML=`<div><span>Level</span><b>${Number.isFinite(+p.level)?+p.level:(S.level||1)}</b></div><div><span>Weapon</span><b>${w?w.n:CLASSES[h.cls].weapon}</b></div><div><span>Gold</span><b>${S.gold||0}</b></div><div><span>Gems</span><b>💎 ${S.gems||0}</b></div><div><span>Continent</span><b>${realm}</b></div><div><span>Status</span><b>Online</b></div>`;
+  const later={play:3,daily:5,inv:4,shop:4,guild:6,tournament:6,dungeon:5,leaderboard:7};$$('#hubMenu .big').forEach(b=>{const ph=later[b.dataset.act];const locked=!!ph;b.classList.toggle('phaseLater',locked);b.disabled=locked;b.title=locked?'Scheduled for Phase '+ph:''})
+ }else{$$('#hubMenu .big').forEach(b=>{b.disabled=false;b.classList.remove('phaseLater');b.title=''})}
+ refreshGold();show('sHub');music(55);}
+function refreshGold(){const t=String(S.gold);$('#hubGold').textContent=t;$('#hGold').textContent=t;if(gameMode==='online'&&$('#hubGems'))$('#hubGems').textContent='💎 '+String(S.gems||0)}
 function hubFx(t){requestAnimationFrame(hubFx);if(cur!=='sHub')return;const c=$('#hubFx'),w=c.clientWidth,h=c.clientHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h;hubStars=Array.from({length:70},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.8+.4,s:Math.random()*30+8,p:Math.random()*TAU}))}
  const g=c.getContext('2d');g.clearRect(0,0,w,h);for(const s of hubStars){s.y-=s.s*.016;if(s.y<-5){s.y=h+5;s.x=Math.random()*w}const a=.35+.35*Math.sin(t/700+s.p);g.fillStyle=`rgba(255,214,130,${a})`;g.beginPath();g.arc(s.x+Math.sin(t/1800+s.p)*10,s.y,s.r,0,TAU);g.fill()}}
-$$('#sHub .big').forEach(b=>b.onclick=()=>{sfx('click');ac();const a=b.dataset.act;if(gameMode==='online'&&a!=='set'){openSheet(head('Online Mode · Phase 1')+'<div class="online-note"><b>Account foundation is active.</b><br>Authentication, player profiles, returning-session restoration, online character creation, and name reservation are enabled. Multiplayer world, online inventory, online shop, guilds, tournaments, dungeons, leaderboards, and the server-authoritative economy stay intentionally disabled until their backend phases are implemented.</div>');bindClose();return}if(a==='play')enterMap();else if(a==='inv')openInv();else if(a==='shop')openShop('items',true);else openSettings()});
+$$('#sHub .big').forEach(b=>b.onclick=()=>{if(b.disabled)return;sfx('click');ac();const a=b.dataset.act;if(a==='play')enterMap();else if(a==='inv')openInv();else if(a==='shop')openShop('items',true);else if(a==='set')openSettings()});
 
 /* sheets */
 function openSheet(html){$('#sheet').innerHTML=html;$('#sheetModal').classList.add('on')}
@@ -1499,7 +1528,9 @@ window.addEventListener('keydown',e=>{
  $('#mmLoginBtn').onclick=async()=>{const b=$('#mmLoginBtn'),email=$('#mmEmail').value.trim(),pass=$('#mmPass').value;setAuthStatus('#mmErrLogin','');if(!emailOK(email))return setAuthStatus('#mmErrLogin','Enter a valid email address.');if(!pass)return setAuthStatus('#mmErrLogin','Enter your password.');busyButton(b,true,'Signing In…');try{await initFirebase();const cred=await FB.auth.signInWithEmailAndPassword(email,pass);await routeOnlineUser(cred.user)}catch(err){setAuthStatus('#mmErrLogin',authMessage(err))}finally{busyButton(b,false)}};
  $('#mmGoogle').onclick=async()=>{const b=$('#mmGoogle');setAuthStatus('#mmErrLogin','');busyButton(b,true,'Opening Google…');try{await initFirebase();const provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});const cred=await FB.auth.signInWithPopup(provider);await routeOnlineUser(cred.user)}catch(err){setAuthStatus('#mmErrLogin',authMessage(err))}finally{busyButton(b,false)}};
  $('#mmForgotBtn').onclick=async()=>{const b=$('#mmForgotBtn'),email=$('#mmFEmail').value.trim();setAuthStatus('#mmErrForgot','');if(!emailOK(email))return setAuthStatus('#mmErrForgot','Enter a valid email address.');busyButton(b,true,'Sending…');try{await initFirebase();try{await FB.auth.sendPasswordResetEmail(email)}catch(err){if(!['auth/user-not-found','auth/invalid-credential'].includes(err&&err.code))throw err}setAuthStatus('#mmErrForgot','If this address can receive reset instructions, the email has been requested.',true)}catch(err){setAuthStatus('#mmErrForgot',authMessage(err))}finally{busyButton(b,false)}};
- $('#mmRegBtn').onclick=async()=>{const b=$('#mmRegBtn'),first=$('#mmFn').value.trim(),last=$('#mmLn').value.trim(),email=$('#mmREmail').value.trim(),pass=$('#mmRPass').value,pass2=$('#mmRPass2').value,birthdate=$('#mmBd').value;setAuthStatus('#mmErrReg','');if(!namePartOK(first)||!namePartOK(last))return setAuthStatus('#mmErrReg','Enter a valid first and last name.');if(!emailOK(email))return setAuthStatus('#mmErrReg','Enter a valid email address.');if(pass.length<6)return setAuthStatus('#mmErrReg','Password must be at least 6 characters.');if(pass!==pass2)return setAuthStatus('#mmErrReg','Passwords do not match.');const age=ageOnDate(birthdate);if(age<0)return setAuthStatus('#mmErrReg','Enter a valid birthdate.');if(age<ONLINE_MIN_AGE)return setAuthStatus('#mmErrReg','You must be at least '+ONLINE_MIN_AGE+' years old to create an account.');busyButton(b,true,'Creating Account…');let createdUser=null;try{await initFirebase();const cred=await FB.auth.createUserWithEmailAndPassword(email,pass);createdUser=cred.user;try{await createdUser.updateProfile({displayName:(first+' '+last).trim()})}catch(_){}const profile=await createRegisteredProfile(createdUser,{firstName:first,lastName:last,email,birthdate});FB.user=createdUser;FB.profile=profile;if(REQUIRE_EMAIL_VERIFICATION&&!createdUser.emailVerified){try{await createdUser.sendEmailVerification()}catch(_){}setAuthStatus('#mmErrReg','Account created. Check your email for the verification link before signing in.',true);await new Promise(r=>setTimeout(r,3000));await FB.auth.signOut();flip('login',true);return}setAuthStatus('#mmErrReg','Registration successful. Preparing character creation…',true);await new Promise(r=>setTimeout(r,3000));await closeModeSmooth();startOnlineCharacterCreation(profile)}catch(err){setAuthStatus('#mmErrReg',authMessage(err));if(createdUser&&!FB.profile&&createdUser===FB.auth.currentUser){try{await createdUser.delete()}catch(_){}}}finally{busyButton(b,false)}};
+ $('#mmFn').addEventListener('input',e=>{const el=e.currentTarget,pos=el.selectionStart;el.value=titleCaseName(el.value);try{el.setSelectionRange(pos,pos)}catch(_){}});
+ $('#mmLn').addEventListener('input',e=>{const el=e.currentTarget,pos=el.selectionStart;el.value=titleCaseName(el.value);try{el.setSelectionRange(pos,pos)}catch(_){}});
+ $('#mmRegBtn').onclick=async()=>{const b=$('#mmRegBtn'),first=$('#mmFn').value.trim(),last=$('#mmLn').value.trim(),email=$('#mmREmail').value.trim(),pass=$('#mmRPass').value,pass2=$('#mmRPass2').value,birthdate=$('#mmBd').value;setAuthStatus('#mmErrReg','');if(!namePartOK(first)||!namePartOK(last))return setAuthStatus('#mmErrReg','Enter a valid first and last name.');if(!emailOK(email))return setAuthStatus('#mmErrReg','Enter a valid email address.');if(!pass)return setAuthStatus('#mmErrReg','Enter a password.');if(pass!==pass2)return setAuthStatus('#mmErrReg','Passwords do not match.');const age=ageOnDate(birthdate);if(age<0)return setAuthStatus('#mmErrReg','Enter a valid birthdate.');if(age<ONLINE_MIN_AGE)return setAuthStatus('#mmErrReg','You must be at least '+ONLINE_MIN_AGE+' years old to create an account.');busyButton(b,true,'Creating Account…');let createdUser=null;try{await initFirebase();const cred=await FB.auth.createUserWithEmailAndPassword(email,pass);createdUser=cred.user;try{await createdUser.updateProfile({displayName:(first+' '+last).trim()})}catch(_){}const profile=await createRegisteredProfile(createdUser,{firstName:first,lastName:last,email,birthdate});FB.user=createdUser;FB.profile=profile;if(REQUIRE_EMAIL_VERIFICATION&&!createdUser.emailVerified){try{await createdUser.sendEmailVerification()}catch(_){}setAuthStatus('#mmErrReg','Account created. Check your email for the verification link before signing in.',true);await new Promise(r=>setTimeout(r,3000));await FB.auth.signOut();flip('login',true);return}setAuthStatus('#mmErrReg','Registration successful. Preparing character creation…',true);await new Promise(r=>setTimeout(r,3000));await closeModeSmooth();startOnlineCharacterCreation(profile)}catch(err){setAuthStatus('#mmErrReg',authMessage(err));if(createdUser&&!FB.profile&&createdUser===FB.auth.currentUser){try{await createdUser.delete()}catch(_){}}}finally{busyButton(b,false)}};
  [['#mmPass','#mmLoginBtn'],['#mmRPass2','#mmRegBtn'],['#mmFEmail','#mmForgotBtn']].forEach(([i,b])=>$(i).addEventListener('keydown',e=>{if(e.key==='Enter')$(b).click()}));
  window.addEventListener('resize',()=>{if(!busy)fit()});
  $('#modeBtn').onclick=()=>{ac();sfx('click');resetErrors();forcePage('mode');$('#modeModal').classList.add('on')};
