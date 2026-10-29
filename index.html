@@ -1485,12 +1485,12 @@ requestAnimationFrame(pvLoop);requestAnimationFrame(hubFx);requestAnimationFrame
 // Paste yours from: Firebase Console > Project settings > Your apps > Web app.
 // If you already have a Firebase project for this game, reuse it here.
 const firebaseConfig = {
-    apiKey: "AIzaSyDDXzmfa3DX0e2yW8IeAZMDrJdInpmBcdc",
-    authDomain: "seven-realms.firebaseapp.com",
-    projectId: "seven-realms",
-    storageBucket: "seven-realms.firebasestorage.app",
-    messagingSenderId: "1051813120456",
-    appId: "1:1051813120456:web:9b9eddaee4cba08f7958fd"
+  apiKey: 'YOUR_API_KEY',
+  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
+  projectId: 'YOUR_PROJECT_ID',
+  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+  messagingSenderId: 'YOUR_SENDER_ID',
+  appId: 'YOUR_APP_ID'
 };
 
 // Optional: reCAPTCHA v3 site key to enable Firebase App Check ('' = disabled).
@@ -1579,6 +1579,9 @@ function authError(e) {
     'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Allow popups and try again.',
     'auth/unauthorized-domain': 'This domain is not authorized in Firebase Authentication settings.',
     'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase Authentication.',
+    'functions/internal': 'Cannot reach the game server. Make sure the Cloud Functions are deployed (firebase deploy --only functions).',
+    'functions/not-found': 'The game server function is not deployed yet.',
+    'functions/permission-denied': 'The game server rejected this request.',
     'functions/unavailable': 'The game server is unreachable. Try again shortly.',
     'functions/unauthenticated': 'Please sign in again.',
     'functions/invalid-argument': (e && e.message) || 'Some details were not accepted.',
