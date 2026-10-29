@@ -1,0 +1,45 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "tournamentMatches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "playerUid", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "characterCreated", "order": "ASCENDING"},
+        {"fieldPath": "level", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "characterCreated", "order": "ASCENDING"},
+        {"fieldPath": "currencies.gold", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "characterCreated", "order": "ASCENDING"},
+        {"fieldPath": "tournamentStats.wins", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "characterCreated", "order": "ASCENDING"},
+        {"fieldPath": "dungeonProgress.highestFloor", "order": "DESCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

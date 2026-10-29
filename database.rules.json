@@ -1,0 +1,22 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "worlds": {
+      "mythara-1": {
+        "continents": {
+          "$continent": {
+            ".validate": "$continent === 'aetherion' || $continent === 'frostheim' || $continent === 'drakthar' || $continent === 'sylvaris' || $continent === 'dunemara' || $continent === 'thalassara' || $continent === 'umbraxis'",
+            "players": {
+              ".read": "auth != null",
+              "$uid": {
+                ".write": "auth != null && auth.uid === $uid",
+                ".validate": "!newData.exists() || (newData.hasChildren(['uid','name','classId','gender','x','y','face','moving','state','hp','updatedAt']) && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().matches(/^[A-Za-z0-9]{5,13}$/) && (newData.child('classId').val() === 'archer' || newData.child('classId').val() === 'warrior' || newData.child('classId').val() === 'guardian' || newData.child('classId').val() === 'mage' || newData.child('classId').val() === 'assassin' || newData.child('classId').val() === 'lancer') && (newData.child('gender').val() === 'm' || newData.child('gender').val() === 'f') && (!newData.child('weaponId').exists() || newData.child('weaponId').isString() || newData.child('weaponId').val() === null) && newData.child('x').isNumber() && newData.child('x').val() >= 0 && newData.child('x').val() <= 2200 && newData.child('y').isNumber() && newData.child('y').val() >= 0 && newData.child('y').val() <= 2200 && newData.child('face').isNumber() && newData.child('moving').isBoolean() && newData.child('state').isString() && newData.child('state').val().length <= 20 && newData.child('hp').isNumber() && newData.child('hp').val() >= 0 && newData.child('hp').val() <= 100000 && newData.child('updatedAt').isNumber())"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
