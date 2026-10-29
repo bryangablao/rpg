@@ -464,7 +464,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
     <div class="heropane"><canvas class="pv" id="hubHero" width="240" height="280"></canvas><div class="hname" id="hubName"></div><div class="hcls" id="hubCls"></div><div class="heroMeta" id="hubMeta" hidden></div></div>
     <nav class="menu" id="hubMenu">
       <h1 class="title logo"><img class="logoIcon" src="image/shield.png" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2064%2064%22%3E%3Cpath%20d=%22M32%204%208%2012v18c0%2015%2010%2026%2024%2030%2014-4%2024-15%2024-30V12z%22%20fill=%22%23e3b550%22%20stroke=%22%23a97c26%22%20stroke-width=%223%22/%3E%3Cpath%20d=%22M32%2012%2016%2018v12c0%2010%206%2018%2016%2022z%22%20fill=%22%23fff3b0%22%20opacity=%22.5%22/%3E%3C/svg%3E'">Seven Realms</h1>
-      <button class="big" data-act="play">Play<small>Choose a continent and deploy</small></button>
+      <button class="big" data-act="play">Play<small>Enter a live continent with other players</small></button>
       <button class="big online-only" data-act="daily" hidden>Daily Quest<small>Five-minute survival challenge · Phase 5</small></button>
       <button class="big" data-act="inv">Inventory<small>Gear, potions and materials</small></button>
       <button class="big" data-act="shop">Shop<small>Upgrade gear, buy and sell</small></button>
@@ -489,7 +489,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
   <div id="hud" class="pad">
     <div class="hudTL"><div class="nameLine"><span id="hName"></span><span id="hLvl">Lv 1</span></div><div class="meter"><i id="hpFill"></i><span id="hpTxt"></span></div><div class="meter xp"><i id="xpFill" style="width:0"></i></div></div>
     <div class="hudTC" id="hTime">0:00</div>
-    <div class="hudTR"><button class="iconbtn" id="pauseBtn" aria-label="Pause">II</button><span class="chip" id="hGold">0</span><span class="chip k" id="hKills">0</span></div>
+    <div class="hudTR"><button class="iconbtn" id="pauseBtn" aria-label="Pause">II</button><span class="chip" id="hGold">0</span><span class="chip k" id="hKills">0</span><span class="chip" id="onlineWorldStatus" hidden>● 1 online</span></div>
     <div class="hudBL" id="questTrack"></div>
     <div class="buffs" id="buffs"></div>
     <div class="hudBR"><button class="btn small" id="actBtn" hidden>Talk</button><button class="btn small" id="bagBtn">Bag</button><button class="btn small" id="potBtn">Potion</button></div>
@@ -512,6 +512,7 @@ h1.title{font-size:clamp(28px,5vw,46px);color:var(--gold);letter-spacing:.04em;t
 <script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/13.1.0/firebase-database-compat.js"></script>
 <script>
 (()=>{'use strict';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -529,6 +530,7 @@ const FIREBASE_CONFIG=window.SEVEN_REALMS_FIREBASE_CONFIG||{
     apiKey: "AIzaSyDDXzmfa3DX0e2yW8IeAZMDrJdInpmBcdc",
     authDomain: "seven-realms.firebaseapp.com",
     projectId: "seven-realms",
+    databaseURL:"https://seven-realms-default-rtdb.asia-southeast1.firebasedatabase.app",
     storageBucket: "seven-realms.firebasestorage.app",
     messagingSenderId: "1051813120456",
     appId: "1:1051813120456:web:9b9eddaee4cba08f7958fd"
@@ -537,17 +539,57 @@ const ONLINE_MIN_AGE=Number.isFinite(+window.SEVEN_REALMS_MIN_AGE)?+window.SEVEN
 const REQUIRE_EMAIL_VERIFICATION=window.SEVEN_REALMS_REQUIRE_EMAIL_VERIFICATION===true;
 const ONLINE_LOCAL_KEY='sevenRealms.online.ui.v1';
 let gameMode='offline';
-const FB={app:null,auth:null,db:null,user:null,profile:null,ready:false};
+const FB={app:null,auth:null,db:null,rtdb:null,user:null,profile:null,ready:false};
 function firebaseConfigured(){return !!(FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId&&FIREBASE_CONFIG.appId&&!String(FIREBASE_CONFIG.apiKey).startsWith('PASTE_')&&!String(FIREBASE_CONFIG.projectId).startsWith('PASTE_')&&!String(FIREBASE_CONFIG.appId).startsWith('PASTE_'))}
 async function initFirebase(){
  if(FB.ready)return FB;
  if(!firebaseConfigured())throw new Error('Firebase is not configured yet. Paste your Firebase Web App config into FIREBASE_CONFIG in index.html.');
  if(typeof firebase==='undefined')throw new Error('Firebase SDK failed to load. Check your internet connection and content-security policy.');
  FB.app=firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(FIREBASE_CONFIG);
- FB.auth=FB.app.auth();FB.db=FB.app.firestore();
+ FB.auth=FB.app.auth();FB.db=FB.app.firestore();FB.rtdb=typeof FB.app.database==='function'?FB.app.database():null;
  try{await FB.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)}catch(_){}
  FB.ready=true;return FB
 }
+/* ============ PHASE 3 · REALTIME MULTIPLAYER ============ */
+const ONLINE_WORLD_ID='mythara-1';
+const PRESENCE_TTL_MS=45000;
+const NET={realm:null,selfRef:null,realmRef:null,infoRef:null,remote:{},counts:{},countRefs:[],lastSend:0,connected:false};
+function rtdbReady(){return gameMode==='online'&&FB.user&&FB.rtdb}
+function presencePath(realmId){return `worlds/${ONLINE_WORLD_ID}/continents/${realmId}/players`}
+function netPayload(){
+ const h=G&&G.hero,hero=S.hero||{},eq=FB.profile&&FB.profile.equipment||{};
+ return {uid:FB.user.uid,name:hero.name||'Hero',classId:hero.cls||'archer',gender:hero.gender||'m',weaponId:eq.weaponId||S.equip.w||null,
+  x:h?Math.round(h.x*10)/10:WORLD/2,y:h?Math.round(h.y*10)/10:WORLD/2,face:h?h.face:1,moving:!!(h&&h.moving),state:G?G.state:'idle',hp:h?Math.max(0,Math.round(h.hp)):0,
+  updatedAt:firebase.database.ServerValue.TIMESTAMP};
+}
+function cleanupPresenceCounts(){for(const x of NET.countRefs){try{x.ref.off('value',x.cb)}catch(_){}}NET.countRefs=[]}
+function watchPresenceCounts(){
+ if(!rtdbReady())return;cleanupPresenceCounts();
+ for(const R of REALMS){const ref=FB.rtdb.ref(presencePath(R.id));const cb=snap=>{let n=0,now=Date.now();snap.forEach(c=>{const v=c.val()||{};if(!v.updatedAt||now-v.updatedAt<PRESENCE_TTL_MS)n++});NET.counts[R.id]=n;if(cur==='sMap')updateMapPresenceLabels()};ref.on('value',cb);NET.countRefs.push({ref,cb})}
+}
+function updateMapPresenceLabels(){if(gameMode!=='online')return;for(const R of REALMS){const el=document.querySelector(`#mapSvg .land[data-id="${R.id}"] .pcount`);if(el)el.textContent=(NET.counts[R.id]||0)+' online'}}
+function stopRealmPresence(){
+ if(NET.realmRef){try{NET.realmRef.off()}catch(_){}}if(NET.selfRef){try{NET.selfRef.onDisconnect().cancel()}catch(_){}try{NET.selfRef.remove()}catch(_){}}
+ NET.realm=null;NET.selfRef=null;NET.realmRef=null;NET.remote={};NET.connected=false;if($('#onlineWorldStatus'))$('#onlineWorldStatus').hidden=true;
+}
+async function startRealmPresence(R){
+ cleanupPresenceCounts();if(!rtdbReady())throw new Error('Realtime Database is not configured. Add databaseURL to FIREBASE_CONFIG and enable Realtime Database.');
+ stopRealmPresence();NET.realm=R.id;NET.remote={};
+ const base=FB.rtdb.ref(presencePath(R.id));NET.realmRef=base;NET.selfRef=base.child(FB.user.uid);
+ try{await NET.selfRef.onDisconnect().remove()}catch(_){}
+ const apply=(snap)=>{if(snap.key===FB.user.uid)return;const v=snap.val()||{};if(v.updatedAt&&Date.now()-v.updatedAt>PRESENCE_TTL_MS)return;const old=NET.remote[snap.key]||{};NET.remote[snap.key]={...old,...v,uid:snap.key,tx:+v.x||WORLD/2,ty:+v.y||WORLD/2,x:Number.isFinite(old.x)?old.x:(+v.x||WORLD/2),y:Number.isFinite(old.y)?old.y:(+v.y||WORLD/2),seen:Date.now()}}
+ base.on('child_added',apply);base.on('child_changed',apply);base.on('child_removed',snap=>{delete NET.remote[snap.key]});
+ await NET.selfRef.set(netPayload());NET.connected=true;NET.lastSend=0;
+ const st=$('#onlineWorldStatus');if(st){st.hidden=false;st.textContent='● '+(1+Object.keys(NET.remote).length)+' online'}
+}
+function tickNetwork(now){
+ if(gameMode!=='online'||!G||!NET.selfRef||NET.realm!==G.realm.id)return;
+ if(now-NET.lastSend>=100){NET.lastSend=now;NET.selfRef.update(netPayload()).catch(()=>{})}
+ const t=Date.now();for(const [uid,p] of Object.entries(NET.remote)){if(t-(p.seen||0)>PRESENCE_TTL_MS){delete NET.remote[uid];continue}p.x+=(p.tx-p.x)*.22;p.y+=(p.ty-p.y)*.22}
+ const st=$('#onlineWorldStatus');if(st)st.textContent='● '+(1+Object.keys(NET.remote).length)+' online';
+}
+async function persistOnlineContinent(id){if(gameMode!=='online'||!FB.user||!FB.db)return;try{await FB.db.collection('users').doc(FB.user.uid).set({currentContinent:id,lastLoginAt:serverTime()},{merge:true});if(FB.profile)FB.profile.currentContinent=id;S.currentContinent=id}catch(_){} }
+
 function serverTime(){return firebase.firestore.FieldValue.serverTimestamp()}
 function emailOK(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim())}
 function ageOnDate(iso){if(!iso)return -1;const d=new Date(iso+'T00:00:00');if(Number.isNaN(d.getTime()))return -1;const n=new Date();let a=n.getFullYear()-d.getFullYear();const m=n.getMonth()-d.getMonth();if(m<0||(m===0&&n.getDate()<d.getDate()))a--;return a}
@@ -623,7 +665,7 @@ async function routeOnlineUser(user,opts){
  const profile=opts.profile||await ensureProfile(user,opts.seed);FB.profile=profile;gameMode='online';
  if(profile.characterCreated&&profile.character&&profile.character.classId){S=prepareOnlineRuntime(profile);await closeModeSmooth();playDoors()}else{await closeModeSmooth();startOnlineCharacterCreation(profile)}
 }
-async function onlineLogout(){try{if(FB.auth)await FB.auth.signOut()}catch(_){}FB.user=null;FB.profile=null;gameMode='offline';S=offlineS;closeSheet();enterClass();$('#modeModal').classList.add('on')}
+async function onlineLogout(){stopRealmPresence();cleanupPresenceCounts();try{if(FB.auth)await FB.auth.signOut()}catch(_){}FB.user=null;FB.profile=null;gameMode='offline';S=offlineS;closeSheet();enterClass();$('#modeModal').classList.add('on')}
 
 /* ============ DATA ============ */
 const CLASSES={
@@ -979,12 +1021,12 @@ function buildMap(){const svg=$('#mapSvg');svg.classList.remove('deploying');
    if(R.id==='drakthar')inner+=`<path d="M${R.cx-40},${R.cy+30} q30,-60 60,-10 t50,-40" stroke="#ff7a2a" stroke-width="4" fill="none"/>`;
    if(R.id==='umbraxis')inner+=`<circle cx="${R.cx}" cy="${R.cy}" r="${R.r*.9}" fill="#8a5ad0" opacity=".16"/>`}
   const lx=R.id==='thalassara'?868:R.cx,ly=R.id==='thalassara'?492:R.cy;
-  h+=`<g class="land" data-id="${R.id}" tabindex="0" role="button" aria-label="Deploy to ${R.name}">${inner}<text x="${lx}" y="${ly}" text-anchor="middle" font-size="${R.id==='frostheim'||R.id==='umbraxis'?19:22}">${R.name}</text><text class="sm" x="${lx}" y="${ly+20}" text-anchor="middle">${best?'Best '+fmtT(best.time):R.sub.split(' & ')[0]}</text></g>`}
+  h+=`<g class="land" data-id="${R.id}" tabindex="0" role="button" aria-label="Deploy to ${R.name}">${inner}<text x="${lx}" y="${ly}" text-anchor="middle" font-size="${R.id==='frostheim'||R.id==='umbraxis'?19:22}">${R.name}</text><text class="sm" x="${lx}" y="${ly+20}" text-anchor="middle">${gameMode==='online'?R.sub.split(' & ')[0]:(best?'Best '+fmtT(best.time):R.sub.split(' & ')[0])}</text><text class="sm pcount" x="${lx}" y="${ly+38}" text-anchor="middle" style="display:${gameMode==='online'?'block':'none'}">${NET.counts[R.id]||0} online</text></g>`}
  h+=mapOverlay();
  h+=`<g id="orbG" opacity="0"><circle r="26" fill="#fff0b0" filter="url(#glow)"/><circle r="9" fill="#fffbe6"/></g><circle id="flashC" cx="500" cy="320" r="0" fill="#fff" opacity="0"/>`;
  svg.innerHTML=h;
  $$('#mapSvg .lore').forEach(g=>{const go=()=>{if(!deploying)openLore(g.dataset.lore)};g.onclick=go;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}};g.onmouseenter=()=>{$('#mapCap').innerHTML='<b>'+LORE[g.dataset.lore].n+'</b>Click to read its legend.'}});
- $$('#mapSvg .land').forEach(g=>{const R=REALM_BY_ID[g.dataset.id];const info=()=>{$('#mapCap').innerHTML=`<b>${R.name} · ${R.sub}</b>${R.desc}`};g.onmouseenter=info;g.onfocus=info;g.onclick=()=>deploy(R);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();deploy(R)}}})}
+ $$('#mapSvg .land').forEach(g=>{const R=REALM_BY_ID[g.dataset.id];const info=()=>{$('#mapCap').innerHTML=`<b>${R.name} · ${R.sub}</b>${R.desc}${gameMode==='online'?`<br><strong>${NET.counts[R.id]||0} player${(NET.counts[R.id]||0)===1?'':'s'} online</strong>`:''}`};g.onmouseenter=info;g.onfocus=info;g.onclick=()=>deploy(R);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();deploy(R)}}})}
 const LORE={
  kraken:{n:'The Kraken',age:'About 3,000 years',by:'The Tidecallers of Thalassara',t:[
   'When storms first began swallowing the pearl fleets of Thalassara, the Tidecallers struck a bargain with the deep. One sliver of the ocean’s hunger would be bound into flesh and set to drown any ship that carried war to the islands. They named it the Kraken and fed it once every year.',
@@ -1011,9 +1053,9 @@ function closeLore(){$('#loreModal').classList.remove('on')}
 $('#loreModal').addEventListener('click',e=>{if(e.target.id==='loreModal')closeLore()});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#loreModal').classList.contains('on')){e.stopPropagation();closeLore()}},true);
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function enterMap(){deploying=false;buildMap();$('#mapCap').textContent='Mythara, the Known World. Select a continent to send your light there.';show('sMap');
+function enterMap(){deploying=false;if(gameMode==='online')watchPresenceCounts();buildMap();$('#mapCap').textContent=gameMode==='online'?'Select a continent. Live player counts update automatically.':'Mythara, the Known World. Select a continent to send your light there.';show('sMap');
  const mb=$('.mapbox');if(mb.scrollWidth>mb.clientWidth+4){mb.scrollLeft=(mb.scrollWidth-mb.clientWidth)/2;$('#mapCap').textContent='Mythara, the Known World. Swipe sideways to look around, then tap a continent.'}}
-$('#mapBack').onclick=()=>{sfx('click');if(!deploying)enterHub()};
+$('#mapBack').onclick=()=>{sfx('click');if(!deploying){if(gameMode==='online')cleanupPresenceCounts();enterHub()}};
 function deploy(R){if(deploying)return;deploying=true;sfx('click');const svg=$('#mapSvg');
  {const mb=$('.mapbox');if(mb.scrollWidth>mb.clientWidth+4){const tx=(R.id==='thalassara'?848:R.cx)/1000*svg.getBoundingClientRect().width;mb.scrollTo({left:tx-mb.clientWidth/2,behavior:'smooth'})}}svg.classList.add('deploying');$(`#mapSvg .land[data-id="${R.id}"]`).classList.add('target');
  $('#mapCap').innerHTML=`<b>${R.name}</b>Your light descends…`;
@@ -1119,6 +1161,24 @@ function drawProj(g,p){g.save();g.translate(p.x,p.y);const a=Math.atan2(p.vy,p.v
  else{g.shadowColor='#bfeaff';g.shadowBlur=8;g.fillStyle='#e6f6ff';g.beginPath();g.moveTo(-6,-2);g.lineTo(9,0);g.lineTo(-6,2);g.closePath();g.fill();g.fillStyle='#2fb5a8';g.fillRect(-9,-1.5,4,3)}
  g.restore()}
 
+/* online safe-zone town */
+const TOWN={cx:1100,cy:1100,hw:330,hh:265,wall:28,gate:62};
+function insideSafeTown(x,y,pad){pad=pad||0;return Math.abs(x-TOWN.cx)<TOWN.hw-pad&&Math.abs(y-TOWN.cy)<TOWN.hh-pad}
+function inTownWall(x,y){const dx=Math.abs(x-TOWN.cx),dy=Math.abs(y-TOWN.cy),vWall=dx>TOWN.hw-TOWN.wall&&dx<TOWN.hw+TOWN.wall&&dy<TOWN.hh+TOWN.wall&&Math.abs(y-TOWN.cy)>TOWN.gate,hWall=dy>TOWN.hh-TOWN.wall&&dy<TOWN.hh+TOWN.wall&&dx<TOWN.hw+TOWN.wall&&Math.abs(x-TOWN.cx)>TOWN.gate;return vWall||hWall}
+function resolveTownMove(x,y,nx,ny){if(gameMode!=='online')return[nx,ny];if(inTownWall(nx,ny))return[x,y];return[nx,ny]}
+function drawSafeTown(g,R){
+ const {cx,cy,hw,hh,wall,gate}=TOWN,stone=R.id==='dunemara'?'#9b7446':R.id==='frostheim'?'#93a8b7':R.id==='drakthar'?'#51444b':'#6c6871',roof=R.id==='drakthar'?'#6f2a20':R.id==='frostheim'?'#516c82':'#5a3131';
+ g.save();g.fillStyle='rgba(0,0,0,.18)';g.fillRect(cx-hw,cy-hh,hw*2,hh*2);g.fillStyle=stone;
+ g.fillRect(cx-hw-wall,cy-hh-wall,hw+wall-gate,wall);g.fillRect(cx+gate,cy-hh-wall,hw+wall-gate,wall);
+ g.fillRect(cx-hw-wall,cy+hh,hw+wall-gate,wall);g.fillRect(cx+gate,cy+hh,hw+wall-gate,wall);
+ g.fillRect(cx-hw-wall,cy-hh,wall,hh-gate);g.fillRect(cx-hw-wall,cy+gate,wall,hh-gate);
+ g.fillRect(cx+hw,cy-hh,wall,hh-gate);g.fillRect(cx+hw,cy+gate,wall,hh-gate);
+ g.strokeStyle='#d5b76b';g.lineWidth=4;[[cx,cy-hh-wall/2],[cx,cy+hh+wall/2],[cx-hw-wall/2,cy],[cx+hw+wall/2,cy]].forEach(([x,y],i)=>{g.beginPath();if(i<2){g.moveTo(x-gate,y);g.lineTo(x+gate,y)}else{g.moveTo(x,y-gate);g.lineTo(x,y+gate)}g.stroke()});
+ const buildings=[[-185,-120,120,78,'Town Hall'],[20,-132,112,70,'Library'],[155,-112,105,72,'Blacksmith'],[-175,80,104,68,'General Store'],[-25,92,112,70,'Equipment'],[150,82,98,64,'Inn']];
+ g.textAlign='center';g.font='700 15px Alegreya Sans, sans-serif';for(const [ox,oy,w,h,n] of buildings){const x=cx+ox,y=cy+oy;g.fillStyle='#d0bd91';g.fillRect(x-w/2,y-h/2,w,h);g.fillStyle=roof;g.beginPath();g.moveTo(x-w*.6,y-h/2);g.lineTo(x,y-h*.9);g.lineTo(x+w*.6,y-h/2);g.closePath();g.fill();g.fillStyle='#2b1a12';g.fillRect(x-9,y+h/2-26,18,26);g.fillStyle='#fff0c8';g.fillText(n,x,y+h/2+18)}
+ g.fillStyle='#e3b550';g.font='900 22px Cinzel,serif';g.fillText(R.name+' Safe Zone',cx,cy-5);g.restore();
+}
+
 /* world */
 const WORLD=2200;
 function buildWorld(R){const c=document.createElement('canvas');c.width=c.height=WORLD;const g=c.getContext('2d'),r=rng(R.seed*977+3),W=WORLD;
@@ -1156,7 +1216,7 @@ function buildWorld(R){const c=document.createElement('canvas');c.width=c.height
   for(let i=0;i<90;i++){const x=r()*W,y=r()*W;if(!clear(x,y,130))continue;D(y,()=>{g.fillStyle='#4a4358';rrect(g,x-8,y-26,16,26,7);g.fill();g.fillStyle='#6a6278';g.fillRect(x-1.5,y-20,3,12);g.fillRect(x-5,y-16,10,3)})}
   for(let i=0;i<24;i++){const x=r()*W,y=r()*W;D(y,()=>{g.save();g.shadowColor='#a060ff';g.shadowBlur=14;g.fillStyle='#8a4ae0';g.beginPath();g.moveTo(x-6,y);g.lineTo(x,y-30);g.lineTo(x+6,y);g.fill();g.restore()})}
   for(let i=0;i<60;i++){const x=r()*W,y=r()*W,rad=80+r()*140,gr=g.createRadialGradient(x,y,0,x,y,rad);gr.addColorStop(0,'rgba(10,4,18,.55)');gr.addColorStop(1,'rgba(10,4,18,0)');g.fillStyle=gr;g.fillRect(x-rad,y-rad,rad*2,rad*2)}}
- dec.sort((a,b)=>a[0]-b[0]);for(const d of dec)d[1]();
+ dec.sort((a,b)=>a[0]-b[0]);for(const d of dec)d[1]();if(gameMode==='online')drawSafeTown(g,R);
  return c}
 
 /* ambient particles (screen space) */
@@ -1189,10 +1249,11 @@ let toastT=0,bannerT=0;
 function toast(m,ms){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms||2600)}
 function banner(m,ms){const t=$('#banner');t.textContent=m;t.classList.add('on');clearTimeout(bannerT);bannerT=setTimeout(()=>t.classList.remove('on'),ms||2400)}
 
-function startRun(R){const h=S.hero,C=CLASSES[h.cls];
- if(!worldCache[R.id])worldCache[R.id]=buildWorld(R);
+async function startRun(R){const h=S.hero,C=CLASSES[h.cls];
+ if(gameMode==='online'){try{await startRealmPresence(R);persistOnlineContinent(R.id)}catch(err){deploying=false;alert(authMessage(err));enterMap();return}}
+ const worldKey=gameMode+':'+R.id;if(!worldCache[worldKey])worldCache[worldKey]=buildWorld(R);
  const GA=equippedA(),maxhp=Math.round(C.hp*(1+.1*S.up.hp)+GA.h);
- G={state:'wake',realm:R,cls:h.cls,world:worldCache[R.id],amb:makeAmbient(),t:0,wt:0,
+ G={state:'wake',realm:R,cls:h.cls,world:worldCache[worldKey],amb:makeAmbient(),t:0,wt:0,
   hero:{x:WORLD/2,y:WORLD/2,hp:maxhp,maxhp,spd:C.spd*(1+.04*S.up.spd)*(1+GA.s/100),armor:C.armor+GA.a,face:1,aim:0,moving:false,inv:0,lvl:1,xp:0,next:6,regen:0,mag:70*(1+.2*S.up.mag),atkT:1,fire:0,r:10},
   atk:Object.assign({},C.atk),m:{dmg:1+.1*S.up.dmg,cd:1,area:1,gold:1+.1*S.up.gold,crit:0},
   enemies:[],projs:[],fx:[],drops:[],texts:[],later:[],npcs:[],quests:[],upg:{},pendingLv:0,
@@ -1210,7 +1271,7 @@ function mkQuest(i,R,x,y){
  if(i===1){const goal=5+Math.floor(Math.random()*3);return{type:'collect',goal,prog:0,title:`Gather ${goal} ${R.mat}`,desc:`Collect ${goal} ${R.mat} dropped by monsters. They glow when they fall.`,gold:90,xp:12}}
  const a=Math.random()*TAU,d=700+Math.random()*200;return{type:'scout',goal:1,prog:0,mx:clamp(x+Math.cos(a)*d,150,WORLD-150),my:clamp(y+Math.sin(a)*d,150,WORLD-150),title:'Scout the marked spot',desc:'Travel to the glowing marker on your map, then return.',gold:110,xp:15}}
 function spawnNPCs(){const R=G.realm,base=Math.random()*TAU;
- R.npcs.forEach((n,i)=>{const a=base+i*TAU/3+(Math.random()-.5)*.5,d=360+Math.random()*240,x=clamp(WORLD/2+Math.cos(a)*d,140,WORLD-140),y=clamp(WORLD/2+Math.sin(a)*d,140,WORLD-140);
+ R.npcs.forEach((n,i)=>{let x,y;if(gameMode==='online'){const pos=[[-235,5],[0,-45],[225,10]][i]||[0,0];x=TOWN.cx+pos[0];y=TOWN.cy+pos[1]}else{const a=base+i*TAU/3+(Math.random()-.5)*.5,d=360+Math.random()*240;x=clamp(WORLD/2+Math.cos(a)*d,140,WORLD-140);y=clamp(WORLD/2+Math.sin(a)*d,140,WORLD-140)}
   G.npcs.push({name:n[0],role:n[1],line:n[2],col:n[3],x,y,ph:Math.random()*6,q:mkQuest(i,R,x,y),qs:'available'})})}
 
 /* quests + dialog */
@@ -1294,7 +1355,7 @@ function explode(x,y,dmg){const R=G.atk.aoe*G.m.area;G.fx.push({t:'boom',x,y,r:R
 function spawnEnemy(boss,ring){const R=G.realm,h=G.hero,t=G.t;let def;
  if(boss)def=[R.boss,'brute',R.bossc];else{const avail=Math.min(R.en.length,1+Math.floor(t/70));const wts=R.en.slice(0,avail).map((_,i)=>i===avail-1&&avail>1?.8:1.2);let s=wts.reduce((a,b)=>a+b,0)*Math.random(),idx=0;for(;idx<avail-1;idx++){s-=wts[idx];if(s<=0)break}def=R.en[idx]}
  const b=ENEMY_BASE[def[1]],ang=Math.random()*TAU,dist=Math.max(view.w,view.h)/view.z*.62+rand(30,90);
- const x=clamp(h.x+Math.cos(ang)*dist,20,WORLD-20),y=clamp(h.y+Math.sin(ang)*dist,20,WORLD-20);
+ let x=clamp(h.x+Math.cos(ang)*dist,20,WORLD-20),y=clamp(h.y+Math.sin(ang)*dist,20,WORLD-20);if(gameMode==='online'&&insideSafeTown(x,y,-60)){const a2=ang+Math.PI*.55;x=clamp(TOWN.cx+Math.cos(a2)*(TOWN.hw+180),20,WORLD-20);y=clamp(TOWN.cy+Math.sin(a2)*(TOWN.hh+180),20,WORLD-20)}
  const hp=boss?(520+t*5.5):b.hp*(1+t/70),sp=boss?52:b.spd*(1+Math.min(.35,t/900));
  G.enemies.push({x,y,k:def[1],c:def[2],name:def[0],r:boss?36:b.r,hp,maxhp:hp,spd:sp,dmg:boss?16*(1+t/300):b.dmg*(1+t/240),xp:b.xp,ph:Math.random()*6,flash:0,kx:0,ky:0,stun:0,face:1,boss:!!boss,dead:false})}
 
@@ -1352,8 +1413,8 @@ function die(){G.state='dead';sfx('die');G.deadT=0;setTimeout(()=>{if(!G||G.stat
   $('#resTitle').textContent='You have fallen';
   $('#resBody').innerHTML=`<div>Realm<strong>${R.name}</strong></div><div>Time survived<strong>${fmtT(G.t)}</strong></div><div>Monsters slain<strong>${G.kills}</strong></div><div>Level reached<strong>${G.hero.lvl}</strong></div><div>Quests done<strong>${G.qDone}</strong></div><div>Gold earned<strong>${G.gold}</strong></div>${b?`<div>Best time<strong>${fmtT(Math.max(b.time,G.t))}</strong></div>`:''}`;
   $('#resModal').classList.add('on')},1400)}
-function leaveRun(){if(!G)return;S.gold+=G.gold;S.runs++;const b=S.best[G.realm.id];if(!b||G.t>b.time)S.best[G.realm.id]={time:G.t,kills:G.kills,lvl:G.hero.lvl};save();quitRun();enterHub()}
-function quitRun(){G=null;$$('#sGame .modal').forEach(m=>m.classList.remove('on'));$('#lids').classList.remove('on','go');cv.classList.remove('wake');joy.id=null;$('#stick').style.display='none'}
+function leaveRun(){if(!G)return;if(gameMode==='online')stopRealmPresence();S.gold+=G.gold;S.runs++;const b=S.best[G.realm.id];if(!b||G.t>b.time)S.best[G.realm.id]={time:G.t,kills:G.kills,lvl:G.hero.lvl};save();quitRun();enterHub()}
+function quitRun(){if(gameMode==='online')stopRealmPresence();G=null;$$('#sGame .modal').forEach(m=>m.classList.remove('on'));$('#lids').classList.remove('on','go');cv.classList.remove('wake');joy.id=null;$('#stick').style.display='none'}
 function camFollow(dt,snap){const c=G.cam,h=G.hero,vw=view.w/view.z,vh=view.h/view.z,k=snap?1:1-Math.exp(-dt*8);c.x+=(h.x-c.x)*k;c.y+=(h.y-c.y)*k;c.x=clamp(c.x,Math.min(vw/2,WORLD/2),Math.max(WORLD-vw/2,WORLD/2));c.y=clamp(c.y,Math.min(vh/2,WORLD/2),Math.max(WORLD-vh/2,WORLD/2))}
 function update(dt){
  if(G.state==='wake'){G.wt+=dt;if(G.wt>=3.5){G.state='play';banner(G.realm.name.toUpperCase(),2800);G.hero.inv=1.2;toast(G.realm.sub,3200)}camFollow(dt,true);return}
@@ -1362,20 +1423,20 @@ function update(dt){
  G.t+=dt;const h=G.hero,a=G.atk,m=G.m;
  let ix=0,iy=0;if(keys.KeyA||keys.ArrowLeft)ix--;if(keys.KeyD||keys.ArrowRight)ix++;if(keys.KeyW||keys.ArrowUp)iy--;if(keys.KeyS||keys.ArrowDown)iy++;
  if(joy.id!==null){ix+=joy.dx;iy+=joy.dy}const il=Math.hypot(ix,iy);if(il>1){ix/=il;iy/=il}
- h.moving=il>.12;if(h.moving){h.x=clamp(h.x+ix*h.spd*dt,24,WORLD-24);h.y=clamp(h.y+iy*h.spd*dt,24,WORLD-24);if(h.fire<=0&&Math.abs(ix)>.08)h.face=ix>0?1:-1}
+ h.moving=il>.12;if(h.moving){let nx=clamp(h.x+ix*h.spd*dt,24,WORLD-24),ny=clamp(h.y+iy*h.spd*dt,24,WORLD-24);[nx,ny]=resolveTownMove(h.x,h.y,nx,ny);h.x=nx;h.y=ny;if(h.fire<=0&&Math.abs(ix)>.08)h.face=ix>0?1:-1}
  h.inv-=dt;h.fire-=dt;if(h.regen>0)h.hp=Math.min(h.maxhp,h.hp+h.regen*dt);tickBuffs(dt);
  specialTick(dt);h.atkT-=dt;if(h.atkT<=0){h.atkT=fireWeapon()?a.cd*m.cd*(CH.nocd?.12:1):.08}
  for(let i=G.later.length-1;i>=0;i--){const l=G.later[i];l.t-=dt;if(l.t<=0){G.later.splice(i,1);l.fn()}}
  /* spawning */
  const rate=Math.min(9,1.2+G.t/38);G.spawnAcc+=dt*rate;while(G.spawnAcc>=1){G.spawnAcc--;if(G.enemies.length<170)spawnEnemy(false)}
  if(G.t>=G.nextBoss){G.nextBoss+=180;spawnEnemy(true);banner('Boss: '+G.realm.boss,3000);sfx('boss')}
- if(G.t>=G.swarmT){G.swarmT+=75;const R=G.realm,kind=R.en.find(e=>e[1]==='bat')||R.en[0];banner('A swarm approaches',2200);for(let i=0;i<22;i++){const an=i/22*TAU,b=ENEMY_BASE[kind[1]];const hp=b.hp*(1+G.t/70);G.enemies.push({x:clamp(h.x+Math.cos(an)*520,20,WORLD-20),y:clamp(h.y+Math.sin(an)*520,20,WORLD-20),k:kind[1],c:kind[2],name:kind[0],r:b.r,hp,maxhp:hp,spd:b.spd*1.15,dmg:b.dmg*(1+G.t/240),xp:b.xp,ph:Math.random()*6,flash:0,kx:0,ky:0,stun:0,face:1,boss:false,dead:false})}}
+ if(G.t>=G.swarmT){G.swarmT+=75;const R=G.realm,kind=R.en.find(e=>e[1]==='bat')||R.en[0];banner('A swarm approaches',2200);for(let i=0;i<22;i++){const an=i/22*TAU,b=ENEMY_BASE[kind[1]];const hp=b.hp*(1+G.t/70);let sx=clamp(h.x+Math.cos(an)*520,20,WORLD-20),sy=clamp(h.y+Math.sin(an)*520,20,WORLD-20);if(gameMode==='online'&&insideSafeTown(sx,sy,-60)){sx=clamp(TOWN.cx+Math.cos(an)*(TOWN.hw+200),20,WORLD-20);sy=clamp(TOWN.cy+Math.sin(an)*(TOWN.hh+200),20,WORLD-20)}G.enemies.push({x:sx,y:sy,k:kind[1],c:kind[2],name:kind[0],r:b.r,hp,maxhp:hp,spd:b.spd*1.15,dmg:b.dmg*(1+G.t/240),xp:b.xp,ph:Math.random()*6,flash:0,kx:0,ky:0,stun:0,face:1,boss:false,dead:false})}}
  /* enemies */
  const E=G.enemies;
  for(const e of E){if(e.dead)continue;e.flash-=dt;e.stun-=dt;let dx=h.x-e.x,dy=h.y-e.y,d=Math.hypot(dx,dy)||1;
   if(d>1500){const an=Math.random()*TAU;e.x=clamp(h.x+Math.cos(an)*600,20,WORLD-20);e.y=clamp(h.y+Math.sin(an)*600,20,WORLD-20);continue}
   let sp=e.spd*(e.stun>0?.15:1),mx=dx/d*sp,my=dy/d*sp;if(e.k==='bat'){const w=Math.sin(G.t*5+e.ph)*.8;mx+=-dy/d*sp*w*.6;my+=dx/d*sp*w*.6}
-  e.x+=(mx+e.kx)*dt;e.y+=(my+e.ky)*dt;const kd=Math.exp(-dt*8);e.kx*=kd;e.ky*=kd;e.face=dx>0?1:-1;
+  {const nx=e.x+(mx+e.kx)*dt,ny=e.y+(my+e.ky)*dt;if(!(gameMode==='online'&&insideSafeTown(nx,ny,-10))){e.x=nx;e.y=ny}}const kd=Math.exp(-dt*8);e.kx*=kd;e.ky*=kd;e.face=dx>0?1:-1;
   if(d<e.r+h.r*.9&&h.inv<=0){const dm=Math.max(1,Math.round(e.dmg-h.armor));if(!CH.god)h.hp-=dm;h.inv=.55;sfx('hurt');if(S.set.shake)G.shake=.25;dmgNum(h.x,h.y-44,'-'+dm,'#ff7a84',true);if(h.hp<=0){if(!tryRevive()){h.hp=0;die();return}}}}
  for(let i=0;i<E.length;i++){const a1=E[i];if(a1.dead)continue;for(let j=i+1;j<E.length;j++){const b1=E[j];if(b1.dead)continue;const dx=b1.x-a1.x,dy=b1.y-a1.y,mn=(a1.r+b1.r)*.75;if(dx>mn||dx<-mn||dy>mn||dy<-mn)continue;const d=Math.hypot(dx,dy)||.01;if(d<mn){const p=(mn-d)/d*.5*(a1.boss||b1.boss?.3:1);a1.x-=dx*p;a1.y-=dy*p;b1.x+=dx*p;b1.y+=dy*p}}}
  G.enemies=E.filter(e=>!e.dead);
@@ -1416,6 +1477,7 @@ function render(t){const g=ctx,z=view.z,dpr=view.dpr,vw=view.w/z,vh=view.h/z,c=G
  const list=[];
  for(const n of G.npcs)if(inV(n.x,n.y,90))list.push([n.y,()=>drawNPC(g,n,t,n.qs==='available'?'available':n.qs==='ready'?'ready':n.qs==='active'?'active':null)]);
  for(const e of G.enemies)if(inV(e.x,e.y,90))list.push([e.y,()=>drawEnemy(g,e,t)]);
+ if(gameMode==='online')for(const p of Object.values(NET.remote))if(inV(p.x,p.y,100))list.push([p.y,()=>{drawHero(g,p.x,p.y,1.05,p.classId&&CLASSES[p.classId]?p.classId:'archer',p.gender==='f'?'f':'m',{face:p.face||1,t,moving:!!p.moving});g.save();g.textAlign='center';g.font='800 13px Alegreya Sans,sans-serif';const nm=String(p.name||'Adventurer');const tw=g.measureText(nm).width;g.fillStyle='rgba(5,3,9,.72)';g.fillRect(p.x-tw/2-6,p.y-68,tw+12,18);g.fillStyle='#7fd0ee';g.fillText(nm,p.x,p.y-54);g.restore()}]);
  list.push([h.y,()=>{let rot=0,al=null,fire=h.fire>0;
    if(G.state==='wake'){const w=G.wt;rot=w<1.7?-1.52:w<3?-1.52*(1-(w-1.7)/1.3)**1:0;if(w>=3)rot=0}
    if(G.state==='play'&&h.inv>0&&Math.floor(h.inv*14)%2)al=.45;
@@ -1440,17 +1502,18 @@ function drawMinimap(g){const s=96*UI,x=view.w-s-24*UI,y=150*UI,k=s/WORLD,h=G.he
  for(const n of G.npcs){const px=x+n.x*k,py=y+n.y*k;if(n.qs==='active'&&n.q.type==='scout'){g.fillStyle='#7fd0ee';g.fillRect(x+n.q.mx*k-2,y+n.q.my*k-2,5,5)}
   if(n.qs==='done')continue;g.fillStyle=n.qs==='ready'?'#9fe58a':n.qs==='active'?'#aaa':'#ffd24a';g.beginPath();g.arc(px,py,3,0,TAU);g.fill()}
  for(const e of G.enemies)if(e.boss){g.fillStyle='#ff4a3a';g.beginPath();g.arc(x+e.x*k,y+e.y*k,3.5,0,TAU);g.fill()}
+ if(gameMode==='online'){g.fillStyle='#7fd0ee';for(const p of Object.values(NET.remote)){g.beginPath();g.arc(x+p.x*k,y+p.y*k,2.4,0,TAU);g.fill()}}
  g.fillStyle='#fff';g.beginPath();g.arc(x+h.x*k,y+h.y*k,2.6,0,TAU);g.fill();g.restore()}
 
 /* loop */
-function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-lastT)/1000||0);lastT=now;if(!G||cur!=='sGame')return;if(!view.w)resize();update(dt);if(G)render(now/1000)}
+function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-lastT)/1000||0);lastT=now;if(!G||cur!=='sGame')return;if(!view.w)resize();update(dt);if(G){tickNetwork(now);render(now/1000)}}
 
 /* input */
 function setKey(e,v){const c=e.code;if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(c)){keys[c]=v;if(cur==='sGame')e.preventDefault()}}
 window.addEventListener('keydown',e=>{setKey(e,true);if(!G||cur!=='sGame')return;if(e.code==='Escape'||e.code==='KeyP'){if(G.state==='play')pauseGame();else if(G.state==='pause')resumeGame();else if(G.state==='bag')closeBag()}else if(e.code==='KeyQ')usePotion();else if(e.code==='KeyB'){if(G.state==='play')openBag();else if(G.state==='bag')closeBag()}else if(e.code==='KeyE'&&G.state==='play'&&G.near)tryInteract(G.near)});
 window.addEventListener('keyup',e=>setKey(e,false));
 window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(G&&G.state==='play')pauseGame()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){save();if(G&&G.state==='play')pauseGame()}});window.addEventListener('beforeunload',()=>{if(gameMode==='online'&&NET.selfRef)try{NET.selfRef.remove()}catch(_){}});
 function clickWorld(e){if(!G||G.state!=='play')return;const r=cv.getBoundingClientRect(),z=view.z,vw=view.w/z,vh=view.h/z,wx=(e.clientX-r.left)/z+G.cam.x-vw/2,wy=(e.clientY-r.top)/z+G.cam.y-vh/2;
  let best=null,bd=60;for(const n of G.npcs){const d=Math.hypot(n.x-wx,n.y-22-wy);if(d<bd){bd=d;best=n}}if(best)tryInteract(best)}
 cv.addEventListener('pointerdown',e=>{ac();if(!G)return;if(e.pointerType==='mouse'){if(e.button===0)clickWorld(e);return}
